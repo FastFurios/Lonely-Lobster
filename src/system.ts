@@ -81,7 +81,18 @@ function workingCapitalAt(t:Timestamp): Value {
         .map(wi => wi.accumulatedEffort(t))
         .reduce((a, b) => a + b, 0)
 
-    //console.log("time=" + clock.time + ": system.workingCapitalAt(" + t + ") = " + x)            
+/*
+    console.log("  time=" + clock.time + ": system.workingCapitalAt(" + t + ") = " + x)            
+
+    lonelyLobsterSystem
+    .valueChains
+        .flatMap(vc => vc.processSteps
+            .flatMap(ps => ps.workItemBasket))
+    .concat(outputBasket.workItemBasket)
+    .filter(wi => wi.wasInValueChainAt(t))
+    .forEach(wi => console.log("      wi= " + wi.id + ": accumEffort= " + wi.accumulatedEffort(t)))
+*/
+
     return x
 }
 
@@ -178,6 +189,7 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
         for (let t = fromTime; t <= toTime; t++) {
             accumulatedWorkingCapital += workingCapitalAt(t)
         }
+        console.log("t=" + clock.time + ": system.avgWorkingCapital(fromTime=" + fromTime +", toTime=" + toTime +"): accumulatedWorkingCapital= " + accumulatedWorkingCapital + ", interval= " + interval)
         return accumulatedWorkingCapital / interval
     }
 
@@ -227,7 +239,7 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
 }
 
 function obStatsAsString(rollingWindowSize: TimeUnit = clock.time): string {
-//  return"system.obStatsAsString() - left empty"
+  return"system.obStatsAsString() - left empty"
     const stats: I_WorkItemStatistics = systemStatistics(lonelyLobsterSystem, clock.time - rollingWindowSize, clock.time).outputBasket.flow
     return `    ${stats.cycleTime.min?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.avg?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.max?.toFixed(1).padStart(4, ' ')}     ${stats.throughput.itemsPerTimeUnit?.toFixed(1).padStart(4, ' ')}   ${stats.throughput.valuePerTimeUnit?.toFixed(1).padStart(4, ' ')}`
 //  return "- tbd: intentionally left empty -"

@@ -107,7 +107,8 @@ switch(process.argv[InputArgs.Mode]) {
         
         app.get('/statistics', (req, res) => {
             //console.log("_main: app.post \"statistics\" : received get request. fromTime= " + (clock.time - 10 < 0 ? 0 : clock.time - 10) + " > toTime= " + clock.time)
-            //console.log("_main: app.post \"statistics\" : received get request.---------------------------------------")
+            console.log("_main: app.post \"statistics\" : received get request. --------------------------------") 
+            console.log("       app.post \"statistics\" fromTime= " + req.query.fromTime + ", toTime= " + req.query.toTime)
             const interval = 10000
             res.send(systemStatistics(lonelyLobsterSystem, clock.time <= interval ? 1 : clock.time - interval, clock.time))  // events taken from fromTime including to toTime including
             //console.log("_main: app.post \"statistics\" : sent response")

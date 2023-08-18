@@ -181,14 +181,15 @@ export class WorkItem {
     }
 
     public wasInValueChainAt(t: Timestamp): boolean {
-        return this.log[0].timestamp <= t && this.timeOfLastLogEntry() >= t
+//      console.log("     wi= " + this.id + ": wasInValueChain?: " + (this.log[0].timestamp <= t && this.timeOfLastLogEntry() >= t) + "   this.log[0].timestamp= " + this.log[0].timestamp + ", this.timeOfLastLogEntry()= " + this.timeOfLastLogEntry())
+//      return this.log[0].timestamp <= t && ((this.currentProcessStep != outputBasket || (this.currentProcessStep == outputBasket && this.timeOfLastLogEntry() >= t)))
+        return this.log[0].timestamp <= t && !this.hasMovedToOutputBasketBetween(1, t)
     }
 
     public hasMovedToOutputBasketBetween(fromTime: Timestamp, toTime: Timestamp) {
         const lastLogEntry = this.log[this.log.length - 1]
-        return lastLogEntry.timestamp >= fromTime && lastLogEntry.timestamp <= toTime
+        return this.currentProcessStep == outputBasket && lastLogEntry.timestamp >= fromTime && lastLogEntry.timestamp <= toTime
     }
-
 
     public statisticsEventsHistory(fromTime: Timestamp = 1, toTime: Timestamp = clock.time): StatsEventForExitingAProcessStep[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
 //      console.log("workitem.statsEventsForFinishingAProcessSteps(fromTime: " + fromTime + ", toTime: " + toTime +") for wi = " + this.id)
