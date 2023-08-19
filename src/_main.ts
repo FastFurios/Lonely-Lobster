@@ -89,8 +89,8 @@ switch(process.argv[InputArgs.Mode]) {
 
         app.post('/initialize', (req, res) => {
 //              console.log("_main: app.post \"initialize\" : received request=")
-                console.log("_main: app.post \"initialize\" : #############################################################################################")
-//              console.log(req.body)
+//              console.log("_main: app.post \"initialize\" : #############################################################################################")
+//              console.log("       " + req.body.system_id)
                 lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
                 outputBasket.emptyBasket()
 
@@ -107,10 +107,12 @@ switch(process.argv[InputArgs.Mode]) {
         
         app.get('/statistics', (req, res) => {
             //console.log("_main: app.post \"statistics\" : received get request. fromTime= " + (clock.time - 10 < 0 ? 0 : clock.time - 10) + " > toTime= " + clock.time)
-            console.log("_main: app.post \"statistics\" : received get request. --------------------------------") 
-            console.log("       app.post \"statistics\" fromTime= " + req.query.fromTime + ", toTime= " + req.query.toTime)
-            const interval = 10000
-            res.send(systemStatistics(lonelyLobsterSystem, clock.time <= interval ? 1 : clock.time - interval, clock.time))  // events taken from fromTime including to toTime including
+            const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
+//          console.log("_main: app.post \"statistics\" : received get request: req.query.interval= " + req.query.interval + ", interval= " + interval)
+            res.send(systemStatistics(lonelyLobsterSystem, 
+                                      interval <= 0 ? 1 // stats from the very beginning on
+                                                    : clock.time <= interval ? 1 : clock.time - interval, // stats of the trailing time window of length "interval"
+                                      clock.time))
             //console.log("_main: app.post \"statistics\" : sent response")
         })
         

@@ -189,7 +189,7 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
         for (let t = fromTime; t <= toTime; t++) {
             accumulatedWorkingCapital += workingCapitalAt(t)
         }
-        console.log("t=" + clock.time + ": system.avgWorkingCapital(fromTime=" + fromTime +", toTime=" + toTime +"): accumulatedWorkingCapital= " + accumulatedWorkingCapital + ", interval= " + interval)
+        //console.log("t=" + clock.time + ": system.avgWorkingCapital(fromTime=" + fromTime +", toTime=" + toTime +"): accumulatedWorkingCapital= " + accumulatedWorkingCapital + ", interval= " + interval)
         return accumulatedWorkingCapital / interval
     }
 
