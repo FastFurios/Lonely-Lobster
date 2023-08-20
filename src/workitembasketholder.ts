@@ -7,6 +7,7 @@ import { Timestamp } from './clock.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
 import { I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
+import { log } from 'console'
 
 export type Effort    = number // measured in Worker Time Units
 
@@ -112,7 +113,8 @@ export class OutputBasket extends WorkItemBasketHolder {
             const minCycleTime          = normEffort    
             const elapsedTime           = wi.elapsedTime(ElapsedTimeMode.firstToLastEntryFound)
             const netValueAdd           = wi.log[0].valueChain.totalValueAdd
-            const discountedValueAdd    = wi.log[0].valueChain.value_degration!(netValueAdd, elapsedTime - minCycleTime)
+            const discountedValueAdd    = wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime)
+            console.log("t= " + clock.time + ", wi= " + wi.id + ", reached output basket at= " + /* wi.log[log.length-1].timestamp + */ "disc value-add= " + wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime))
             invWisStats.push(
                 {
                     numWis:             1,

@@ -33,8 +33,8 @@ export class ValueChain {
     constructor(public id:              ValueChainId,
                 public totalValueAdd:   Value,
                 public injectionThroughput?: number,
-                public value_degration?: TimeValuationFct) {
-        if (!value_degration) value_degration = net 
+                public valueDegration: TimeValuationFct = net) {
+//      if (!valueDegration) valueDegration = net 
     }
 
     //private appendProcessStep(ps: ProcessStep): void {
