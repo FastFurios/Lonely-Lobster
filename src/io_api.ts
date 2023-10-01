@@ -9,7 +9,7 @@ import { WorkOrder, WiExtInfoElem } from './workitem.js'
 import { I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_OutputBasket, I_WorkerState } from './io_api_definitions.js'
 import { WorkItem, wiTags } from './workitem.js';
 import { ProcessStep, OutputBasket } from './workitembasketholder.js';
-import { clock, outputBasket } from './_main.js'
+//23.9. import { clock, outputBasket } from './_main.js'
 import { Worker } from './worker';
 
 //?? 3.7.23 type ValueChainId = string 
@@ -35,7 +35,7 @@ export function nextSystemState(sys: LonelyLobsterSystem, iterReq: I_IterationRe
         //    console.log("io_api//workOrderList/iterReq =")
         //    console.log(iterReq)
             return iterReq.newWorkOrders.flatMap(nwo => duplicate<WorkOrder>(
-                                                    { timestamp:    clock.time, // iterReq.time!, 
+                                                    { timestamp:    sys.clock.time, // iterReq.time!, 
                                                       valueChain:   sys.valueChains.find(vc => vc.id == nwo.valueChainId.trim())! },
                                                     nwo.numWorkOrders ))
     }
@@ -107,9 +107,9 @@ export function nextSystemState(sys: LonelyLobsterSystem, iterReq: I_IterationRe
 
       return {
         id:           sys.id,
-        time:         clock.time,
+        time:         sys.clock.time,
         valueChains:  sys.valueChains.map(vc => i_valueChain(vc)),
-        outputBasket: { workItems: outputBasket.workItemBasket.map(wi => i_endProduct(wi)) },
+        outputBasket: { workItems: sys.outputBasket.workItemBasket.map(wi => i_endProduct(wi)) },
         workersState: sys.workers.map(wo => i_workerState(wo))
       }
     }
@@ -118,9 +118,9 @@ export function nextSystemState(sys: LonelyLobsterSystem, iterReq: I_IterationRe
 //  console.log(iterReq)
 
     sys.doNextIteration(
-        clock.time, 
+        sys.clock.time, 
         workOrderList(sys, 
-                      { time:          clock.time,
+                      { time:          sys.clock.time,
                         newWorkOrders: iterReq.newWorkOrders } ))
 
 //    console.log("io.api: nextSystemState()")

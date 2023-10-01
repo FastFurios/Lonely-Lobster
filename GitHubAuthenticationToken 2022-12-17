@@ -7,11 +7,14 @@ git push https://github.com/FastFurios/Lonely-Lobster.git
 git push https://github.com/FastFurios/Angular-Book-Monkey.git
 git push https://github.com/FastFurios/Angular-Testbed.git
 
+git push https://github.com/FastFurios/Typescript-Playground.git
+
 
 http://localhost:4200/
 $ ng serve &
 
 $ node target/_main.js --api &
+$ node target/_main.js --batch config/LonelyLobster_00.json data/workorders_000.csv
 
 
 Sometimes also:

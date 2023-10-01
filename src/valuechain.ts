@@ -1,5 +1,6 @@
-import { outputBasket } from './_main.js'
+//import { outputBasket } from './_main.js'
 import { TimeUnit, Timestamp } from './clock.js'
+import { LonelyLobsterSystem } from './system.js'
 import { WorkItem } from './workitem.js'
 import { WorkItemBasketHolder, ProcessStep, Effort } from './workitembasketholder.js'
 
@@ -30,7 +31,8 @@ export function net(value: Value, time: TimeUnit): Value {
 export class ValueChain {
     public processSteps: ProcessStep[] = []
 
-    constructor(public id:              ValueChainId,
+    constructor(public sys:             LonelyLobsterSystem,
+                public id:              ValueChainId,
                 public totalValueAdd:   Value,
                 public injectionThroughput?: number,
                 public valueDegration: TimeValuationFct = net) {
@@ -42,13 +44,13 @@ export class ValueChain {
     //}    
 
     public createAndInjectNewWorkItem(): void { 
-        const wi = new WorkItem(this, this.processSteps[0])
+        const wi = new WorkItem(this.sys, this, this.processSteps[0])
         this.processSteps[0].addToBasket(wi)
     }
 
     private nextWorkItemBasketHolder(ps: ProcessStep): WorkItemBasketHolder {
         const psi = this.processSteps.indexOf(ps) 
-        return psi == this.processSteps.length - 1 ? outputBasket : this.processSteps[psi + 1]
+        return psi == this.processSteps.length - 1 ? this.sys.outputBasket : this.processSteps[psi + 1]
     }
 
     private moveWorkItemToNextWorkItemBasketHolder(wi: WorkItem): void {

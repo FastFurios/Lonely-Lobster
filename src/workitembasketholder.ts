@@ -2,8 +2,9 @@
 //    WORKITEM BASKET HOLDER
 //----------------------------------------------------------------------
 
-import { clock } from './_main.js'
+//import { clock } from './_main.js'
 import { Timestamp } from './clock.js'
+import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
 import { I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
@@ -20,8 +21,9 @@ export type Effort    = number // measured in Worker Time Units
 export abstract class WorkItemBasketHolder {
     public workItemBasket: WorkItem[] = []
 
-    constructor(public id: string, 
-                public barLen: number = 20) {}
+    constructor(public sys:     LonelyLobsterSystem,
+                public id:      string, 
+                public barLen:  number = 20) {}
 
     public addToBasket(workItem: WorkItem) { 
         this.workItemBasket.push(workItem) 
@@ -38,7 +40,7 @@ export abstract class WorkItemBasketHolder {
         return this.workItemBasket.map(wi => wi.accumulatedEffort(until)).reduce((ef1, ef2) => ef1 + ef2, 0 )
     }
  
-        public abstract stringified(): string
+    public abstract stringified(): string
 
     public stringifiedBar = (): string => { 
         const strOfBskLen = this.workItemBasket.length.toString()
@@ -60,11 +62,12 @@ export abstract class WorkItemBasketHolder {
 export class ProcessStep extends WorkItemBasketHolder  {
     public lastIterationFlowRate: number = 0
 
-    constructor(       id:            string,
+    constructor(public sys:           LonelyLobsterSystem,
+                       id:            string,
                 public valueChain:    ValueChain,
                 public normEffort:    Effort,
                        barLen:        number) {
-        super(id, barLen)
+        super(sys, id, barLen)
     }
 
     public removeFromBasket(workItem: WorkItem) { 
@@ -72,7 +75,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
         this.workItemBasket = this.workItemBasket.filter(wi => wi != workItem)  
     }
 
-    public stringified = () => `\tt=${clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.stringifyBasketItems()
+    public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.stringifyBasketItems()
 }
 
 
@@ -82,16 +85,17 @@ export class ProcessStep extends WorkItemBasketHolder  {
 //-- overall  OUTPUT BASKET (just one unique instance): here the total output of all value chains is collected over time
 
 export class OutputBasket extends WorkItemBasketHolder {
-    static numInstances = 0
-    constructor() { 
-        super("OutputBasket")
-        if (OutputBasket.numInstances > 0) throw new Error("Can have only one single OutputBasket!") 
-        OutputBasket.numInstances++
+//  static numInstances = 0
+    constructor(public sys: LonelyLobsterSystem) { 
+//      console.log("OutputBasket.constructor(...): numInstances = " + OutputBasket.numInstances)
+        super(sys, "OutputBasket")
+//      if (OutputBasket.numInstances > 0) throw new Error("Can have only one single OutputBasket!") 
+//      OutputBasket.numInstances++
     } 
 
-    public emptyBasket(): void {
-        this.workItemBasket = []
-    }
+//  public emptyBasket(): void {
+//      this.workItemBasket = []
+//  }
 
 
     private statsOfArrivedWorkitemsBetween(fromTime: Timestamp, toTime: Timestamp): I_EndProductStatistics {
@@ -114,7 +118,7 @@ export class OutputBasket extends WorkItemBasketHolder {
             const elapsedTime           = wi.elapsedTime(ElapsedTimeMode.firstToLastEntryFound)
             const netValueAdd           = wi.log[0].valueChain.totalValueAdd
             const discountedValueAdd    = wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime)
-            console.log("t= " + clock.time + ", wi= " + wi.id + ", reached output basket at= " + /* wi.log[log.length-1].timestamp + */ "disc value-add= " + wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime))
+//          console.log("t= " + this.sys.clock.time + ", wi= " + wi.id + ", reached output basket at= " + /* wi.log[log.length-1].timestamp + */ "disc value-add= " + wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime))
             invWisStats.push(
                 {
                     numWis:             1,
@@ -153,5 +157,5 @@ export class OutputBasket extends WorkItemBasketHolder {
         }
     }
 
-    public stringified  = () => `t=${clock.time} ${this.id}:\n` + this.stringifyBasketItems()
+    public stringified  = () => `t=${this.sys.clock.time} ${this.id}:\n` + this.stringifyBasketItems()
 }

@@ -5,7 +5,6 @@
 //                          Gerold Lindorfer, Dec 2022 ff.
 // ########################################################################################################
 
-import { Clock } from './clock.js'
 import { systemCreatedFromConfigJson, DebugShowOptions, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { nextSystemState, emptyIterationRequest } from './io_api.js'
@@ -15,26 +14,19 @@ import { LonelyLobsterSystem, systemStatistics } from './system.js'
 
 import express from 'express'
 
-// set debug defauls in case the io_connfig.json does not contain any debug properties
-const debugShowOptionsDefaults: DebugShowOptions = { 
-    clock:          false,
-    workerChoices:  false,
-    readFiles:      false  
-}
-export var debugShowOptions: DebugShowOptions = debugShowOptionsDefaults 
 
 
 // create a clock (it will be 'ticked' by the read rows of the workflow file)
-export const clock = new Clock(-1)
+//23.9. export const clock = new Clock(-1)
 
 // create the sink of all fully processed workitems
-export const outputBasket = new OutputBasket()
+//23.9. export const outputBasket = new OutputBasket()
 
 // create a generator for the id and a (non-unique) tag for each new workitem
-export const idGen = workItemIdGenerator()
-export const tagGen = wiTagGenerator(wiTags)
+//23.9.export const idGen = workItemIdGenerator()
+//23.9.export const tagGen = wiTagGenerator(wiTags)
 
-function manual(): void {
+function showManual(): void {
     console.log("Run it in one of 2 modes:")
     console.log("$ node target/_main.js --batch <system-config-file> <work-order-file>")
     console.log("$ node target/_main.js --api &")
@@ -49,7 +41,7 @@ enum InputArgs {
 
 export let lonelyLobsterSystem: LonelyLobsterSystem
 
-if(debugShowOptions.readFiles) console.log("argv[2]=" + process.argv[2] + ", " + "argv[3]=" + process.argv[3] + ", " + "argv[4]=" + process.argv[4] + "\n")
+console.log("argv[2]=" + process.argv[2] + ", " + "argv[3]=" + process.argv[3] + ", " + "argv[4]=" + process.argv[4] + "\n")
 
 switch(process.argv[InputArgs.Mode]) {
 
@@ -63,7 +55,7 @@ switch(process.argv[InputArgs.Mode]) {
         processWorkOrderFile(process.argv[InputArgs.WorkOrders], lonelyLobsterSystem)
 
         console.log("OutputBasket stats=")
-        console.log(outputBasket.flowStats)
+        console.log(lonelyLobsterSystem.outputBasket.flowStats)
 
         break;
     } 
@@ -89,19 +81,19 @@ switch(process.argv[InputArgs.Mode]) {
 
         app.post('/initialize', (req, res) => {
 //              console.log("_main: app.post \"initialize\" : received request=")
-//              console.log("_main: app.post \"initialize\" : #############################################################################################")
+                console.log("\n_main: app.post \"initialize\" : #############################################################################################")
 //              console.log("       " + req.body.system_id)
                 lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
-                outputBasket.emptyBasket()
+//              lonelyLobsterSystem.outputBasket.emptyBasket()
 
-                clock.setTo(0) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
+/* doggy */     lonelyLobsterSystem.clock.setTo(0) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
                 res.send(nextSystemState(lonelyLobsterSystem, emptyIterationRequest(lonelyLobsterSystem)))
             })
 
         app.post('/iterate', (req, res) => {
 //          console.log("_main: app.post \"iterate\" : received request=")
 //          console.log(req.body)
-            clock.tick()
+            lonelyLobsterSystem.clock.tick()
             res.send(nextSystemState(lonelyLobsterSystem, req.body))
         })
         
@@ -111,8 +103,8 @@ switch(process.argv[InputArgs.Mode]) {
 //          console.log("_main: app.post \"statistics\" : received get request: req.query.interval= " + req.query.interval + ", interval= " + interval)
             res.send(systemStatistics(lonelyLobsterSystem, 
                                       interval <= 0 ? 1 // stats from the very beginning on
-                                                    : clock.time <= interval ? 1 : clock.time - interval, // stats of the trailing time window of length "interval"
-                                      clock.time))
+                                                    : lonelyLobsterSystem.clock.time <= interval ? 1 : lonelyLobsterSystem.clock.time - interval, // stats of the trailing time window of length "interval"
+                                      lonelyLobsterSystem.clock.time))
             //console.log("_main: app.post \"statistics\" : sent response")
         })
         
@@ -123,6 +115,6 @@ switch(process.argv[InputArgs.Mode]) {
         break
     }
 
-    default: manual()
+    default: showManual()
 }
 

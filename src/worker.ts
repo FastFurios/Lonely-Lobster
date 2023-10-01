@@ -2,7 +2,6 @@
 //    WORKERS 
 //----------------------------------------------------------------------
 
-import { clock, debugShowOptions } from './_main.js'
 import { Timestamp } from './clock.js'
 import { topElemAfterSort, SortVector } from "./helpers.js"
 import { LogEntry, LogEntryType } from './logging.js'
@@ -27,8 +26,9 @@ export function selectNextWorkItemBySortVector(wis: WorkItem[], svs: SortVector[
 //----------------------------------------------------------------------
 
 class LogEntryWorker extends LogEntry {
-    constructor(public worker: Worker) {
-        super(LogEntryType.workerWorked)
+    constructor(public sys:     LonelyLobsterSystem,
+                public worker:  Worker) {
+        super(sys, LogEntryType.workerWorked)
     }
 
     public stringified = (): string => `${this.stringifiedLe()}, ${this.logEntryType}, wo=${this.worker.id}` 
@@ -74,10 +74,11 @@ export class Worker {
         utilization: 0
      }
 
-    constructor(public  id:                 WorkerName,
+    constructor(public  sys:                LonelyLobsterSystem,
+                public  id:                 WorkerName,
                 private sortVectorSequence: SortVector[]) {}
 
-    private logWorked(): void { this.log.push(new LogEntryWorker(this)) }
+    private logWorked(): void { this.log.push(new LogEntryWorker(this.sys, this)) }
 
     private  workItemsAtHand(asSet: AssignmentSet): WorkItem[] {
         const pss: ProcessStep[] = asSet.assignments.filter(as => as.worker.id == this.id).map(as => as.valueChainProcessStep.processStep)
@@ -87,27 +88,27 @@ export class Worker {
     private hasWorkedAt = (timestamp: Timestamp): boolean => this.log.filter(le => le.timestamp == timestamp).length > 0
 
     public work(asSet: AssignmentSet): void {
-        if (this.hasWorkedAt(clock.time)) return    // worker has already worked at current time
+        if (this.hasWorkedAt(this.sys.clock.time)) return    // worker has already worked at current time
 
         const workableWorkItemsAtHand: WorkItem[] = this.workItemsAtHand(asSet)
                                                     .filter(wi => !wi.finishedAtCurrentProcessStep())               // not yet in OutputBasket
-                                                    .filter(wi => !wi.hasBeenWorkedOnAtCurrentTime(clock.time))     // no one worked on it at current time
+                                                    .filter(wi => !wi.hasBeenWorkedOnAtCurrentTime(this.sys.clock.time))     // no one worked on it at current time
 
         if (workableWorkItemsAtHand.length == 0) return // no workable workitems at hand
 
-        if(debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
-        if(debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos.stringifiedDataLine()}`)) // ***
+        if(this.sys.debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
+        if(this.sys.debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos.stringifiedDataLine()}`)) // ***
 
         const wi: WorkItem = selectNextWorkItemBySortVector(workableWorkItemsAtHand, this.sortVectorSequence)
 
-        if(debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
+        if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
         //console.log("worker.worked wi= " + wi.id + "  worker= " + this.id )
         wi.logWorkedOn(this)
         this.logWorked()
     }
 
     public utilization(sys: LonelyLobsterSystem): void {
-        this.stats.utilization = this.log.length / (clock.time - clock.firstIteration) * 100 
+        this.stats.utilization = this.log.length / (this.sys.clock.time - this.sys.clock.firstIteration) * 100 
 //      console.log("Calculating utilization for " + this.id + " from elapsed time = " + (clock.time - clock.startTime + 1) + " and worklog.length= " + this.log.length)
         this.stats.assignments = sys.assignmentSet.assignments
                                 .filter(a => a.worker.id == this.id)

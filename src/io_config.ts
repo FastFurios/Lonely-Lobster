@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 import { readFileSync } from "fs"
-import { debugShowOptions } from "./_main.js"
 import { SortVector, SelectionCriterion } from "./helpers.js"
 import { LonelyLobsterSystem } from "./system.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
@@ -71,8 +70,17 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         }
     }
 
-    const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(psj.process_step_id, vc, psj.norm_effort, psj.bar_length)
-    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(vcj.value_chain_id, vcj.value_add, vcj.injection_throughput, valueDegrationFct(vcj.value_degration))
+    const debugShowOptions: DebugShowOptions  = {
+                                                    clock          : paj.debug_show_options == undefined ? false : paj.debug_show_options.clock,
+                                                    workerChoices  : paj.debug_show_options == undefined ? false : paj.debug_show_options.worker_choices,
+                                                    readFiles      : paj.debug_show_options == undefined ? false : paj.debug_show_options.read_files
+                                                }
+
+    console.log("systemCreatedFromConfigJson(...): sys = new LonelyLobsterSystem(systemId, debugShowOptions)")
+    const sys = new LonelyLobsterSystem(systemId, debugShowOptions)
+
+    const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.bar_length)
+    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, vcj.injection_throughput, valueDegrationFct(vcj.value_degration))
     const addProcStepsToValChain = (pssj: I_process_step[], vc: ValueChain) : void          => pssj.forEach(psj => vc.processSteps.push(newProcessStep(psj, vc))) 
     const filledValueChain       = (vcj:  I_value_chain)                    : ValueChain    => {
         const newVc: ValueChain = newEmptyValueChain(vcj)
@@ -80,6 +88,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         return newVc
     }
     const valueChains: ValueChain[] = paj.value_chains.map((vcj: I_value_chain) => filledValueChain(vcj))
+    sys.addValueChains(valueChains)
 
     // extract workers and assignments
     interface I_process_step_assignment {
@@ -106,7 +115,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         const svs: SortVector[] = woj.select_next_work_item_sort_vector_sequence == undefined 
                                 ? [] 
                                 : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
-        return new Worker(woj.worker_id, svs) 
+        return new Worker(sys, woj.worker_id, svs) 
     }
 
     const addWorkerAssignment = (psaj: I_process_step_assignment, newWorker: Worker, vcs: ValueChain[], asSet: AssignmentSet): void  => {
@@ -134,13 +143,9 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     const asSet:   AssignmentSet = new AssignmentSet("default")
     paj.workers.forEach((woj: I_worker) => createAndAssignWorker(woj, workers, valueChains, asSet))
     
-    if (paj.debug_show_options != undefined) {
-        debugShowOptions.clock          = paj.debug_show_options.clock
-        debugShowOptions.workerChoices  = paj.debug_show_options.worker_choices
-        debugShowOptions.readFiles      = paj.debug_show_options.read_files
-    }
+    sys.addWorkersAndAssignments(workers, asSet)
 
     // return the configured system
-    return new LonelyLobsterSystem(systemId, valueChains, workers, asSet)
+    return sys
 } 
 
