@@ -4,7 +4,7 @@
 
 import { Clock } from './clock.js'
 import { workItemIdGenerator, wiTagGenerator, wiTags } from './workitem.js'
-import { lonelyLobsterSystem } from './_main.js'
+//import { lonelyLobsterSystem } from './_main.js'
 import { Timestamp, TimeUnit } from './clock.js'
 import { reshuffle } from './helpers.js'
 import { Value, ValueChain } from './valuechain.js'
@@ -264,9 +264,9 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
     } 
 }
 
-function obStatsAsString(rollingWindowSize: TimeUnit = lonelyLobsterSystem.clock.time): string {
+function obStatsAsString(/*rollingWindowSize: TimeUnit = lonelyLobsterSystem.clock.time*/): string {
   return"system.obStatsAsString() - left empty"  /* needs to be fixed */
-    const stats: I_WorkItemStatistics = systemStatistics(lonelyLobsterSystem, lonelyLobsterSystem.clock.time - rollingWindowSize, lonelyLobsterSystem.clock.time).outputBasket.flow
-    return `    ${stats.cycleTime.min?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.avg?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.max?.toFixed(1).padStart(4, ' ')}     ${stats.throughput.itemsPerTimeUnit?.toFixed(1).padStart(4, ' ')}   ${stats.throughput.valuePerTimeUnit?.toFixed(1).padStart(4, ' ')}`
+//  const stats: I_WorkItemStatistics = systemStatistics(lonelyLobsterSystem, lonelyLobsterSystem.clock.time - rollingWindowSize, lonelyLobsterSystem.clock.time).outputBasket.flow
+//  return `    ${stats.cycleTime.min?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.avg?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.max?.toFixed(1).padStart(4, ' ')}     ${stats.throughput.itemsPerTimeUnit?.toFixed(1).padStart(4, ' ')}   ${stats.throughput.valuePerTimeUnit?.toFixed(1).padStart(4, ' ')}`
 //  return "- tbd: intentionally left empty -"
 }

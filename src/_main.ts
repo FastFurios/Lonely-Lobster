@@ -8,23 +8,15 @@
 import { systemCreatedFromConfigJson, DebugShowOptions, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { nextSystemState, emptyIterationRequest } from './io_api.js'
-import { workItemIdGenerator, wiTagGenerator, wiTags } from './workitem.js'
-import { OutputBasket } from './workitembasketholder.js'
 import { LonelyLobsterSystem, systemStatistics } from './system.js'
 
 import express from 'express'
+import session from "express-session" // Explanation of express-session: https://www.youtube.com/watch?v=isURb7HQkn8
+import cors from "cors"
 
-
-
-// create a clock (it will be 'ticked' by the read rows of the workflow file)
-//23.9. export const clock = new Clock(-1)
-
-// create the sink of all fully processed workitems
-//23.9. export const outputBasket = new OutputBasket()
-
-// create a generator for the id and a (non-unique) tag for each new workitem
-//23.9.export const idGen = workItemIdGenerator()
-//23.9.export const tagGen = wiTagGenerator(wiTags)
+// -------------------------------------------------------------------
+// COMMAND LINE HANDLING 
+// -------------------------------------------------------------------
 
 function showManual(): void {
     console.log("Run it in one of 2 modes:")
@@ -39,16 +31,47 @@ enum InputArgs {
     "WorkOrders"        = 4
 }
 
-export let lonelyLobsterSystem: LonelyLobsterSystem
-
 console.log("argv[2]=" + process.argv[2] + ", " + "argv[3]=" + process.argv[3] + ", " + "argv[4]=" + process.argv[4] + "\n")
+
+// -------------------------------------------------------------------
+// PREPARE SESSION HANDLING 
+// -------------------------------------------------------------------
+
+// add at least one user property that I can change once session data is to be kept 
+declare module "express-session" { // expand the type of the session data by the index 
+    interface SessionData {
+      hasSessionObject: boolean // https://stackoverflow.com/questions/43367692/typescript-method-on-class-undefined
+  }
+}
+
+const app  = express()
+const port = 3000
+
+app.use(session({
+    secret: 'my-secret',        // a secret string used to sign the session ID cookie
+    resave: false,              // don't save session if unmodified
+    saveUninitialized: false    // don't create session until something stored
+  }))
+
+app.use(cors({ origin: ["http://localhost:4200" /* Anglar Frontend */, "http://localhost:3000" /* Lonely Lobster Backend */], // allow request from specific origin domains (* would do it for all origin, hoiwever credentials require explicit origins here): https://www.section.io/engineering-education/how-to-use-cors-in-nodejs-with-express/
+               credentials: true })) // allow credentials, in this case the session cookie to be send to the Angular client  
+
+
+type CookieSessionId = string
+
+const webSessions = new Map<CookieSessionId, LonelyLobsterSystem>()  
+
+// -------------------------------------------------------------------
+// EXECUTING IN BATCH OR API MODE 
+// -------------------------------------------------------------------
+
 
 switch(process.argv[InputArgs.Mode]) {
 
     case "--batch": { 
         console.log("Running in batch mode ...")
         // create the system from the config JSON file
-        lonelyLobsterSystem = systemCreatedFromConfigFile(process.argv[InputArgs.SystemConfig])
+        let lonelyLobsterSystem = systemCreatedFromConfigFile(process.argv[InputArgs.SystemConfig])
 
         // process the workload file
         console.log("processWorkOrderFile( " + process.argv[InputArgs.WorkOrders] + " , lonelyLobsterSystem")
@@ -63,8 +86,6 @@ switch(process.argv[InputArgs.Mode]) {
     case "--api": {
         console.log("Running in api mode ...")
         // listen to API and process incoming requests
-        const app  = express()
-        const port = 3000
         
         app.use(express.json()) // for parsing application/json
         app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
@@ -77,27 +98,42 @@ switch(process.argv[InputArgs.Mode]) {
             next();
             });
         
-//3.7.23  let clockTime = 0
-
         app.post('/initialize', (req, res) => {
 //              console.log("_main: app.post \"initialize\" : received request=")
                 console.log("\n_main: app.post \"initialize\" : #############################################################################################")
 //              console.log("       " + req.body.system_id)
-                lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
+                const lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
+                console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+                webSessions.set(req.sessionID, lonelyLobsterSystem)
 //              lonelyLobsterSystem.outputBasket.emptyBasket()
-
 /* doggy */     lonelyLobsterSystem.clock.setTo(0) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
+                req.session.hasSessionObject = true // set the index in the session data: as the state of this property changed, express-session will now keep the sessionID constant 
                 res.send(nextSystemState(lonelyLobsterSystem, emptyIterationRequest(lonelyLobsterSystem)))
             })
 
         app.post('/iterate', (req, res) => {
 //          console.log("_main: app.post \"iterate\" : received request=")
 //          console.log(req.body)
+            const lonelyLobsterSystem = webSessions.get(req.sessionID)
+            if (!lonelyLobsterSystem) { 
+                console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+                res.send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
+                return
+            }
+            console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
             lonelyLobsterSystem.clock.tick()
+/* required? */ req.session.hasSessionObject = true // set the index in the session data: as the state of this property changed, express-session will now keep the sessionID constant 
             res.send(nextSystemState(lonelyLobsterSystem, req.body))
         })
         
         app.get('/statistics', (req, res) => {
+            const lonelyLobsterSystem = webSessions.get(req.sessionID)
+            if (!lonelyLobsterSystem) { 
+                console.log("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+                res.send("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession")
+                return
+            }            
+            console.log("_main: app.post /statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
             //console.log("_main: app.post \"statistics\" : received get request. fromTime= " + (clock.time - 10 < 0 ? 0 : clock.time - 10) + " > toTime= " + clock.time)
             const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
 //          console.log("_main: app.post \"statistics\" : received get request: req.query.interval= " + req.query.interval + ", interval= " + interval)
