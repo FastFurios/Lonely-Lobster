@@ -1,13 +1,17 @@
 //----------------------------------------------------------------------
-//    CLOCK TIME 
+//    CLOCK / TIME 
+//----------------------------------------------------------------------
 
 import { LonelyLobsterSystem } from "./system"
 
-//----------------------------------------------------------------------
 export type Timestamp = number
 export type TimeUnit  = number
 
 const timeUnit: TimeUnit = 1
+
+//----------------------------------------------------------------------
+// CLOCK 
+//----------------------------------------------------------------------
 
 export class Clock {
     public time: Timestamp
@@ -20,14 +24,13 @@ export class Clock {
     get firstIteration() { return this.startTime + 1 }
 
     public setTo = (time: Timestamp): void => { 
-        if(this.sys.debugShowOptions.clock) console.log("\n---- new time is " + time + " -----------------------------------------------\n"); 
-        this.time = time; 
+        if(this.sys.debugShowOptions.clock) console.log("\n---- new time is " + time + " -----------------------------------------------\n")
+        this.time = time
         return 
     } 
 
-    tick(): Timestamp {
+    public tick(): Timestamp {
         this.time += timeUnit
         return this.time            
     }
-
 }

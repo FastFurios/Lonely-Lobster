@@ -1,5 +1,5 @@
 // --------------------------------------------------------------------------------
-//  take api request and feed it to the LonelyLobster system for the next iteration
+//  REST API - take api request and feed it to the LonelyLobster system for the next iteration
 // --------------------------------------------------------------------------------
 
 import { duplicate } from "./helpers.js"

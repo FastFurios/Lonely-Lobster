@@ -1,4 +1,6 @@
-//import { outputBasket } from './_main.js'
+//----------------------------------------------------------------------
+//    VALUE CHAIN 
+//----------------------------------------------------------------------
 import { TimeUnit, Timestamp } from './clock.js'
 import { LonelyLobsterSystem } from './system.js'
 import { WorkItem } from './workitem.js'
@@ -25,7 +27,7 @@ export function net(value: Value, time: TimeUnit): Value {
 }
 
 //----------------------------------------------------------------------
-//    VALUE CHAIN 
+// class VALUE CHAIN 
 //----------------------------------------------------------------------
 
 export class ValueChain {
@@ -36,12 +38,7 @@ export class ValueChain {
                 public totalValueAdd:   Value,
                 public injectionThroughput?: number,
                 public valueDegration: TimeValuationFct = net) {
-//      if (!valueDegration) valueDegration = net 
     }
-
-    //private appendProcessStep(ps: ProcessStep): void {
-    //    this.processSteps.push(ps)
-    //}    
 
     public createAndInjectNewWorkItem(): void { 
         const wi = new WorkItem(this.sys, this, this.processSteps[0])
@@ -60,14 +57,16 @@ export class ValueChain {
         nextProcessStep.addToBasket(wi)
     }
 
-    public updateWorkItemExtendedInfos = (): void => this.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos()))
+    public updateWorkItemExtendedInfos(): void {
+         this.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos()))
+    }
 
-    public letWorkItemsFlow = (): void => 
+    public letWorkItemsFlow(): void { 
         this.processSteps.forEach(ps =>                                             // for all process steps in the value chain 
             ps.workItemBasket                   
                 .filter(wi => wi.finishedAtCurrentProcessStep())                    // filter the workitems ready to be moved on
                 .forEach(wi => this.moveWorkItemToNextWorkItemBasketHolder(wi)))    // move these workitems on
-
+    }
 
     public accumulatedEffortMade(until: Timestamp): Effort {
         return this.processSteps.map(ps => ps.accumulatedEffortMade(until)).reduce((ef1, ef2) => ef1 + ef2)

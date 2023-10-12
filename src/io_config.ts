@@ -1,15 +1,14 @@
 // ------------------------------------------------------------
-//  read system configuration from JSON file
+//  READ SYSTEM CONFIGURATION FROM JSON FILE OR OBJECT
 // ------------------------------------------------------------
 
 import { readFileSync } from "fs"
-import { SortVector, SelectionCriterion } from "./helpers.js"
 import { LonelyLobsterSystem } from "./system.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
 import { Worker, AssignmentSet, Assignment } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
-//?? 7.4. import { I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_OutputBasket, I_WorkerState } from './io_api_definitions.js'
+import { SortVector, SelectionCriterion } from "./helpers.js"
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -17,11 +16,14 @@ export interface DebugShowOptions  {
     readFiles:      boolean
 }
 
-export interface I_TimeValueFctAndArg {
+interface I_TimeValueFctAndArg {
     function: string,
     argument: number
 }
 
+// -------------------------------------------------------------------------
+// Create system configuration from JSON file (when in running in batch mode)
+// -------------------------------------------------------------------------
 
 export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSystem {
     // read system parameter JSON file
@@ -29,8 +31,8 @@ export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSy
     try { paramsAsString  = readFileSync(filename, "utf8") } 
     catch (e: any) {
         switch (e.code) {
-            case "ENOENT" : { throw new Error("System parameter file not found: " + e) }
-            default       : { throw new Error("System parameter file: other error: " + e.message) }
+            case "ENOENT" : { throw new Error("System config file not found: " + e) }
+            default       : { throw new Error("System config  file: other error: " + e.message) }
         }   
     } 
     finally {}
@@ -49,17 +51,17 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 
     // extract value chains
     interface I_process_step {
-        process_step_id: string
-        norm_effort:     number
-        bar_length:      number
+        process_step_id:        string
+        norm_effort:            number
+        bar_length:             number
     } 
     
     interface I_value_chain {
-        value_chain_id: string
-        value_add:      number,
-        injection_throughput?: number,
-        value_degration: I_TimeValueFctAndArg,
-        process_steps:  I_process_step[]  
+        value_chain_id:         string
+        value_add:              number,
+        injection_throughput?:  number,
+        value_degration:        I_TimeValueFctAndArg,
+        process_steps:          I_process_step[]  
     }
 
     function valueDegrationFct(timeValueFctAndArg: I_TimeValueFctAndArg): TimeValuationFct {
@@ -76,7 +78,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                                                     readFiles      : paj.debug_show_options == undefined ? false : paj.debug_show_options.read_files
                                                 }
 
-    console.log("systemCreatedFromConfigJson(...): sys = new LonelyLobsterSystem(systemId, debugShowOptions)")
+    //console.log("systemCreatedFromConfigJson(...): sys = new LonelyLobsterSystem(systemId, debugShowOptions)")
     const sys = new LonelyLobsterSystem(systemId, debugShowOptions)
 
     const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.bar_length)

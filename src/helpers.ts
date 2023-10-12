@@ -1,5 +1,5 @@
 // ------------------------------------------------------------
-//  nice little helper functions
+//  nice little HELPER FUNCTIONS
 // ------------------------------------------------------------
 
 import { WiExtInfoTuple, WiExtInfoElem } from './workitem.js'
@@ -8,11 +8,11 @@ import { WiExtInfoTuple, WiExtInfoElem } from './workitem.js'
 //  some array helpers
 // ------------------------------------------------------------
 
-// --- create 2-tuples from two arrays
+// --- create array of 2 element tuples from two arrays
 export type Tuple<T, U> = [T, U]
 
 export function tupleBuilderFrom2Arrays<T, U>(a: T[], b: U[]): Tuple<T, U>[] {
-    let tupleArray: Tuple<T, U>[] = []
+    const tupleArray: Tuple<T, U>[] = []
     for (let i=0; i < Math.min(a.length, b.length); i++) tupleArray.push([a[i], b[i]]) 
     return tupleArray
 }
@@ -26,6 +26,14 @@ interface I_SplitArray<T> {
     middle: T
     tail:   T[]
 }
+
+function split<T>(a: T[], splitIndex: number): I_SplitArray<T>  {
+    return { head: a.slice(undefined, splitIndex),
+             middle: a[splitIndex],
+             tail: a.slice(splitIndex + 1, undefined)
+           }
+}
+
 export function reshuffle<T>(a: T[]): T[] {
     if (a.length == 0) return []
     const splitIndex = Math.floor(Math.random() * a.length)
@@ -33,12 +41,6 @@ export function reshuffle<T>(a: T[]): T[] {
     return [a[splitIndex]].concat(reshuffle<T>(sa.head.concat(sa.tail)))
 }
 
-function split<T>(a: T[], splitIndex: number): I_SplitArray<T>  {
-   return { head: a.slice(undefined, splitIndex),
-            middle: a[splitIndex],
-            tail: a.slice(splitIndex + 1, undefined)
-          }
-}
 
 // ------------------------------------------------------------
 //  sort rows and select top row of a table i.e. of an array of arrays (tuples); 
@@ -66,4 +68,3 @@ export function topElemAfterSort(arrArr: WiExtInfoTuple[], sortVector: SortVecto
 
     return topElemAfterSort(arrArrTops, sortVector.slice(1))
 }
-

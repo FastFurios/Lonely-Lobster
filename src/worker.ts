@@ -8,14 +8,14 @@ import { LogEntry, LogEntryType } from './logging.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from './workitem.js'
 import { ProcessStep } from './workitembasketholder.js'
-import { LonelyLobsterSystem } from './system';
+import { LonelyLobsterSystem } from './system'
 
 
 //----------------------------------------------------------------------
 //    WORKER BEHAVIOUR 
 //----------------------------------------------------------------------
 
-export function selectNextWorkItemBySortVector(wis: WorkItem[], svs: SortVector[]): WorkItem { // take the top-ranked work item after sorting the accessible work items
+ function selectNextWorkItemBySortVector(wis: WorkItem[], svs: SortVector[]): WorkItem { // take the top-ranked work item after sorting the accessible work items
     const extInfoTuples: WiExtInfoTuple[] = wis.map(wi => wi.extendedInfos.workOrderExtendedInfos) 
     const selectedWi: WiExtInfoTuple = topElemAfterSort(extInfoTuples, svs)
     return selectedWi[WiExtInfoElem.workItem]  // return workitem object reference
@@ -30,7 +30,6 @@ class LogEntryWorker extends LogEntry {
                 public worker:  Worker) {
         super(sys, LogEntryType.workerWorked)
     }
-
     public stringified = (): string => `${this.stringifiedLe()}, ${this.logEntryType}, wo=${this.worker.id}` 
 } 
 
@@ -74,7 +73,7 @@ export class Worker {
         utilization: 0
      }
 
-    constructor(public  sys:                LonelyLobsterSystem,
+    constructor(private sys:                LonelyLobsterSystem,
                 public  id:                 WorkerName,
                 private sortVectorSequence: SortVector[]) {}
 
@@ -85,7 +84,9 @@ export class Worker {
         return pss.flatMap(ps => ps.workItemBasket) 
     }
 
-    private hasWorkedAt = (timestamp: Timestamp): boolean => this.log.filter(le => le.timestamp == timestamp).length > 0
+    private hasWorkedAt(timestamp: Timestamp): boolean { 
+        return this.log.filter(le => le.timestamp == timestamp).length > 0
+    }
 
     public work(asSet: AssignmentSet): void {
         if (this.hasWorkedAt(this.sys.clock.time)) return    // worker has already worked at current time
@@ -102,14 +103,13 @@ export class Worker {
         const wi: WorkItem = selectNextWorkItemBySortVector(workableWorkItemsAtHand, this.sortVectorSequence)
 
         if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
-        //console.log("worker.worked wi= " + wi.id + "  worker= " + this.id )
+
         wi.logWorkedOn(this)
         this.logWorked()
     }
 
     public utilization(sys: LonelyLobsterSystem): void {
         this.stats.utilization = this.log.length / (this.sys.clock.time - this.sys.clock.firstIteration) * 100 
-//      console.log("Calculating utilization for " + this.id + " from elapsed time = " + (clock.time - clock.startTime + 1) + " and worklog.length= " + this.log.length)
         this.stats.assignments = sys.assignmentSet.assignments
                                 .filter(a => a.worker.id == this.id)
                                 .map(a => { return { valueChain:  a.valueChainProcessStep.valueChain,

@@ -1,19 +1,17 @@
 //----------------------------------------------------------------------
 //    WORK ITEM  
 //----------------------------------------------------------------------
-//-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service ------------------------------------------------------------------------
+//-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service 
 
-//import { last } from 'rxjs',
-//24.9. import { clock, outputBasket, idGen, tagGen } from './_main.js'
 import { TimeUnit, Timestamp } from './clock.js'
 import { LogEntry, LogEntryType } from './logging.js'
 import { LonelyLobsterSystem } from './system.js'
-import { Value, ValueChain } from './valuechain.js'
+import { ValueChain } from './valuechain.js'
 import { Worker } from './worker.js'
 import { WorkItemBasketHolder, ProcessStep, Effort } from './workitembasketholder.js'
 
 //----------------------------------------------------------------------
-//    HELPERS 
+//    definitions and helpers
 //----------------------------------------------------------------------
 
 export type WorkItemId = number
@@ -22,7 +20,6 @@ export interface WorkOrder {
     timestamp:  Timestamp,
     valueChain: ValueChain
 }
-
 
 // unique workitem identifier
 export function* workItemIdGenerator(): IterableIterator<WorkItemId> { 
@@ -77,7 +74,6 @@ abstract class LogEntryWorkItem extends LogEntry {
                            logEntryType:        LogEntryType) {
         super(sys, logEntryType)
     }
-
     public stringifyLeWi = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.workItemBasketHolder == this.sys.outputBasket ? "OutputBasket" : (<ProcessStep>this.workItemBasketHolder).id}, wi = ${this.workItem.id}`
 } 
 
@@ -89,7 +85,6 @@ export class LogEntryWorkItemMoved extends LogEntryWorkItem {
                        toWorkItemBasketHolder:     WorkItemBasketHolder) { 
         super(sys, workItem, valueChain, toWorkItemBasketHolder, LogEntryType.workItemMovedTo)
     }
-
     public stringified = () => `${this.stringifyLeWi()}`
 }
 
@@ -102,12 +97,11 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
                      public worker:                     Worker) {
         super(sys, workItem, valueChain, processStep, LogEntryType.workItemWorkedOn)
     }
-
     public stringified = () => `${this.stringifyLeWi()}, worker = ${this.worker.id}`
 }
 
 //----------------------------------------------------------------------
-//    WORK ITEM  
+//    definitions   
 //----------------------------------------------------------------------
 
 export enum ElapsedTimeMode {
@@ -116,22 +110,26 @@ export enum ElapsedTimeMode {
 }
 
 export interface StatsEventForExitingAProcessStep {
-    wi:           WorkItem,
-    vc:           ValueChain,
-    psExited:       ProcessStep,        
-    psEntered:    WorkItemBasketHolder,
-    finishedTime: Timestamp,
-    elapsedTime:  TimeUnit,
-    injectionIntoValueChainTime: Timestamp // used for calculating cycletimes of the valuechain  
+    wi:                             WorkItem,
+    vc:                             ValueChain,
+    psExited:                       ProcessStep,        
+    psEntered:                      WorkItemBasketHolder,
+    finishedTime:                   Timestamp,
+    elapsedTime:                    TimeUnit,
+    injectionIntoValueChainTime:    Timestamp // used for calculating cycletimes of the valuechain  
 }
 
+//----------------------------------------------------------------------
+//    WORK ITEM   
+//----------------------------------------------------------------------
+
 export class WorkItem {
-    /* private */ log:            LogEntryWorkItem[] = []
+    public  log:            LogEntryWorkItem[] = []
     public  id:             WorkItemId
     public  tag:            WorkItemTag
     public  extendedInfos:  WorkItemExtendedInfos
 
-    constructor(public sys:                 LonelyLobsterSystem,
+    constructor(private sys:                 LonelyLobsterSystem,
                 public valueChain:          ValueChain,
                 public currentProcessStep:  WorkItemBasketHolder) {
         this.id             = sys.idGen.next().value
@@ -159,11 +157,9 @@ export class WorkItem {
                                                                                  : this.log.filter(le => le.workItemBasketHolder == workItemBasketHolder)
         if (logInScope.length == 0) return -1                                                                         
         
-        const maxTime   = mode == ElapsedTimeMode.firstEntryToNow ? this.sys.clock.time : Math.max(logInScope[logInScope.length - 1].timestamp)  // ## Math.max of a single?! WTF 
+        const maxTime   = mode == ElapsedTimeMode.firstEntryToNow ? this.sys.clock.time : logInScope[logInScope.length - 1].timestamp 
         const minTime   = logInScope[0].timestamp
-        const deltaTime = maxTime - minTime
-
-        return deltaTime
+        return maxTime - minTime
     }
 
     public timeOfLastLogEntry = (): Timestamp => this.log[this.log.length - 1].timestamp
@@ -188,8 +184,6 @@ export class WorkItem {
     }
 
     public wasInValueChainAt(t: Timestamp): boolean {
-//      console.log("     wi= " + this.id + ": wasInValueChain?: " + (this.log[0].timestamp <= t && this.timeOfLastLogEntry() >= t) + "   this.log[0].timestamp= " + this.log[0].timestamp + ", this.timeOfLastLogEntry()= " + this.timeOfLastLogEntry())
-//      return this.log[0].timestamp <= t && ((this.currentProcessStep != outputBasket || (this.currentProcessStep == outputBasket && this.timeOfLastLogEntry() >= t)))
         return this.log[0].timestamp <= t && !this.hasMovedToOutputBasketBetween(1, t)
     }
 
@@ -199,33 +193,16 @@ export class WorkItem {
     }
 
     public statisticsEventsHistory(fromTime: Timestamp = 1, toTime: Timestamp = this.sys.clock.time): StatsEventForExitingAProcessStep[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
-//      console.log("workitem.statsEventsForFinishingAProcessSteps(fromTime: " + fromTime + ", toTime: " + toTime +") for wi = " + this.id)
         const statEvents: StatsEventForExitingAProcessStep[] = []
 
         const moveToLogEntries = this.log
                                 .filter(le => le.logEntryType == "movedTo")
                                 .filter(le => le.timestamp <= toTime)
-//      console.log("workitem.statsEventsForFinishingAProcessSteps().moveToLogEntries=")
-//      console.log(moveToLogEntries)
         let firstMovedToEvent = <LogEntryWorkItem>moveToLogEntries[0]
         let lastMovedToEvent  = <LogEntryWorkItem>moveToLogEntries.pop()
         if (lastMovedToEvent.timestamp <= fromTime) return []
 
-//      console.log("workitem.statsEventsForFinishingAProcessSteps().lastMovedToEvent=")
-//      console.log(lastMovedToEvent)
         for (let le of moveToLogEntries.reverse()) {
-/*
-            const aux =                 {
-                wi:                          this,
-                vc:                          this.valueChain,
-                psExited:                    <ProcessStep>le.workItemBasketHolder,
-                psEntered:                   lastMovedToEvent.workItemBasketHolder,           
-                finishedTime:                lastMovedToEvent.timestamp,
-                elapsedTime:                 lastMovedToEvent.timestamp - le.timestamp,
-                injectionIntoValueChainTime: firstMovedToEvent.timestamp
-            }
-            if (clock.time > 20 && this.id == 0) console.log("workitem.statitsicsEventsHistory().for-loop: going to append to statEvents = { wi=" + this.id + ", " + aux.psExited.id + "=>" + aux.psEntered.id + ", finTime=" + aux.finishedTime)
-*/
             statEvents.push(
                 {
                     wi:                          this,
@@ -274,6 +251,9 @@ export enum WiExtInfoElem {
 type wiDecisionInput = number  
 export type WiExtInfoTuple = [WorkItem, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput]
 
+//----------------------------------------------------------------------
+//    WORKITEM EXTENDED INFO  
+//----------------------------------------------------------------------
 export class WorkItemExtendedInfos {
     public workOrderExtendedInfos: WiExtInfoTuple
 

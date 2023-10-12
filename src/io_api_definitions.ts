@@ -8,7 +8,7 @@ import { ValueChain } from "./valuechain"
 // to-do: share these definitions as project references wth backend and frontend
 // see: https://wallis.dev/blog/typescript-project-references
 
-type Effort         = number // measured in Worker Time Units
+import {Effort} from "./workitembasketholder"
 export type Value          = number // measured in Worker Time Units
 export type ValueChainId   = string
 export type ProcessStepId  = string

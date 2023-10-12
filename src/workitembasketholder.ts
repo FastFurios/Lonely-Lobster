@@ -2,17 +2,13 @@
 //    WORKITEM BASKET HOLDER
 //----------------------------------------------------------------------
 
-//import { clock } from './_main.js'
 import { Timestamp } from './clock.js'
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
 import { I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
-import { log } from 'console'
 
 export type Effort    = number // measured in Worker Time Units
-
-
 
 // ------------------------------------------------------------
 // WORKITEM BASKET HOLDER
@@ -30,13 +26,11 @@ export abstract class WorkItemBasketHolder {
         workItem.logMovedTo(this)
     }
 
-    public flowStats(fromTime: Timestamp, toTime: Timestamp): StatsEventForExitingAProcessStep[] {  // ## rename to "flowStats(...)"
+    public flowStats(fromTime: Timestamp, toTime: Timestamp): StatsEventForExitingAProcessStep[] {
         return this.workItemBasket.flatMap(wi => wi.statisticsEventsHistory(fromTime, toTime))
     }
 
     public accumulatedEffortMade(until: Timestamp): Effort {
-        //console.log("workitemholder.accumulatedEffort() of ProcessStep=" + this.id + " is:")
-        //this.workItemBasket.forEach(wi => console.log("  wi.id= " + wi.id + " accum.Effort= " + wi.accumulatedEffort()))
         return this.workItemBasket.map(wi => wi.accumulatedEffort(until)).reduce((ef1, ef2) => ef1 + ef2, 0 )
     }
  
@@ -62,7 +56,7 @@ export abstract class WorkItemBasketHolder {
 export class ProcessStep extends WorkItemBasketHolder  {
     public lastIterationFlowRate: number = 0
 
-    constructor(public sys:           LonelyLobsterSystem,
+    constructor(       sys:           LonelyLobsterSystem,
                        id:            string,
                 public valueChain:    ValueChain,
                 public normEffort:    Effort,
@@ -85,18 +79,9 @@ export class ProcessStep extends WorkItemBasketHolder  {
 //-- overall  OUTPUT BASKET (just one unique instance): here the total output of all value chains is collected over time
 
 export class OutputBasket extends WorkItemBasketHolder {
-//  static numInstances = 0
     constructor(public sys: LonelyLobsterSystem) { 
-//      console.log("OutputBasket.constructor(...): numInstances = " + OutputBasket.numInstances)
         super(sys, "OutputBasket")
-//      if (OutputBasket.numInstances > 0) throw new Error("Can have only one single OutputBasket!") 
-//      OutputBasket.numInstances++
     } 
-
-//  public emptyBasket(): void {
-//      this.workItemBasket = []
-//  }
-
 
     private statsOfArrivedWorkitemsBetween(fromTime: Timestamp, toTime: Timestamp): I_EndProductStatistics {
         const invWisStats: I_EndProductStatistics[] = []
@@ -118,7 +103,6 @@ export class OutputBasket extends WorkItemBasketHolder {
             const elapsedTime           = wi.elapsedTime(ElapsedTimeMode.firstToLastEntryFound)
             const netValueAdd           = wi.log[0].valueChain.totalValueAdd
             const discountedValueAdd    = wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime)
-//          console.log("t= " + this.sys.clock.time + ", wi= " + wi.id + ", reached output basket at= " + /* wi.log[log.length-1].timestamp + */ "disc value-add= " + wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime))
             invWisStats.push(
                 {
                     numWis:             1,
@@ -140,20 +124,13 @@ export class OutputBasket extends WorkItemBasketHolder {
         return wiBasedStats
     }
     
-
     public endProductMoreStatistics(fromTime: Timestamp, toTime: Timestamp): I_EndProductMoreStatistics {
-        //type TimeValueOf = (value: Value, time: TimeUnit) => number
-        //const timeValueOf = expired.bind(null, 3)
-        //const timeValueOf = discounted.bind(null, 0.1)
-        
         // --- calculating figures for end products in the output basket ---
-
         const wiBasedStats = this.statsOfArrivedWorkitemsBetween(fromTime, toTime)
-        
+    
         return {
             ...wiBasedStats,
             avgElapsedTime: wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1),  
-//            roce:           wiBasedStats.discountedValueAdd / avgWorking  // ### have to calculate the avg. working capital between fromTime and toTime 
         }
     }
 
