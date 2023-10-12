@@ -1,0 +1,163 @@
+{
+    "system_id"     : "Pizzeria",
+    "value_chains"  : [
+        {
+            "value_chain_id"    : "Pizza",
+            "value_add"         : 12,
+            "injection_throughput": 0.5,
+            "process_steps"     : [
+                {
+                    "process_step_id"   : "prep dough",
+                    "norm_effort"       : 3,
+                    "bar_length"        : 20
+                },
+                {
+                    "process_step_id"   : "add toppings",
+                    "norm_effort"       : 2,
+                    "bar_length"        : 20
+                },
+                {
+                    "process_step_id"   : "bake",
+                    "norm_effort"       : 2,
+                    "bar_length"        : 20
+                }
+            ]
+        },
+        {
+            "value_chain_id"    : "Pasta",
+            "value_add"         : 10,
+            "injection_throughput": 0.3,
+            "process_steps"     : [
+                {
+                    "process_step_id"   : "make sauce",
+                    "norm_effort"       : 4,
+                    "bar_length"        : 20
+                },
+                {
+                    "process_step_id"   : "add noodles",
+                    "norm_effort"       : 1,
+                    "bar_length"        : 20
+                }
+            ]
+        },
+        {
+            "value_chain_id"    : "Insalata",
+            "value_add"         : 8,
+            "injection_throughput": 0.2,
+            "process_steps"     : [
+                {
+                    "process_step_id"   : "prep vegetables",
+                    "norm_effort"       : 3,
+                    "bar_length"        : 20
+                },
+                {
+                    "process_step_id"   : "mix and season",
+                    "norm_effort"       : 2,
+                    "bar_length"        : 20
+                }
+            ]
+        },
+        {
+            "value_chain_id"    : "Espresso",
+            "value_add"         : 3,
+            "injection_throughput": 0.4,
+            "process_steps"     : [
+                {
+                    "process_step_id"   : "brew",
+                    "norm_effort"       : 2,
+                    "bar_length"        : 20
+                }
+            ]
+        }
+    ],
+    "workers" : [
+        {
+            "worker_id" : "Luigi",
+            "select_next_work_item_sort_vector_sequence" : [  { "measure": "sizeOfInventoryInProcessStep", "selection_criterion":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selection_criterion":  "minimum" } ],
+            "process_step_assignments"  : [
+                {
+                    "value_chain_id"  : "Pizza",
+                    "process_steps_id": "prep dough"
+                },
+                {
+                    "value_chain_id"  : "Pizza",
+                    "process_steps_id": "add toppings"
+                }
+            ]
+        },
+        {
+            "worker_id" : "Marco",
+            "select_next_work_item_sort_vector_sequence" : [  { "measure": "sizeOfInventoryInProcessStep", "selection_criterion":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selection_criterion":  "minimum" } ],
+            "process_step_assignments"  : [
+                {
+                    "value_chain_id"  : "Pizza",
+                    "process_steps_id": "bake"
+                },
+                {
+                    "value_chain_id"  : "Espresso",
+                    "process_steps_id": "brew"
+                }
+            ]
+        },
+        {
+            "worker_id" : "Antonio",
+            "select_next_work_item_sort_vector_sequence" : [  { "measure": "sizeOfInventoryInProcessStep", "selection_criterion":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selection_criterion":  "minimum" } ],
+            "process_step_assignments"  : [
+                {
+                    "value_chain_id"  : "Pasta",
+                    "process_steps_id": "make sauce"
+                },
+                {
+                    "value_chain_id"  : "Pasta",
+                    "process_steps_id": "add noodles"
+                }
+            ]
+        },
+        {
+            "worker_id" : "Giovanni",
+            "select_next_work_item_sort_vector_sequence" : [  { "measure": "sizeOfInventoryInProcessStep", "selection_criterion":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selection_criterion":  "minimum" } ],
+            "process_step_assignments"  : [
+                {
+                    "value_chain_id"  : "Insalata",
+                    "process_steps_id": "prep vegetables"
+                },
+                {
+                    "value_chain_id"  : "Insalata",
+                    "process_steps_id": "mix and season"
+                },
+                {
+                    "value_chain_id"  : "Pasta",
+                    "process_steps_id": "make sauce"
+                },
+                {
+                    "value_chain_id"  : "Pasta",
+                    "process_steps_id": "add noodles"
+                }
+            ]
+        },
+        {
+            "worker_id" : "Francesco",
+            "select_next_work_item_sort_vector_sequence" : [  { "measure": "sizeOfInventoryInProcessStep", "selection_criterion":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selection_criterion":  "minimum" } ],
+            "process_step_assignments"  : [
+                {
+                    "value_chain_id"  : "Espresso",
+                    "process_steps_id": "brew"
+                }
+            ]
+        },
+        {
+            "worker_id" : "Dino",
+            "select_next_work_item_sort_vector_sequence" : [  { "measure": "sizeOfInventoryInProcessStep", "selection_criterion":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selection_criterion":  "minimum" } ],
+            "process_step_assignments"  : [
+                {
+                    "value_chain_id"  : "Pizza",
+                    "process_steps_id": "add toppings"
+                },
+                {
+                    "value_chain_id"  : "Pasta",
+                    "process_steps_id": "make sauce"
+                }
+            ]
+        }
+    ]
+}

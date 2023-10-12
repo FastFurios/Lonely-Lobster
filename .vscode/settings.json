@@ -1,0 +1,8 @@
+{
+    "appService.zipIgnorePattern": [
+        "node_modules{,/**}",
+        ".vscode{,/**}"
+    ],
+    "appService.defaultWebAppToDeploy": "/subscriptions/b4afe40e-4550-4452-9f78-8b98e5380073/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/LonelyLobster",
+    "appService.deploySubpath": "."
+}

@@ -13,6 +13,9 @@ import { LonelyLobsterSystem, systemStatistics } from './system.js'
 import express from 'express'
 import session from "express-session" // Explanation of express-session: https://www.youtube.com/watch?v=isURb7HQkn8
 import cors from "cors"
+import { dirname } from 'path'
+import { fileURLToPath } from 'url'
+
 
 // -------------------------------------------------------------------
 // COMMAND LINE HANDLING 
@@ -45,7 +48,11 @@ declare module "express-session" { // expand the type of the session data by the
 }
 
 const app  = express()
-const port = 3000
+const port = process.env.PORT // 3000
+if (!port) { 
+    console.log("_main: port is undefined. Stopping...")
+    process.exit()
+}
 
 app.use(session({
     secret: 'my-secret',        // a secret string used to sign the session ID cookie
@@ -91,16 +98,30 @@ switch(process.argv[InputArgs.Mode]) {
         app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
         
         app.use(function (req, res, next) {
-            // Enabling CORS
-            res.header("Access-Control-Allow-Origin", "http://localhost:4200");
-            res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
-            res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
-            next();
+                // Enabling CORS
+                res.header("Access-Control-Allow-Origin", "http://localhost:4200");
+                res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
+                res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, x-client-key, x-client-token, x-client-secret, Authorization");
+                next();
             });
         
+        app.use(express.static("frontend"))  // https://www.bing.com/videos/riverview/relatedvideo?q=how+to+serve+Angular+app+and+API+backend&mid=419E11BAD7F37C384CBD419E11BAD7F37C384CBD
+
+/*
+        app.get("/", (req, res) => {  // serve the web page
+                console.log("\n_main: app.get / : #############################################################################################")
+                const __dirname = dirname(fileURLToPath(import.meta.url))
+                console.log("_main: app.get / : sessionID= " + req.sessionID + ", __dirname = " + __dirname)
+//              const __filename = __dirname + "/../dist/my-first-project/index.html"
+                const __filename = "/home/gerold/sw_projects/Angular-Testbed/dist/my-first-project/index.html"
+                console.log("_main: app.get / : __filename= " + __filename)
+
+                res.sendFile(__filename) 
+            })
+*/
         app.post('/initialize', (req, res) => {
 //              console.log("_main: app.post \"initialize\" : received request=")
-                console.log("\n_main: app.post \"initialize\" : #############################################################################################")
+                console.log("\n_main: app.post /initialize : #############################################################################################")
 //              console.log("       " + req.body.system_id)
                 const lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
                 console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
@@ -114,6 +135,7 @@ switch(process.argv[InputArgs.Mode]) {
         app.post('/iterate', (req, res) => {
 //          console.log("_main: app.post \"iterate\" : received request=")
 //          console.log(req.body)
+            console.log("_main: app.post /iterate : #############################################################################################")
             const lonelyLobsterSystem = webSessions.get(req.sessionID)
             if (!lonelyLobsterSystem) { 
                 console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
@@ -127,6 +149,7 @@ switch(process.argv[InputArgs.Mode]) {
         })
         
         app.get('/statistics', (req, res) => {
+            console.log("\n_main: app.post /statistics : #############################################################################################")
             const lonelyLobsterSystem = webSessions.get(req.sessionID)
             if (!lonelyLobsterSystem) { 
                 console.log("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
