@@ -2,19 +2,14 @@
 //    SYSTEM
 //----------------------------------------------------------------------
 
-import { Clock } from './clock.js'
-import { workItemIdGenerator, wiTagGenerator, wiTags } from './workitem.js'
-//import { lonelyLobsterSystem } from './_main.js'
-import { Timestamp, TimeUnit } from './clock.js'
+import { Clock, Timestamp, TimeUnit } from './clock.js'
+import { workItemIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem } from './workitem.js'
 import { reshuffle } from './helpers.js'
 import { Value, ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
 import { Worker, AssignmentSet } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
-import { WorkOrder, StatsEventForExitingAProcessStep, WorkItem, ElapsedTimeMode } from "./workitem.js"
-import { I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, I_Economics, ProcessStepId, ValueChainId } from './io_api_definitions.js'
-import { LogEntryType } from './logging.js'
-import { from, range } from 'rxjs'
+import { I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
     clock:          false,
@@ -22,27 +17,34 @@ const debugShowOptionsDefaults: DebugShowOptions = {
     readFiles:      false  
 }
 
-export class LonelyLobsterSystem {
-    public valueChains:         ValueChain[] = []
-    public workers:             Worker[]  = []
-    public assignmentSet!:      AssignmentSet
-    public workOrderInFlow:  WorkOrder[] = []
-    public outputBasket: OutputBasket 
-    public clock: Clock    
-    public idGen = workItemIdGenerator()
-    public tagGen = wiTagGenerator(wiTags)
+interface WiElapTimeValAdd {
+    wi:             WorkItem
+    valueAdd:       Value
+    elapsedTime:    Timestamp
+}
 
-    // set debug defauls in case the io_connfig.json does not contain any debug properties
+//----------------------------------------------------------------------
+//    LONELY LOBSTER SYSTEM
+//----------------------------------------------------------------------
+export class LonelyLobsterSystem {
+    public valueChains:     ValueChain[] = []
+    public workers:         Worker[]  = []
+    public assignmentSet!:  AssignmentSet
+    public workOrderInFlow: WorkOrder[] = []
+    public outputBasket:    OutputBasket 
+    public clock:           Clock    
+    public idGen  = workItemIdGenerator()
+    public tagGen = wiTagGenerator(wiTags)
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
-        this.clock = new Clock(this, -1)
-        this.outputBasket = new OutputBasket(this)
+        this.clock          = new Clock(this, -1)
+        this.outputBasket   = new OutputBasket(this)
     }
 
     public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
-    public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
 
+    public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
 
     public doNextIteration(now: Timestamp, wos: WorkOrder[]): void {
    
@@ -78,59 +80,32 @@ export class LonelyLobsterSystem {
     private showLine = () => console.log(this.clock.time.toString().padStart(3, ' ') + "||" 
                                        + this.valueChains.map(vc => vc.stringifiedRow()).reduce((a, b) => a + "| |" + b) + "| " 
                                        + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
-                                       + obStatsAsString())
+                                       + this.obStatsAsString())
 
     public showFooter = () => { 
         console.log(this.headerForValueChains()
         + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
-        + obStatsAsString())
+        + this.obStatsAsString())
         console.log("Utilization of:")
         this.workers.forEach(wo => wo.utilization(this))
         this.workers.forEach(wo => console.log(`${wo.id.padEnd(10, " ")} ${wo.stats.utilization.toFixed(1).padStart(4, ' ')}%\t` 
             + wo.stats.assignments.map(a => a.valueChain.id + "." + a.processStep.id).reduce((a, b) => a + " / " + b)))
     }                               
-}
-
 
 //----------------------------------------------------------------------
-//    STATISTICS
+//    Statistics
 //----------------------------------------------------------------------
 
-function workingCapitalAt(sys: LonelyLobsterSystem, t:Timestamp): Value {
+    private workingCapitalAt = (t:Timestamp): Value => this
+            .valueChains
+                .flatMap(vc => vc.processSteps
+                    .flatMap(ps => ps.workItemBasket))
+            .concat(this.outputBasket.workItemBasket)
+            .filter(wi => wi.wasInValueChainAt(t))
+            .map(wi => wi.accumulatedEffort(t))
+            .reduce((a, b) => a + b, 0)
 
-    const x = sys
-        .valueChains
-            .flatMap(vc => vc.processSteps
-                .flatMap(ps => ps.workItemBasket))
-        .concat(sys.outputBasket.workItemBasket)
-        .filter(wi => wi.wasInValueChainAt(t))
-        .map(wi => wi.accumulatedEffort(t))
-        .reduce((a, b) => a + b, 0)
-
-/*
-    console.log("  time=" + clock.time + ": system.workingCapitalAt(" + t + ") = " + x)            
-
-    lonelyLobsterSystem
-    .valueChains
-        .flatMap(vc => vc.processSteps
-            .flatMap(ps => ps.workItemBasket))
-    .concat(outputBasket.workItemBasket)
-    .filter(wi => wi.wasInValueChainAt(t))
-    .forEach(wi => console.log("      wi= " + wi.id + ": accumEffort= " + wi.accumulatedEffort(t)))
-*/
-
-    return x
-}
-
-export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
-
-    interface WiElapTimeValAdd {
-        wi:             WorkItem
-        valueAdd:       Value
-        elapsedTime:    Timestamp
-    }
-
-    function workItemStatistics(wiElapTimeValAdd: WiElapTimeValAdd[], interval: TimeUnit): I_WorkItemStatistics {
+    private workItemStatistics(wiElapTimeValAdd: WiElapTimeValAdd[], interval: TimeUnit): I_WorkItemStatistics {
         const elapsedTimes: TimeUnit[] = wiElapTimeValAdd.flatMap(el => el.elapsedTime)
         const hasCalculatedStats = elapsedTimes.length > 0
         return {
@@ -147,8 +122,8 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
         } 
     }
 
-    function obStatistics(ses: StatsEventForExitingAProcessStep[], interval: TimeUnit): I_WorkItemStatistics {
-        const sesOfOb = ses.filter(se => se.psEntered == sys.outputBasket)
+    private obStatistics(ses: StatsEventForExitingAProcessStep[], interval: TimeUnit): I_WorkItemStatistics {
+        const sesOfOb = ses.filter(se => se.psEntered == this.outputBasket)
         const wiElapTimeValAdd: WiElapTimeValAdd[] = sesOfOb.map(se => { 
             return { 
                 wi:          se.wi,
@@ -156,40 +131,24 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
                 elapsedTime: se.finishedTime - se.injectionIntoValueChainTime 
             }
         })
-        /* tbd */ //elapsedTimesWithValueAdd.forEach(et => console.log("OB: wi=" + et.wi.id + "/" + et.wi.tag[0] + ": va= " + et.valueAdd + ", et= " + et.elapsedTime))
-        return workItemStatistics(wiElapTimeValAdd, interval)
+        return this.workItemStatistics(wiElapTimeValAdd, interval)
     }
 
-    function psStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, ps: ProcessStep, interval: TimeUnit): I_ProcessStepStatistics {
-//        console.log("psStatistics(vc=" + vc.id + ", ps=" + ps.id + ").ses.length=" + ses.length)                                
-
+    private psStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, ps: ProcessStep, interval: TimeUnit): I_ProcessStepStatistics {
         const wiElapTimeValAddOfVcPs: WiElapTimeValAdd[] = ses.filter(se => se.vc == vc && se.psExited == ps)
                                                 .map(se => { return {
                                                     wi:          se.wi,
                                                     valueAdd:    se.vc.totalValueAdd,
                                                     elapsedTime: se.elapsedTime
                                                 }})
-//        console.log(".elapsedTimesWithValueAdd=")                                
-//        console.log(elapsedTimesWithValueAdd)                                
         return {
             id: ps.id,
-            stats: workItemStatistics(wiElapTimeValAddOfVcPs, interval)
+            stats: this.workItemStatistics(wiElapTimeValAddOfVcPs, interval)
         }
     }
 
-    function vcStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, interval: TimeUnit): I_ValueChainStatistics {
-    /*
-        function vcOverallStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain): I_WorkItemStatistics {
-            const elapsedTimesWithValueAdd: ElapsedTimeWithValueAdd[] = ses.filter(se => se.vc == vc && se.psEntered == outputBasket)
-                                            .map(se => { return {
-                                                wi:          se.wi,
-                                                valueAdd:    se.vc.totalValueAdd,
-                                                elapsedTime: se.elapsedTime
-                                            }})
-            return workItemStatistics(elapsedTimesWithValueAdd)
-        }
-    */    
-        const sesOfVc = ses.filter(se => se.vc == vc && se.psEntered == sys.outputBasket)
+    private vcStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, interval: TimeUnit): I_ValueChainStatistics {
+        const sesOfVc = ses.filter(se => se.vc == vc && se.psEntered == this.outputBasket)
         const wiElapTimeValAddOfVc: WiElapTimeValAdd[] = sesOfVc.map(se => { 
             return {
                 wi:          se.wi,
@@ -197,76 +156,51 @@ export function systemStatistics(sys: LonelyLobsterSystem, fromTime: Timestamp, 
                 elapsedTime: se.finishedTime - se.injectionIntoValueChainTime
             }
         })
-        //elapsedTimesWithValueAdd.forEach(el => console.log("va=" + el.valueAdd + ", et=" + el.elapsedTime))
-
         return {
             id: vc.id,
             stats: {
-                vc:     workItemStatistics(wiElapTimeValAddOfVc, interval),
-                pss:    vc.processSteps.map(ps => psStatistics(ses, vc, ps, interval))
+                vc:     this.workItemStatistics(wiElapTimeValAddOfVc, interval),
+                pss:    vc.processSteps.map(ps => this.psStatistics(ses, vc, ps, interval))
             }
         }
     }
 
-    function avgWorkingCapitalBetween(sys: LonelyLobsterSystem, fromTime: Timestamp, toTime: Timestamp): Value {
-        //console.log("system.avgWorkingCapital(fromTime=" + fromTime +", toTime=" + toTime +")")
+    private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime + 1
         let accumulatedWorkingCapital = 0
         for (let t = fromTime; t <= toTime; t++) {
-            accumulatedWorkingCapital += workingCapitalAt(sys, t)
+            accumulatedWorkingCapital += this.workingCapitalAt(t)
         }
-        //console.log("t=" + clock.time + ": system.avgWorkingCapital(fromTime=" + fromTime +", toTime=" + toTime +"): accumulatedWorkingCapital= " + accumulatedWorkingCapital + ", interval= " + interval)
         return accumulatedWorkingCapital / interval
     }
 
-    function avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+    private avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime + 1
         return (endProductMoreStatistics.discountedValueAdd - endProductMoreStatistics.normEffort) / interval
     }
-    
-    // -------------- main body of the function ----------------------------------------------------------------------------------------------
-    //console.log("\n\nsystem.systemStistics() -- clock.time= " + clock.time + " ----------------------")
-    const interval:TimeUnit = toTime - fromTime + 1
-    const statEvents: StatsEventForExitingAProcessStep[] = sys.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
-                                                          .concat(sys.outputBasket.flowStats(fromTime, toTime))
-    //console.log("system.systemStatistics(): ")
-    //statEvents.forEach(se => se.wi.log.filter(le => le.logEntryType == LogEntryType.workItemMovedTo).forEach(le => console.log("...workitem worked-on: "+ le.workItem.id + " at " + le.timestamp)))
-
-    /* tbd */ //console.log("statEvents =")                                                          
-    /* tbd */ //statEvents.forEach(se => console.log(clock.time + ": " + se.wi.id + "/" + se.wi.tag[0] + " vc/ps=" + se.vc.id + " " + se.psExited.id + "=>" + se.psEntered.id + " \t\tinj= " + se.injectionIntoValueChainTime + " fin= " +  se.finishedTime + " elap= " + se.elapsedTime))                       
-
-    //console.log("system.systemStatistics() List of wis with excerted efforts:")
-    //sys.valueChains.forEach(vc => vc.processSteps
-    //               .forEach(ps => ps.workItemBasket
-    //               .forEach(wi => console.log("   wi.id= " + wi.id + " accum.effort=" + wi.accumulatedEffort()))))
-
-    const endProductMoreStatistics: I_EndProductMoreStatistics = sys.outputBasket.endProductMoreStatistics(fromTime, toTime)
-    //console.log("system.systemStatistics(sys, fromTime=" + fromTime +", toTime=" + toTime +")")
-    const avgWorkingCapital = avgWorkingCapitalBetween(sys, fromTime, toTime)
-    const avgDiscValueAdd   = avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
-
-    //console.log("system.systemStatistics(): ")
-    //console.log("...endProductMoreStatistics.numWis: " + endProductMoreStatistics.numWis)
-    //console.log("...endProductMoreStatistics.discountedValueAdd: " + endProductMoreStatistics.discountedValueAdd)
-    //console.log("...economics.avgWorkingCapital: " + avgWorkingCapital)
-
-    return {
-        timestamp:          sys.clock.time,
-        valueChains:        sys.valueChains.map(vc => vcStatistics(statEvents, vc, interval)),
-        outputBasket: {
-            flow:           obStatistics(statEvents, interval),
-            economics:   {
-                ...endProductMoreStatistics,
-                avgWorkingCapital: avgWorkingCapital,
-                roce:              avgDiscValueAdd / avgWorkingCapital
+        
+    public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
+        const interval:TimeUnit = toTime - fromTime + 1
+        const statEvents: StatsEventForExitingAProcessStep[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
+                                                            .concat(this.outputBasket.flowStats(fromTime, toTime))
+        const endProductMoreStatistics: I_EndProductMoreStatistics = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
+        const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
+        const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
+        return {
+            timestamp:          this.clock.time,
+            valueChains:        this.valueChains.map(vc => this.vcStatistics(statEvents, vc, interval)),
+            outputBasket: {
+                flow:           this.obStatistics(statEvents, interval),
+                economics:   {
+                    ...endProductMoreStatistics,
+                    avgWorkingCapital: avgWorkingCapital,
+                    roce:              avgDiscValueAdd / avgWorkingCapital
+                }
             }
-        }
-    } 
-}
+        } 
+    }
 
-function obStatsAsString(/*rollingWindowSize: TimeUnit = lonelyLobsterSystem.clock.time*/): string {
-  return"system.obStatsAsString() - left empty"  /* needs to be fixed */
-//  const stats: I_WorkItemStatistics = systemStatistics(lonelyLobsterSystem, lonelyLobsterSystem.clock.time - rollingWindowSize, lonelyLobsterSystem.clock.time).outputBasket.flow
-//  return `    ${stats.cycleTime.min?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.avg?.toFixed(1).padStart(4, ' ')}  ${stats.cycleTime.max?.toFixed(1).padStart(4, ' ')}     ${stats.throughput.itemsPerTimeUnit?.toFixed(1).padStart(4, ' ')}   ${stats.throughput.valuePerTimeUnit?.toFixed(1).padStart(4, ' ')}`
-//  return "- tbd: intentionally left empty -"
+    private obStatsAsString(): string {
+        return"system.obStatsAsString() - left empty"  /* needs to be fixed */
+    }
 }

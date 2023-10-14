@@ -12,7 +12,7 @@ import cors     from "cors"
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { nextSystemState, emptyIterationRequest } from './io_api.js'
-import { LonelyLobsterSystem, systemStatistics } from './system.js'
+import { LonelyLobsterSystem } from './system.js'
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -126,7 +126,7 @@ function apiMode(): void {
         }            
         console.log("_main: app.post /statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
-        res.send(systemStatistics(lonelyLobsterSystem, 
+        res.send(lonelyLobsterSystem.systemStatistics( 
                                 interval <= 0 ? 1 // stats from the very beginning on
                                                 : lonelyLobsterSystem.clock.time <= interval ? 1 : lonelyLobsterSystem.clock.time - interval, // stats of the trailing time window of length "interval"
                                 lonelyLobsterSystem.clock.time))
