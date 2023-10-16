@@ -3,9 +3,7 @@
 //----------------------------------------------------------------------
 
 import { LonelyLobsterSystem } from "./system"
-
-export type Timestamp = number
-export type TimeUnit  = number
+import { Timestamp, TimeUnit } from './io_api_definitions'
 
 const timeUnit: TimeUnit = 1
 

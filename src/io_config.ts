@@ -78,7 +78,6 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                                                     readFiles      : paj.debug_show_options == undefined ? false : paj.debug_show_options.read_files
                                                 }
 
-    //console.log("systemCreatedFromConfigJson(...): sys = new LonelyLobsterSystem(systemId, debugShowOptions)")
     const sys = new LonelyLobsterSystem(systemId, debugShowOptions)
 
     const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.bar_length)

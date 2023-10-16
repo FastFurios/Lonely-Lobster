@@ -3,18 +3,16 @@
 //----------------------------------------------------------------------
 //-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service 
 
-import { TimeUnit, Timestamp } from './clock.js'
+import { TimeUnit, Timestamp, Effort, WorkItemId, WorkItemTag } from './io_api_definitions'
 import { LogEntry, LogEntryType } from './logging.js'
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { Worker } from './worker.js'
-import { WorkItemBasketHolder, ProcessStep, Effort } from './workitembasketholder.js'
+import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
 
 //----------------------------------------------------------------------
 //    definitions and helpers
 //----------------------------------------------------------------------
-
-export type WorkItemId = number
 
 export interface WorkOrder {
     timestamp:  Timestamp,
@@ -27,7 +25,6 @@ export function* workItemIdGenerator(): IterableIterator<WorkItemId> {
 }
 
 // workitem tags for display: lower letter = untouched, upper letter = some work already exerted
-type WorkItemTag = [string, string]
 export const wiTags: WorkItemTag[] = [
     ["a", "A"],
     ["b", "B"],

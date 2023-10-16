@@ -2,13 +2,10 @@
 //    WORKITEM BASKET HOLDER
 //----------------------------------------------------------------------
 
-import { Timestamp } from './clock.js'
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
-import { I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
-
-export type Effort    = number // measured in Worker Time Units
+import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
 
 // ------------------------------------------------------------
 // WORKITEM BASKET HOLDER

@@ -2,7 +2,7 @@
 //    WORKERS 
 //----------------------------------------------------------------------
 
-import { Timestamp } from './clock.js'
+import { Timestamp, WorkerName } from './io_api_definitions'
 import { topElemAfterSort, SortVector } from "./helpers.js"
 import { LogEntry, LogEntryType } from './logging.js'
 import { ValueChain } from './valuechain.js'
@@ -60,7 +60,6 @@ interface ValueChainProcessStep {
     processStep: ProcessStep
 }
 
-type WorkerName = string
 type WorkerStats = {
     assignments: ValueChainProcessStep[],  
     utilization: number // in percent, i.e. 55 is 55%

@@ -1,14 +1,10 @@
 //----------------------------------------------------------------------
 //    VALUE CHAIN 
 //----------------------------------------------------------------------
-import { TimeUnit, Timestamp } from './clock.js'
+import { TimeUnit, Timestamp, Value, ValueChainId, Effort } from './io_api_definitions'
 import { LonelyLobsterSystem } from './system.js'
 import { WorkItem } from './workitem.js'
-import { WorkItemBasketHolder, ProcessStep, Effort } from './workitembasketholder.js'
-
-type ValueChainId   = string
-export type Value   = number // measured in Worker Time Units
-
+import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
 
 // ------------------------------------------------------------
 // discounting financial value
@@ -27,7 +23,7 @@ export function net(value: Value, time: TimeUnit): Value {
 }
 
 //----------------------------------------------------------------------
-// class VALUE CHAIN 
+// VALUE CHAIN 
 //----------------------------------------------------------------------
 
 export class ValueChain {

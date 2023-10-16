@@ -2,14 +2,16 @@
 //    SYSTEM
 //----------------------------------------------------------------------
 
-import { Clock, Timestamp, TimeUnit } from './clock.js'
-import { workItemIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem } from './workitem.js'
-import { reshuffle } from './helpers.js'
-import { Value, ValueChain } from './valuechain.js'
+import { Clock } from './clock.js'
+import { workItemIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem } from './workitem.js'
+import { duplicate, reshuffle } from './helpers.js'
+import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
 import { Worker, AssignmentSet } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
-import { I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
+import { Timestamp, TimeUnit, Value,
+         I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
+         I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_OutputBasket, I_WorkerState } from './io_api_definitions.js'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
     clock:          false,
@@ -73,27 +75,116 @@ export class LonelyLobsterSystem {
         this.showLine()
     }
 
-    private headerForValueChains = ():string => "_t_||" + this.valueChains.map(vc => vc.stringifiedHeader()).reduce((a, b) => a + "| |" + b) +"| "
+//----------------------------------------------------------------------
+//    API Initialization
+//----------------------------------------------------------------------
 
-    public showHeader = () => console.log(this.headerForValueChains() + "_#outs__CT:[min___avg___max]_TP:[__#______$]") 
-
-    private showLine = () => console.log(this.clock.time.toString().padStart(3, ' ') + "||" 
-                                       + this.valueChains.map(vc => vc.stringifiedRow()).reduce((a, b) => a + "| |" + b) + "| " 
-                                       + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
-                                       + this.obStatsAsString())
-
-    public showFooter = () => { 
-        console.log(this.headerForValueChains()
-        + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
-        + this.obStatsAsString())
-        console.log("Utilization of:")
-        this.workers.forEach(wo => wo.utilization(this))
-        this.workers.forEach(wo => console.log(`${wo.id.padEnd(10, " ")} ${wo.stats.utilization.toFixed(1).padStart(4, ' ')}%\t` 
-            + wo.stats.assignments.map(a => a.valueChain.id + "." + a.processStep.id).reduce((a, b) => a + " / " + b)))
-    }                               
+    public emptyIterationRequest(): I_IterationRequest {
+        return {
+          time: 0,
+          newWorkOrders: this.valueChains.map(vc => { 
+            return {
+              valueChainId: vc.id, 
+              numWorkOrders: 0
+            }})
+        }
+      }
 
 //----------------------------------------------------------------------
-//    Statistics
+//    API Iteration
+//----------------------------------------------------------------------
+
+    private workOrderList(iterReq: I_IterationRequest): WorkOrder[] {
+        return iterReq.newWorkOrders.flatMap(nwo => duplicate<WorkOrder>(
+                                                { timestamp:    this.clock.time, // iterReq.time!, 
+                                                  valueChain:   this.valueChains.find(vc => vc.id == nwo.valueChainId.trim())! },
+                                                  nwo.numWorkOrders ))
+    }
+
+    private i_workItem (wi: WorkItem): I_WorkItem { 
+        return {
+          id:                 wi.id,
+          tag:                wiTags[0],
+          valueChainId:       wi.valueChain.id,
+          value:              wi.valueChain.totalValueAdd,
+          maxEffort:          (<ProcessStep>wi.currentProcessStep).normEffort,
+          processStepId:      wi.currentProcessStep.id,
+          accumulatedEffort:  wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInProcessStep],
+          elapsedTime:        wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInProcessStep]
+        }
+    }
+
+    private i_processStep(ps: ProcessStep): I_ProcessStep {
+        return {
+            id:                 ps.id,
+            normEffort:         ps.normEffort,
+            workItems:          ps.workItemBasket.map(wi => this.i_workItem(wi)),
+            workItemFlow:       ps.lastIterationFlowRate
+        }
+    }
+
+    private i_valueChain(vc: ValueChain): I_ValueChain {
+        return {
+            id:                 vc.id,
+            totalValueAdd:      vc.totalValueAdd,
+            injectionThroughput:vc.injectionThroughput ? vc.injectionThroughput : 1,
+            processSteps:       vc.processSteps.map(ps => this.i_processStep(ps))
+        }
+    }
+
+    private i_endProduct (wi: WorkItem): I_WorkItem { 
+        return {
+            id:                 wi.id,
+            tag:                wiTags[0],
+            valueChainId:       wi.valueChain.id,
+            value:              wi.valueChain.totalValueAdd,
+            maxEffort:          wi.valueChain.processSteps.map(ps => ps.normEffort).reduce((e1, e2) => e1 + e2),
+            processStepId:      wi.currentProcessStep.id,
+            accumulatedEffort:  wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInValueChain],
+            elapsedTime:        wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInValueChain]
+        }
+    }
+
+    private i_outputBasket(ob: OutputBasket): I_OutputBasket {
+        return {
+            workItems: ob.workItemBasket.map(wi => this.i_endProduct(wi))
+        }
+    }
+
+    private i_workerState(wo: Worker): I_WorkerState {
+        return {
+            worker:      wo.id,
+            utilization: wo.stats.utilization,
+            assignments: wo.stats.assignments.map(a => {
+                return {
+                    valueChain:  a.valueChain.id,
+                    processStep: a.processStep.id
+                }
+            })
+        }
+    }
+
+    private i_systemState(): I_SystemState {
+        return {
+            id:           this.id,
+            time:         this.clock.time,
+            valueChains:  this.valueChains.map(vc => this.i_valueChain(vc)),
+            outputBasket: { workItems: this.outputBasket.workItemBasket.map(wi => this.i_endProduct(wi)) },
+            workersState: this.workers.map(wo => this.i_workerState(wo))
+        }
+      }
+
+    public nextSystemState(iterReq: I_IterationRequest): I_SystemState { // iterReq is undefined when initialization request received
+        this.doNextIteration(
+            this.clock.time, 
+            this.workOrderList({ time:          this.clock.time,
+                                 newWorkOrders: iterReq.newWorkOrders } ))
+        
+        return this.i_systemState()
+    }
+    
+//----------------------------------------------------------------------
+//    API Statistics
 //----------------------------------------------------------------------
 
     private workingCapitalAt = (t:Timestamp): Value => this
@@ -199,6 +290,29 @@ export class LonelyLobsterSystem {
             }
         } 
     }
+
+//----------------------------------------------------------------------
+//    BATCH Output
+//----------------------------------------------------------------------
+
+    private headerForValueChains = ():string => "_t_||" + this.valueChains.map(vc => vc.stringifiedHeader()).reduce((a, b) => a + "| |" + b) +"| "
+
+    public showHeader = () => console.log(this.headerForValueChains() + "_#outs__CT:[min___avg___max]_TP:[__#______$]") 
+
+    private showLine = () => console.log(this.clock.time.toString().padStart(3, ' ') + "||" 
+                                    + this.valueChains.map(vc => vc.stringifiedRow()).reduce((a, b) => a + "| |" + b) + "| " 
+                                    + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
+                                    + this.obStatsAsString())
+
+    public showFooter = () => { 
+        console.log(this.headerForValueChains()
+        + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
+        + this.obStatsAsString())
+        console.log("Utilization of:")
+        this.workers.forEach(wo => wo.utilization(this))
+        this.workers.forEach(wo => console.log(`${wo.id.padEnd(10, " ")} ${wo.stats.utilization.toFixed(1).padStart(4, ' ')}%\t` 
+            + wo.stats.assignments.map(a => a.valueChain.id + "." + a.processStep.id).reduce((a, b) => a + " / " + b)))
+    }                               
 
     private obStatsAsString(): string {
         return"system.obStatsAsString() - left empty"  /* needs to be fixed */

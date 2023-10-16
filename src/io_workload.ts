@@ -4,7 +4,7 @@
 
 import { createReadStream } from "fs"
 import { Interface, createInterface } from "readline"
-import { Timestamp } from "./clock.js"
+import { Timestamp } from './io_api_definitions'
 import { Tuple, duplicate, tupleBuilderFrom2Arrays } from "./helpers.js"
 import { LonelyLobsterSystem } from "./system.js"
 import { ValueChain } from './valuechain.js'

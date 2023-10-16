@@ -1,8 +1,7 @@
 //----------------------------------------------------------------------
 //    LOGGING 
 //----------------------------------------------------------------------
-import { Timestamp } from './clock.js'
-//24.9 import { clock } from './_main.js'
+import { Timestamp } from './io_api_definitions'
 import { LonelyLobsterSystem } from './system.js'
 
 export enum LogEntryType {
