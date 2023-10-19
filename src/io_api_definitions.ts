@@ -2,8 +2,8 @@
 // Lonely Lobster API and general type definitions 
 //----------------------------------------------------------------------
 
-// to-do: share these definitions as project references with backend and frontend
-// see: https://wallis.dev/blog/typescript-project-references
+// the master of this file is located in the project "Lonely Lobster".
+// Do not forget to copy the latest version over to the Angular frontend project (use the "$ sh getApiDefsFromBackend.sh") 
 
 export  type Effort         = number // measured in Worker Time Units
 export  type Value          = number // measured in Worker Time Units

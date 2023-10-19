@@ -11,7 +11,6 @@ import cors     from "cors"
 
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
-//import { nextSystemState, emptyIterationRequest } from './io_api-Scrap.js'
 import { LonelyLobsterSystem } from './system.js'
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
@@ -87,14 +86,22 @@ function apiMode(): void {
     // API call - INITIALIZE 
     //------------------------------
     app.post('/initialize', (req, res) => {
-            console.log("\n_main: app.post /initialize ------------------------------------")
-            const lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
-            console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
-            webSessions.set(req.sessionID, lonelyLobsterSystem)
-            lonelyLobsterSystem.clock.setTo(0) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
-            req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
-            res.send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
-        })
+        console.log("\n_main: app.post /initialize ------------------------------------")
+
+        let lonelyLobsterSystem: LonelyLobsterSystem 
+        try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
+        catch(error: any) {
+            console.log("_main: app.post /initialize: ERROR interpreting system configuration")
+            res.status(400).json({ message: error.message })
+            return 
+        }
+
+        console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        webSessions.set(req.sessionID, lonelyLobsterSystem!)
+        lonelyLobsterSystem.clock.setTo(0) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
+        req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
+        res.send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
+    })
 
     //------------------------------
     // API call - ITERATE

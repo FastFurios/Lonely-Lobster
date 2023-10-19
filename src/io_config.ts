@@ -9,6 +9,7 @@ import { Worker, AssignmentSet, Assignment } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion } from "./helpers.js"
+//import { throwError } from 'rxjs'
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -121,11 +122,17 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 
     const addWorkerAssignment = (psaj: I_process_step_assignment, newWorker: Worker, vcs: ValueChain[], asSet: AssignmentSet): void  => {
         const mayBeVc = vcs.find(vc => vc.id == psaj.value_chain_id)
-        if (mayBeVc == undefined) { console.log(`Reading system parameters: try to assign worker=${newWorker} to value chain=${psaj.value_chain_id}: could not find value chain`); throw new Error() }
+        if (mayBeVc == undefined) { 
+            console.log(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to value chain \"${psaj.value_chain_id}\": could not find value chain`)
+            throw new Error(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to value chain \"${psaj.value_chain_id}\": could not find value chain`)
+        }
         const vc: ValueChain  = mayBeVc
 
         const mayBePs = vc.processSteps.find(ps => ps.id == psaj.process_steps_id)
-        if (mayBePs == undefined) { console.log(`Reading system parameters: try to assign worker=${newWorker} to process step ${psaj.process_steps_id} in value chain=${psaj.value_chain_id}: could not find process step`); throw new Error() }
+        if (mayBePs == undefined) { 
+            console.log(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to process step "\${psaj.process_steps_id}"\ in value chain=${psaj.value_chain_id}: could not find process step`)
+            throw new Error(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to process step "\${psaj.process_steps_id}"\ in value chain=${psaj.value_chain_id}: could not find process step`) 
+        }
         const ps: ProcessStep = mayBePs
 
         const newAssignment: Assignment =  { worker:                 newWorker,            
@@ -148,5 +155,4 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 
     // return the configured system
     return sys
-} 
-
+}
