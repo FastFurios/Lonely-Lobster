@@ -156,7 +156,6 @@ export class WorkItem {
         
         const maxTime   = mode == ElapsedTimeMode.firstEntryToNow ? this.sys.clock.time : logInScope[logInScope.length - 1].timestamp 
         const minTime   = logInScope[0].timestamp
-        console.log("wi=" + this.id + ": maxTime=" + maxTime + ", minTime=" + minTime)
         return maxTime - minTime + 1
     }
 

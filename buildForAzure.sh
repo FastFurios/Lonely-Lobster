@@ -11,6 +11,7 @@ rm ~/sw_projects/azure/Lonely-Lobster/* > /dev/null 2> /dev/null
 
 echo ">>> BACKEND: copying artifacts to build & deploy stage ..."
 cp ~/sw_projects/Lonely-Lobster/target/*.js ~/sw_projects/azure/Lonely-Lobster/target/
+rm -r ~/sw_projects/azure/Lonely-Lobster/target/__*
 cp ~/sw_projects/Lonely-Lobster/package.json ~/sw_projects/azure/Lonely-Lobster/
 cp ~/sw_projects/Lonely-Lobster/package-lock.json ~/sw_projects/azure/Lonely-Lobster/
 
