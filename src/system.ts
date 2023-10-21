@@ -12,6 +12,7 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_OutputBasket, I_WorkerState } from './io_api_definitions.js'
+import { environment } from './environment.js'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
     clock:          false,
@@ -145,12 +146,6 @@ export class LonelyLobsterSystem {
         }
     }
 
-    private i_outputBasket(ob: OutputBasket): I_OutputBasket {
-        return {
-            workItems: ob.workItemBasket.map(wi => this.i_endProduct(wi))
-        }
-    }
-
     private i_workerState(wo: Worker): I_WorkerState {
         return {
             worker:      wo.id,
@@ -170,7 +165,8 @@ export class LonelyLobsterSystem {
             time:         this.clock.time,
             valueChains:  this.valueChains.map(vc => this.i_valueChain(vc)),
             outputBasket: { workItems: this.outputBasket.workItemBasket.map(wi => this.i_endProduct(wi)) },
-            workersState: this.workers.map(wo => this.i_workerState(wo))
+            workersState: this.workers.map(wo => this.i_workerState(wo)),
+            version:      environment.version
         }
       }
 

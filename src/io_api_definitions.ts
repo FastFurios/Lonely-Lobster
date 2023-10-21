@@ -78,6 +78,7 @@ export interface I_SystemState {
     valueChains:                    I_ValueChain[]
     outputBasket:                   I_OutputBasket
     workersState:                   I_WorkerState[]
+    version:                        string  // code version of this Lonely Lobster backend service 
 }
 
 //-------------------------------
