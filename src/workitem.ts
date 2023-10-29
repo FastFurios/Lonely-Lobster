@@ -156,10 +156,10 @@ export class WorkItem {
         
         const maxTime   = mode == ElapsedTimeMode.firstEntryToNow ? this.sys.clock.time : logInScope[logInScope.length - 1].timestamp 
         const minTime   = logInScope[0].timestamp
-        return maxTime - minTime + 1
+        return maxTime - minTime
     }
 
-    public timeOfLastLogEntry = (): Timestamp => this.log[this.log.length - 1].timestamp
+//  private timeOfLastLogEntry = (): Timestamp => this.log[this.log.length - 1].timestamp
 
     public accumulatedEffort = (until: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort =>
         (workItemBasketHolder == undefined ? this.log 
@@ -180,8 +180,8 @@ export class WorkItem {
         this.extendedInfos = new WorkItemExtendedInfos(this.sys, this)         
     }
 
-    public wasInValueChainAt(t: Timestamp): boolean {
-        return this.log[0].timestamp <= t && !this.hasMovedToOutputBasketBetween(1, t)
+    public wasInValueChainAt(t: Timestamp): boolean { 
+        return this.log[0].timestamp < t && !this.hasMovedToOutputBasketBetween(0, (t - 1))
     }
 
     public hasMovedToOutputBasketBetween(fromTime: Timestamp, toTime: Timestamp) {

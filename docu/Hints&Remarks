@@ -34,16 +34,18 @@ Azure Deployment (2023-10-10):
 -- create a dir for the frontend ~/sw_projects/azure/Lonely-Lobster/frontend
 
 - frontend:
--- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://mylonelylobstertest01.azurewebsites.net/initialize/"
+-- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonelylobster.azurewebsites.net/initialize/"
 -- $ ng build --configuration production // creates a new distribution package
--- Copy the Angular package to the deployment-stage: ~/sw_projects/azure/Lonely-Lobster/frontend$ cp -r ../../../Angular-Testbed/dist/my-first-project/* .
+-- Copy the Angular package to the deployment-stage: ~/sw_projects/azure/Lonely-Lobster/frontend$ cp -r ../../../Angular-Testbed/dist/lonely-lobster/* .
+
+above steps are executed with ~/sw_projects/Lonely-Lobster$ sh buildForAzure.sh
 
 in VSCode:
 - open folder ~/sw_projects/azure/Lonely-Lobster/
 - open Azure (left navigation panel in VSCode)
 - select subscription
 - select "App Services"
-- select webapp, e.g. "myLonelyLobsterTest01"
+- select webapp, e.g. "LonelyLobster"
 - right mouse-click on webapp: deploy to Web App...
 - takes a while. Might end with an error ("...map is not a function"). Just wait and repeat, it will eventually work.
 - open browser with url = https://mylonelylobstertest01.azurewebsites.net/  

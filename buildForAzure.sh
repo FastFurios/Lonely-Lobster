@@ -17,5 +17,5 @@ cp ~/sw_projects/Lonely-Lobster/package-lock.json ~/sw_projects/azure/Lonely-Lob
 
 echo ">>> FRONTEND: creating artifacts and copying to build & deploy stage ..."
 
-cp -r ~/sw_projects/Angular-Testbed/dist/my-first-project/* ~/sw_projects/azure/Lonely-Lobster/frontend
+cp -r ~/sw_projects/Angular-Testbed/dist/lonely-lobster/* ~/sw_projects/azure/Lonely-Lobster/frontend
 echo ">>> Now, please deploy via VSCode to the Azure Web App!"

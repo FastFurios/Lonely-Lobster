@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------
 
 import { Clock } from './clock.js'
-import { workItemIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem } from './workitem.js'
+import { workItemIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem, ElapsedTimeMode } from './workitem.js'
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
@@ -45,19 +45,18 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
-    public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
-
-    public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
-
     public doNextIteration(now: Timestamp, wos: WorkOrder[]): void {
    
-        this.clock.setTo(now)
+//      this.clock.setTo(now)
         if (this.clock.time < 1) this.showHeader()
 
         // populate process steps with work items (and first process steps with new work orders)
         this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
         this.valueChains.forEach(vc => vc.letWorkItemsFlow())
         if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
+
+        // tick the clock to the next interval
+        this.clock.tick()
 
         // prepare workitem extended statistical infos before workers make their choice 
         this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
@@ -74,6 +73,7 @@ export class LonelyLobsterSystem {
 
         // show valuechains line for current time
         this.showLine()
+//      this.showDebugWorkitemData() // for debugging only
     }
 
 //----------------------------------------------------------------------
@@ -91,6 +91,11 @@ export class LonelyLobsterSystem {
         }
       }
 
+      public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
+
+      public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
+
+  
 //----------------------------------------------------------------------
 //    API Iteration
 //----------------------------------------------------------------------
@@ -183,7 +188,8 @@ export class LonelyLobsterSystem {
 //    API Statistics
 //----------------------------------------------------------------------
 
-    private workingCapitalAt = (t:Timestamp): Value => this
+    private workingCapitalAt = (t:Timestamp): Value => { 
+        const aux = this
             .valueChains
                 .flatMap(vc => vc.processSteps
                     .flatMap(ps => ps.workItemBasket))
@@ -191,6 +197,9 @@ export class LonelyLobsterSystem {
             .filter(wi => wi.wasInValueChainAt(t))
             .map(wi => wi.accumulatedEffort(t))
             .reduce((a, b) => a + b, 0)
+//      console.log("workingCapitalAt(" + t + ")=" + aux)
+        return aux
+    }
 
     private workItemStatistics(wiElapTimeValAdd: WiElapTimeValAdd[], interval: TimeUnit): I_WorkItemStatistics {
         const elapsedTimes: TimeUnit[] = wiElapTimeValAdd.flatMap(el => el.elapsedTime)
@@ -253,21 +262,22 @@ export class LonelyLobsterSystem {
     }
 
     private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime + 1
+        const interval: TimeUnit = toTime - fromTime
         let accumulatedWorkingCapital = 0
-        for (let t = fromTime; t <= toTime; t++) {
+        for (let t = fromTime + 1; t <= toTime; t++) {
             accumulatedWorkingCapital += this.workingCapitalAt(t)
         }
+//      console.log("avgWorkingCapitalBetween(" + fromTime + " to " + toTime + "): accumulatedWorkingCapital= " + accumulatedWorkingCapital + "; interval=" + interval)
         return accumulatedWorkingCapital / interval
     }
 
     private avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime + 1
+        const interval: TimeUnit = toTime - fromTime
         return (endProductMoreStatistics.discountedValueAdd - endProductMoreStatistics.normEffort) / interval
     }
         
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
-        const interval:TimeUnit = toTime - fromTime + 1
+        const interval:TimeUnit = toTime - fromTime
         const statEvents: StatsEventForExitingAProcessStep[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
                                                             .concat(this.outputBasket.flowStats(fromTime, toTime))
         const endProductMoreStatistics: I_EndProductMoreStatistics = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
@@ -313,4 +323,31 @@ export class LonelyLobsterSystem {
     private obStatsAsString(): string {
         return"system.obStatsAsString() - left empty"  /* needs to be fixed */
     }
+//----------------------------------------------------------------------
+//    DEBUGGING
+//----------------------------------------------------------------------
+
+    private showWorkitemDebuggingDetails(now: Timestamp, wi: WorkItem, ps?: ProcessStep): void {
+        console.log(`\t\tWI id=${wi.id}`)
+        console.log(`\t\t total elap.time=${wi.elapsedTime(ps ? ElapsedTimeMode.firstEntryToNow : ElapsedTimeMode.firstToLastEntryFound, ps)}`) 
+        console.log(`\t\t total effort=${wi.accumulatedEffort(now, ps)}`)
+        console.log(`\t\t log:`)
+        wi.log.forEach(le => console.log(`\t\t\t${le.stringified()}`))
+    }
+
+    private showDebugWorkitemData(): void {
+        // for debugging only: show state of all workitems 
+        this.valueChains.forEach(vc => {
+            console.log(`VC=${vc.id}:`)
+            vc.processSteps.forEach(ps => {
+                console.log(`\tPS=${ps.id}:`)
+                ps.workItemBasket.forEach(wi => this.showWorkitemDebuggingDetails(this.clock.time, wi, ps))
+            })
+        })
+
+        console.log(`\tOB:`)
+        this.outputBasket.workItemBasket.forEach((wi: WorkItem) => this.showWorkitemDebuggingDetails(this.clock.time, wi))
+    }
 }
+
+

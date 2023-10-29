@@ -9,7 +9,6 @@ import { Worker, AssignmentSet, Assignment } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion } from "./helpers.js"
-//import { throwError } from 'rxjs'
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -23,7 +22,7 @@ interface I_TimeValueFctAndArg {
 }
 
 // -------------------------------------------------------------------------
-// Create system configuration from JSON file (when in running in batch mode)
+// Create system configuration from JSON file (when running in batch mode)
 // -------------------------------------------------------------------------
 
 export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSystem {
@@ -99,16 +98,16 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     }
     interface I_worker {
         worker_id:                                  string
-        select_next_work_item_sort_vector_sequence: I_SortVector[]
+        select_next_work_item_sort_vector_sequence: I_sortVector[]
         process_step_assignments:                   I_process_step_assignment[]
     }
-    interface I_SortVector {
+    interface I_sortVector {
         measure:             WiExtInfoElem
         selection_criterion: SelectionCriterion
     }
     
     const createdNewWorker = (woj: I_worker): Worker => { 
-        const sortVectorFromJson = (svj: I_SortVector): SortVector => {
+        const sortVectorFromJson = (svj: I_sortVector): SortVector => {
             return {
                 colIndex: Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure)?.value,
                 selCrit:  Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion)?.value
