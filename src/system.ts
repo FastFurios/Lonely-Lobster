@@ -47,7 +47,6 @@ export class LonelyLobsterSystem {
 
     public doNextIteration(now: Timestamp, wos: WorkOrder[]): void {
    
-//      this.clock.setTo(now)
         if (this.clock.time < 1) this.showHeader()
 
         // populate process steps with work items (and first process steps with new work orders)
@@ -73,7 +72,6 @@ export class LonelyLobsterSystem {
 
         // show valuechains line for current time
         this.showLine()
-//      this.showDebugWorkitemData() // for debugging only
     }
 
 //----------------------------------------------------------------------

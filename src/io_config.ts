@@ -68,7 +68,10 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         switch (timeValueFctAndArg?.function) {
             case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
             case "expired"   : return expired.bind(null, timeValueFctAndArg.argument)
-            default: return net
+            default: { 
+                console.log(`WARNING: Reading system parameters: value degration function \"${timeValueFctAndArg?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
+                return net
+            }
         }
     }
 
@@ -107,10 +110,18 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     }
     
     const createdNewWorker = (woj: I_worker): Worker => { 
-        const sortVectorFromJson = (svj: I_sortVector): SortVector => {
+        function sortVectorFromJson(svj: I_sortVector): SortVector {
+            if (Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure) == undefined) { 
+                console.log(`Reading system parameters: selecting next workitem by \"${svj.measure}\" is an unknown measure`)
+                throw new Error(`Reading system parameters: selecting next workitem by \"${svj.measure}\" is an unknown measure`)
+            }
+            if (Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion) == undefined) { 
+                console.log(`Reading system parameters: selecting next workitem by \"${svj.measure}\" has unknown sort order \"${svj.selection_criterion}\"`)
+                throw new Error(`Reading system parameters: selecting next workitem by \"${svj.measure}\" has unknown sort order \"${svj.selection_criterion}\"`)
+            }
             return {
-                colIndex: Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure)?.value,
-                selCrit:  Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion)?.value
+                colIndex: Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure)!.value,
+                selCrit:  Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion)!.value
             } 
         }
         const svs: SortVector[] = woj.select_next_work_item_sort_vector_sequence == undefined 
