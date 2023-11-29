@@ -5,6 +5,7 @@
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
+import { Worker } from './worker.js'
 import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
 
 // ------------------------------------------------------------
@@ -30,7 +31,7 @@ export abstract class WorkItemBasketHolder {
     public accumulatedEffortMade(until: Timestamp): Effort {
         return this.workItemBasket.map(wi => wi.accumulatedEffort(until)).reduce((ef1, ef2) => ef1 + ef2, 0 )
     }
- 
+
     public abstract stringified(): string
 
     public stringifiedBar = (): string => { 
@@ -95,8 +96,8 @@ export class OutputBasket extends WorkItemBasketHolder {
         if (wisArrived.length < 1) return emptyWorkItemInInventoryStatistics
 
         for (let wi of wisArrived) {  // process all workitems that have transitioned into output basket after fromTime and up to toTime
-            const normEffort            = wi.log[0].valueChain.processSteps.map(ps => ps.normEffort).reduce((e1, e2) => e1 + e2)  // == minimum cycle time thru value chain
-            const minCycleTime          = normEffort    
+            const normEffort            = wi.log[0].valueChain.normEffort
+            const minCycleTime          = wi.log[0].valueChain.minimalCycleTime
             const elapsedTime           = wi.elapsedTime(ElapsedTimeMode.firstToLastEntryFound)
             const netValueAdd           = wi.log[0].valueChain.totalValueAdd
             const discountedValueAdd    = wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime)

@@ -29,7 +29,7 @@
                 }
             ]
         },
-         {
+        {
             "worker_id" : "Anny",
             "select_next_work_item_sort_vector_sequence" : [  { "measure": "remainingProcessSteps", "selCrit":  "maximum" }, { "measure": "remainingEffortInProcessStep", "selCrit":  "maximum" } ],
             "process_step_assignments"  : [

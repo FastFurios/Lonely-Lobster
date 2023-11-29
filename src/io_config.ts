@@ -5,10 +5,10 @@
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSortVectorSequence, WeightedSortVectorSequences } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
-import { SortVector, SelectionCriterion } from "./helpers.js"
+import { SortVector, SelectionCriterion, SortVectorSequence } from "./helpers.js"
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -32,7 +32,7 @@ export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSy
     catch (e: any) {
         switch (e.code) {
             case "ENOENT" : { throw new Error("System config file not found: " + e) }
-            default       : { throw new Error("System config  file: other error: " + e.message) }
+            default       : { throw new Error("System config file: other error: " + e.message) }
         }   
     } 
     finally {}
@@ -99,14 +99,15 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         value_chain_id:     string
         process_steps_id:   string
     }
-    interface I_worker {
-        worker_id:                                  string
-        select_next_work_item_sort_vector_sequence: I_sortVector[]
-        process_step_assignments:                   I_process_step_assignment[]
-    }
     interface I_sortVector {
         measure:             WiExtInfoElem
         selection_criterion: SelectionCriterion
+    }
+    interface I_worker {
+        worker_id:                                              string
+        select_next_work_item_sort_vector_sequence:             I_sortVector[] // deprecated, replaced by ... see next line 
+        select_next_work_item_available_sort_vector_sequences:  I_sortVector[][]
+        process_step_assignments:                               I_process_step_assignment[]
     }
     
     const createdNewWorker = (woj: I_worker): Worker => { 
@@ -124,10 +125,31 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                 selCrit:  Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion)!.value
             } 
         }
-        const svs: SortVector[] = woj.select_next_work_item_sort_vector_sequence == undefined 
-                                ? [] 
-                                : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
-        return new Worker(sys, woj.worker_id, svs) 
+
+        let weightedSortVectorSequences: WeightedSortVectorSequences
+        if (woj.select_next_work_item_available_sort_vector_sequences) {  // the new property, introduced in Rel.3, is used
+            weightedSortVectorSequences = woj.select_next_work_item_available_sort_vector_sequences == undefined 
+                                        ? [{ sortVectorSequence: [], relativeWeight: 2 }] // random ("[]") is the only available selection strategy 
+                                        : woj.select_next_work_item_available_sort_vector_sequences?.map(svsj => { 
+                                            return { 
+                                                sortVectorSequence: svsj.map(svj => sortVectorFromJson(svj)),
+                                                relativeWeight: 1
+                                            }})      
+            //console.log(`io_config/createNewWorker: sort_vector new mode for ${woj.worker_id}`)
+        } else if (woj.select_next_work_item_sort_vector_sequence) {
+            // in case we did not find the new property "select_next_work_item_available_sort_vector_sequences" try to find the deprecated old
+            // property "select_next_work_item_sort_vector_sequence"
+            //console.log(`io_config/createNewWorker: sort_vector (deprecated) mode for ${woj.worker_id}`)
+            const svs: SortVectorSequence = woj.select_next_work_item_sort_vector_sequence == undefined 
+                                          ? [] // random ("[]") is the only available selection strategy
+                                          : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
+            weightedSortVectorSequences = [{ sortVectorSequence: svs, relativeWeight: 1 }]
+        } else 
+            weightedSortVectorSequences = [{ sortVectorSequence: [], relativeWeight: 1 }]
+
+        //console.log(`io_config/createNewWorker: sort vector sequences for ${woj.worker_id} are ${weightedSortVectorSequences.map(wsvs => `weight=${wsvs.relativeWeight} svs=${wsvs.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}` )}; `)
+
+        return new Worker(sys, woj.worker_id, weightedSortVectorSequences) 
     }
 
     const addWorkerAssignment = (psaj: I_process_step_assignment, newWorker: Worker, vcs: ValueChain[], asSet: AssignmentSet): void  => {

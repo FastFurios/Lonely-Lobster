@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------
 
 import { Clock } from './clock.js'
-import { workItemIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem, ElapsedTimeMode } from './workitem.js'
+import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem, ElapsedTimeMode } from './workitem.js'
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
@@ -36,7 +36,7 @@ export class LonelyLobsterSystem {
     public workOrderInFlow: WorkOrder[] = []
     public outputBasket:    OutputBasket 
     public clock:           Clock    
-    public idGen  = workItemIdGenerator()
+    public idGen  = wiIdGenerator()
     public tagGen = wiTagGenerator(wiTags)
 
     constructor(public id:                  string,
@@ -75,7 +75,7 @@ export class LonelyLobsterSystem {
     }
 
 //----------------------------------------------------------------------
-//    API Initialization
+//    API mode - Initialization
 //----------------------------------------------------------------------
 
     public emptyIterationRequest(): I_IterationRequest {
@@ -95,7 +95,7 @@ export class LonelyLobsterSystem {
 
   
 //----------------------------------------------------------------------
-//    API Iteration
+//    API mode - Iteration
 //----------------------------------------------------------------------
 
     private workOrderList(iterReq: I_IterationRequest): WorkOrder[] {
@@ -183,7 +183,7 @@ export class LonelyLobsterSystem {
     }
     
 //----------------------------------------------------------------------
-//    API Statistics
+//    API mode - Statistics
 //----------------------------------------------------------------------
 
     private workingCapitalAt = (t:Timestamp): Value => { 
@@ -277,7 +277,7 @@ export class LonelyLobsterSystem {
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
         const interval:TimeUnit = toTime - fromTime
         const statEvents: StatsEventForExitingAProcessStep[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
-                                                            .concat(this.outputBasket.flowStats(fromTime, toTime))
+                                                              .concat(this.outputBasket.flowStats(fromTime, toTime))
         const endProductMoreStatistics: I_EndProductMoreStatistics = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
         const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
         const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
@@ -296,7 +296,7 @@ export class LonelyLobsterSystem {
     }
 
 //----------------------------------------------------------------------
-//    BATCH Output
+//    BATCH mode - Output
 //----------------------------------------------------------------------
 
     private headerForValueChains = ():string => "_t_||" + this.valueChains.map(vc => vc.stringifiedHeader()).reduce((a, b) => a + "| |" + b) +"| "
@@ -321,6 +321,7 @@ export class LonelyLobsterSystem {
     private obStatsAsString(): string {
         return"system.obStatsAsString() - left empty"  /* needs to be fixed */
     }
+
 //----------------------------------------------------------------------
 //    DEBUGGING
 //----------------------------------------------------------------------

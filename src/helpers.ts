@@ -55,16 +55,17 @@ export interface SortVector {
     colIndex:  WiExtInfoElem,
     selCrit:   SelectionCriterion
 }
+export type SortVectorSequence = SortVector[]
 
-export function topElemAfterSort(arrArr: WiExtInfoTuple[], sortVector: SortVector[]): WiExtInfoTuple {
+export function topElemAfterSort(arrArr: WiExtInfoTuple[], svs: SortVectorSequence): WiExtInfoTuple {
     if (arrArr.length     <  1) throw Error("topElemAfterSort(): received array w/o element") 
     if (arrArr.length     == 1) return arrArr[0]
-    if (sortVector.length == 0) return arrArr[Math.floor(Math.random() * arrArr.length)]   // arrArr[0]
+    if (svs.length == 0) return arrArr[Math.floor(Math.random() * arrArr.length)]   // arrArr[0]
 
-    const f = sortVector[0].selCrit == SelectionCriterion.maximum ? (a: number, b: number) => a > b ? a : b
-                                                              : (a: number, b: number) => a < b ? a : b
-    const v          = (<number[]>arrArr.map(arr => arr[sortVector[0].colIndex])).reduce(f)
-    const arrArrTops = arrArr.filter(arr => arr[sortVector[0].colIndex] == v)
+    const f = svs[0].selCrit == SelectionCriterion.maximum ? (a: number, b: number) => a > b ? a : b
+                                                           : (a: number, b: number) => a < b ? a : b
+    const v          = (<number[]>arrArr.map(arr => arr[svs[0].colIndex])).reduce(f)
+    const arrArrTops = arrArr.filter(arr => arr[svs[0].colIndex] == v)
 
-    return topElemAfterSort(arrArrTops, sortVector.slice(1))
+    return topElemAfterSort(arrArrTops, svs.slice(1))
 }

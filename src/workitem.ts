@@ -3,12 +3,13 @@
 //----------------------------------------------------------------------
 //-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service 
 
-import { TimeUnit, Timestamp, Effort, WorkItemId, WorkItemTag } from './io_api_definitions'
+import { of } from 'rxjs'
+import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag } from './io_api_definitions'
 import { LogEntry, LogEntryType } from './logging.js'
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { Worker } from './worker.js'
-import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
+import { WorkItemBasketHolder, ProcessStep, OutputBasket } from './workitembasketholder.js'
 
 //----------------------------------------------------------------------
 //    definitions and helpers
@@ -20,7 +21,7 @@ export interface WorkOrder {
 }
 
 // unique workitem identifier
-export function* workItemIdGenerator(): IterableIterator<WorkItemId> { 
+export function* wiIdGenerator(): IterableIterator<WorkItemId> { 
     for(let i = 0; true; i++) yield i 
 }
 
@@ -189,6 +190,25 @@ export class WorkItem {
         return this.currentProcessStep == this.sys.outputBasket && lastLogEntry.timestamp >= fromTime && lastLogEntry.timestamp <= toTime
     }
 
+    private materializedValue(): Value {
+        if (this.currentProcessStep != this.sys.outputBasket) return 0
+        const vc         = this.log[0].valueChain 
+        const crv: Value = vc.valueDegration(vc.totalValueAdd, this.elapsedTime(ElapsedTimeMode.firstToLastEntryFound) - vc.minimalCycleTime)
+        return crv
+    } 
+
+    private effortPutInByWorker(wo: Worker, fromTime: Timestamp, toTime: Timestamp): Effort {
+        return this.log.filter(le => le.logEntryType == LogEntryType.workItemWorkedOn && (<LogEntryWorkItemWorked>le).worker == wo && le.timestamp > fromTime && le.timestamp <= toTime).length 
+    }
+
+    public workerValueContribution(wo: Worker, fromTime: Timestamp, toTime: Timestamp): Value {
+        if (this.currentProcessStep != this.sys.outputBasket) return 0
+        const effortByWorker =  this.effortPutInByWorker(wo, fromTime, toTime)
+        const aux = effortByWorker > 0 ? this.materializedValue() * (effortByWorker / this.log[0].valueChain.normEffort) : 0 
+        //console.log(`${wo.id} worked ${effortByWorker} units of time on end product ${this.id}, that materialized ${this.materializedValue().toPrecision(2)}`)
+        return aux
+    }
+
     public statisticsEventsHistory(fromTime: Timestamp = 1, toTime: Timestamp = this.sys.clock.time): StatsEventForExitingAProcessStep[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
         const statEvents: StatsEventForExitingAProcessStep[] = []
 
@@ -275,6 +295,7 @@ export class WorkItemExtendedInfos {
 
         this.workOrderExtendedInfos = [
             wi,
+            
             accumulatedEffortInProcessStep,   
             remainingEffortInProcessStep,     
             accumulatedEffortInValueChain,   
