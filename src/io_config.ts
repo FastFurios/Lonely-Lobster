@@ -5,10 +5,10 @@
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, WeightedSortVectorSequence, WeightedSortVectorSequences } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSortStrategy } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
-import { SortVector, SelectionCriterion, SortVectorSequence } from "./helpers.js"
+import { SortVector, SelectionCriterion, SortStrategy } from "./helpers.js"
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -126,26 +126,26 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             } 
         }
 
-        let weightedSortVectorSequences: WeightedSortVectorSequences
+        let weightedSortVectorSequences: WeightedSortStrategy[]
         if (woj.select_next_work_item_available_sort_vector_sequences) {  // the new property, introduced in Rel.3, is used
             weightedSortVectorSequences = woj.select_next_work_item_available_sort_vector_sequences == undefined 
-                                        ? [{ sortVectorSequence: [], relativeWeight: 2 }] // random ("[]") is the only available selection strategy 
+                                        ? [{ element: [], weight: 1 }] // random ("[]") is the only available selection strategy 
                                         : woj.select_next_work_item_available_sort_vector_sequences?.map(svsj => { 
                                             return { 
-                                                sortVectorSequence: svsj.map(svj => sortVectorFromJson(svj)),
-                                                relativeWeight: 1
+                                                element: svsj.map(svj => sortVectorFromJson(svj)),
+                                                weight: 1
                                             }})      
             //console.log(`io_config/createNewWorker: sort_vector new mode for ${woj.worker_id}`)
         } else if (woj.select_next_work_item_sort_vector_sequence) {
             // in case we did not find the new property "select_next_work_item_available_sort_vector_sequences" try to find the deprecated old
             // property "select_next_work_item_sort_vector_sequence"
             //console.log(`io_config/createNewWorker: sort_vector (deprecated) mode for ${woj.worker_id}`)
-            const svs: SortVectorSequence = woj.select_next_work_item_sort_vector_sequence == undefined 
+            const svs: SortStrategy = woj.select_next_work_item_sort_vector_sequence == undefined 
                                           ? [] // random ("[]") is the only available selection strategy
                                           : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
-            weightedSortVectorSequences = [{ sortVectorSequence: svs, relativeWeight: 1 }]
+            weightedSortVectorSequences = [{ element: svs, weight: 1 }]
         } else 
-            weightedSortVectorSequences = [{ sortVectorSequence: [], relativeWeight: 1 }]
+            weightedSortVectorSequences = [{ element: [], weight: 1 }]
 
         //console.log(`io_config/createNewWorker: sort vector sequences for ${woj.worker_id} are ${weightedSortVectorSequences.map(wsvs => `weight=${wsvs.relativeWeight} svs=${wsvs.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}` )}; `)
 

@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------
 
 import { Timestamp, WorkerName, Value, TimeUnit } from './io_api_definitions'
-import { topElemAfterSort, SortVector, SortVectorSequence } from "./helpers.js"
+import { topElemAfterSort, randomlyPickedByWeigths, arrayWithModifiedWeightOfAnElement, WeightedElement, SortStrategy } from "./helpers.js"
 import { LogEntry, LogEntryType } from './logging.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from './workitem.js'
@@ -15,9 +15,9 @@ import { LonelyLobsterSystem } from './system'
 //    WORKER BEHAVIOUR 
 //----------------------------------------------------------------------
 
- function selectedNextWorkItemBySortVector(wis: WorkItem[], svs: SortVectorSequence): WorkItem { // take the top-ranked work item after sorting the accessible work items
+ function selectedNextWorkItemBySortVector(wis: WorkItem[], sost: SortStrategy): WorkItem { // take the top-ranked work item after sorting the accessible work items
     const extInfoTuples: WiExtInfoTuple[] = wis.map(wi => wi.extendedInfos.workOrderExtendedInfos) 
-    const selectedWi: WiExtInfoTuple = topElemAfterSort(extInfoTuples, svs)
+    const selectedWi: WiExtInfoTuple = topElemAfterSort(extInfoTuples, sost)
     return selectedWi[WiExtInfoElem.workItem]  // return workitem object reference
 } 
 
@@ -41,31 +41,19 @@ class LogEntryWorkerWorked extends LogEntryWorker {
     public stringified = (): string => `${this.stringifiedLe()}, ${this.logEntryType}, wo=${this.worker.id}` 
 } 
 
-class LogEntryWorkerAdjustedSortVectorSequenceWeight extends LogEntryWorker {
-    public adjustedWeightedSortVectorSequence: WeightedSortVectorSequence
+class LogEntryWorkerLearnedAndAdapted extends LogEntryWorker {
     constructor (       sys:                                        LonelyLobsterSystem,
                         worker:                                     Worker,
-                 public individualValueContributionOfPeriodBefore:  Value,
-                 public adjustedWeightedSortVectorSequencesIndex:   number, // index into weightedSortVectorSequences array of class Worker
-                 public weightAdjustmentFactor:                     number) {
-        super(sys, LogEntryType.workerAdjustedSortVectorSequenceWeight, worker)
-        this.adjustedWeightedSortVectorSequence = worker.weightedSortVectorSequences[adjustedWeightedSortVectorSequencesIndex]
+                 public individualValueContributionOfEndingPeriod:  Value,
+                 public adjustedWeightedSortStrategy:               WeightedSortStrategy,
+                 public chosenWeightedSortStrategy:                 WeightedSortStrategy) {
+        super(sys, LogEntryType.workerLearnedAndAdapted, worker)
     }
-    public stringified = () => `${this.stringifiedLe()}, ${this.logEntryType}, wo = ${this.worker.id}, chosen svs = ${this.adjustedWeightedSortVectorSequence.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}, new weight=${this.adjustedWeightedSortVectorSequence.relativeWeight}`
+    public stringified = () => `${this.stringifiedLe()}, ${this.worker.id},` +
+                               `ivc=${this.individualValueContributionOfEndingPeriod}, ` +
+                               `adjusted wsost of ending period: ${this.adjustedWeightedSortStrategy.weight}:[${this.adjustedWeightedSortStrategy.element.map(sost => `${sost.colIndex}/${sost.selCrit}`)}],  ` +
+                               `newly chosen: ${this.chosenWeightedSortStrategy.weight}:[${this.chosenWeightedSortStrategy.element.map(sost => `${sost.colIndex}/${sost.selCrit}`)}]\n`
 } 
-
-class LogEntryWorkerChoseWeightedSortVectorSequence extends LogEntryWorker {
-    public chosenWeightedSortVectorSequence: WeightedSortVectorSequence
-    constructor (       sys:                                        LonelyLobsterSystem,
-                        worker:                                     Worker,
-                 public chosenWeightedSortVectorSequenceIndex:      number) {
-        super(sys, LogEntryType.workerChoseWeightedSortVectorSequence, worker)
-        this.chosenWeightedSortVectorSequence = worker.weightedSortVectorSequences[chosenWeightedSortVectorSequenceIndex]
-    }
-    public stringified = () => `${this.stringifiedLe()}, ${this.logEntryType}, wo = ${this.worker.id}, chosen svs = ${this.chosenWeightedSortVectorSequence.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}`
-} 
-
-type LogEntryWorkerAdapted = LogEntryWorkerChoseWeightedSortVectorSequence | LogEntryWorkerAdjustedSortVectorSequenceWeight
 
 //----------------------------------------------------------------------
 //    ASSIGNMENTS OF WORKERS TO PROCESS STEPS
@@ -89,7 +77,7 @@ export class AssignmentSet {
 //    WORKER 
 //----------------------------------------------------------------------
 
-interface ValueChainProcessStep {
+type ValueChainProcessStep = {
     valueChain:  ValueChain,
     processStep: ProcessStep
 }
@@ -99,30 +87,27 @@ type WorkerStats = {
     utilization: number // in percent, i.e. 55 is 55%
 }
 
-export type WeightedSortVectorSequence = {
-    sortVectorSequence: SortVectorSequence,
-    relativeWeight:     number // range 0 to 1; sum of all in a WeightedSortVectorSequences should be 1
-}
-export type WeightedSortVectorSequences = WeightedSortVectorSequence[]
-
+export type WeightedSortStrategy = WeightedElement<SortStrategy>
 
 const observationPeriod: TimeUnit = 20   // <= should come via the config json file sometime
 const weightAdjustmentFactor: number  = 0.3
 
-
+// --- WORKER class --------------------------------------
 export class Worker {
-    logWorkerWorked:          LogEntryWorkerWorked[] = []
-    logWorkerAdapted:         LogEntryWorkerAdapted[] = []
-    chosenSortVectorSequence!:SortVectorSequence // will be initialized in "initializeLearningAndAdaption()"
-    stats:                    WorkerStats      = { assignments: [], utilization: 0 }
+    logWorkerWorked:            LogEntryWorkerWorked[]  = []
+    logWorkerLearnedAndAdapted: LogEntryWorkerLearnedAndAdapted[]  = []
+    stats:                      WorkerStats      = { assignments: [], utilization: 0 }
 
-    constructor(private sys:                            LonelyLobsterSystem,
-                public  id:                             WorkerName,
-                public  weightedSortVectorSequences:    WeightedSortVectorSequences) {
-        this.initializeLearningAndAdaption()
+    constructor(private sys:                        LonelyLobsterSystem,
+                public  id:                         WorkerName,
+                public  weightedSortStrategies:     WeightedSortStrategy[]) {
+        console.log(`${this.id}'s available weighted sort strategies: ${this.weightedSortStrategies.map(wsost => `${wsost.weight}:[${wsost.element.map(sost => `${sost.colIndex}/${sost.selCrit}`)}]` )}`)
+        this.logLearnedAndAdapted(0, this.weightedSortStrategies[0], this.weightedSortStrategies[0]) // initialize worker's learning & adaption log
     }
 
     private logWorked(): void { this.logWorkerWorked.push(new LogEntryWorkerWorked(this.sys, this)) }
+
+    private logLearnedAndAdapted(ivc: Value, adjustedWeightedSost: WeightedSortStrategy, ChosenWeightedSost: WeightedSortStrategy): void { this.logWorkerLearnedAndAdapted.push(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedWeightedSost, ChosenWeightedSost)) }
 
     private  workItemsAtHand(asSet: AssignmentSet): WorkItem[] {
         const pss: ProcessStep[] = asSet.assignments.filter(as => as.worker.id == this.id).map(as => as.valueChainProcessStep.processStep)
@@ -136,12 +121,7 @@ export class Worker {
     public work(asSet: AssignmentSet): void {
 
         // --- learning and adaption -----
-        if (this.sys.clock.time != 0 && this.sys.clock.time % observationPeriod == 0) {
-            console.log(`${this.id} adjusting weighted svss and choosing a svs...`)
-            this.adjustChosenSortVectorSequence(this.individualValueContribution(this.sys.clock.time - observationPeriod < 0 ? 0 : this.sys.clock.time - observationPeriod, this.sys.clock.time), 
-                                                this.individualValueContributionOfPeriodBefore())
-            this.choseSortVectorSequence()
-        }
+        if (this.sys.clock.time > 0 && this.sys.clock.time % observationPeriod == 0) this.adjustOldAndChooseNewSortStrategy()
 
         // --- working -----
         if (this.hasWorkedAt(this.sys.clock.time)) return    // worker has already worked at current time
@@ -155,9 +135,9 @@ export class Worker {
         if(this.sys.debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
         if(this.sys.debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos.stringifiedDataLine()}`)) // ***
 
-        this.chosenSortVectorSequence = this.weightedSortVectorSequences[0].sortVectorSequence // <== here goes the learning logic tbc
+        //this.chosenSortStrategy = this.weightedSortStrategys[0].sortStrategy // <== here goes the learning logic tbc
 
-        const wi: WorkItem = selectedNextWorkItemBySortVector(workableWorkItemsAtHand, this.chosenSortVectorSequence)
+        const wi: WorkItem = selectedNextWorkItemBySortVector(workableWorkItemsAtHand, this.currentSortStrategy)
 
         if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
 
@@ -180,50 +160,42 @@ export class Worker {
     //    Learning & Adaption 
     //----------------------------------------------------------------------
 
-    private initializeLearningAndAdaption(): void {
-        console.log(`${this.id} had available weighted sort vec seqs: ${this.weightedSortVectorSequences.map(wsvs => `weight=${wsvs.relativeWeight} svs=${wsvs.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}` )}`)
-        this.normalizeSortVectorSequencesWeights()    
-        console.log(`${this.id} now has available weighted sort vec seqs: ${this.weightedSortVectorSequences.map(wsvs => `weight=${wsvs.relativeWeight} svs=${wsvs.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}` )}`)
-
-        // initialize worker's learning & adaption log
-        this.logWorkerAdapted.push(new LogEntryWorkerAdjustedSortVectorSequenceWeight(this.sys, this, /*individualValueContributionOfLastPeriod=*/0, 0, 0)) // set individualValueContributionOfLastPeriod = 0
-        this.logWorkerAdapted.push(new LogEntryWorkerChoseWeightedSortVectorSequence(this.sys, this, 0)) // chose the first available weighted sort vector sequence for the start
-        this.choseSortVectorSequence()
-    }
-
-    private normalizeSortVectorSequencesWeights(): void {
-        //console.log(`${this.id} wsvs weights were: ${this.weightedSortVectorSequences.map(wsvs => wsvs.relativeWeight.toPrecision(2))}`)
-        const sum = this.weightedSortVectorSequences.map(wsvs => wsvs.relativeWeight).reduce((a, b) => a + b, 0)
-        if (sum > 0) 
-            for (let wsvs of this.weightedSortVectorSequences)
-                wsvs.relativeWeight /= sum 
-        else // if for whatever reason all weights are set to 0
-            for (let wsvs of this.weightedSortVectorSequences)
-                wsvs.relativeWeight = 1 / this.weightedSortVectorSequences.length
-        //console.log(`${this.id} wsvs weights are now: ${this.weightedSortVectorSequences.map(wsvs => wsvs.relativeWeight.toPrecision(2))}`)
-    }
-
-    public individualValueContribution(fromTime: Timestamp, toTime: Timestamp): Value {
+    private individualValueContribution(fromTime: Timestamp, toTime: Timestamp): Value {
         return this.sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(this, fromTime, toTime)).reduce((a, b) => a + b, 0)
     } 
 
-    private individualValueContributionOfPeriodBefore(): Value {
-        const lesWorkerAdjustedSvsWeight: LogEntryWorkerAdapted[] = this.logWorkerAdapted.filter(le => le.logEntryType == LogEntryType.workerAdjustedSortVectorSequenceWeight)
-        return (<LogEntryWorkerAdjustedSortVectorSequenceWeight>lesWorkerAdjustedSvsWeight[lesWorkerAdjustedSvsWeight.length - 1]).individualValueContributionOfPeriodBefore
+    private get individualValueContributionEndingPeriod(): Value {
+        return this.individualValueContribution(this.sys.clock.time - observationPeriod < 0 ? 0 : this.sys.clock.time - observationPeriod, this.sys.clock.time)
+    } 
+
+    private get individualValueContributionPeriodBefore(): Value {
+        return (this.logWorkerLearnedAndAdapted[this.logWorkerLearnedAndAdapted.length - 1]).individualValueContributionOfEndingPeriod
     }
 
-    private adjustChosenSortVectorSequence(ivcCurrent: number, ivcBefore: number): void {
-        const lesWorkerChoseSvs: LogEntryWorkerAdapted[] = this.logWorkerAdapted.filter(le => le.logEntryType == LogEntryType.workerChoseWeightedSortVectorSequence)
-        const chosenWeightedSvsOfLastPeriod: WeightedSortVectorSequence= (<LogEntryWorkerChoseWeightedSortVectorSequence>lesWorkerChoseSvs[lesWorkerChoseSvs.length - 1]).chosenWeightedSortVectorSequence
-        chosenWeightedSvsOfLastPeriod.relativeWeight *= 1 + weightAdjustmentFactor * (ivcCurrent - ivcBefore > 0 ? 1 : -1) 
-        this.normalizeSortVectorSequencesWeights()
+    private get currentWeightedSortStrategy(): WeightedSortStrategy {
+        return this.logWorkerLearnedAndAdapted[this.logWorkerLearnedAndAdapted.length - 1].chosenWeightedSortStrategy
     }
 
-    private choseSortVectorSequence(): void {
-        this.chosenSortVectorSequence = this.weightedSortVectorSequences[0].sortVectorSequence
-        console.log(`${this.id} chose svs ${this.chosenSortVectorSequence.map(sv => sv.colIndex + "/" + sv.selCrit)}`)
-
+    private get currentSortStrategy(): SortStrategy {
+        return this.currentWeightedSortStrategy.element
     }
 
+    private adjustOldAndChooseNewSortStrategy(): void {
+        this.weightedSortStrategies = arrayWithModifiedWeightOfAnElement<SortStrategy>(
+                this.weightedSortStrategies, 
+                this.currentWeightedSortStrategy, 
+                this.weightAdjustment(this.individualValueContributionEndingPeriod, this.individualValueContributionPeriodBefore))
+        this.logLearnedAndAdapted(this.individualValueContributionEndingPeriod, 
+                                  this.currentWeightedSortStrategy,
+                                  randomlyPickedByWeigths<SortStrategy>(this.weightedSortStrategies))
+        console.log(`${this.id}'s normalized weighted strategies: ${this.weightedSortStrategies.map(wsost => wsost.weight.toPrecision(2) + ":[" + wsost.element.map(sv => sv.colIndex + "/" + sv.selCrit) + "]")}, 
+                      chosen strategy: ${this.currentSortStrategy.map(sv => sv.colIndex + "/" + sv.selCrit)}`)
+        console.log(`${this.id}'s log:\n ${this.logWorkerLearnedAndAdapted.map(le => le.stringified())}`)
+        console.log(`${this.id}'s available weighted sort strategies: ${this.weightedSortStrategies.map(wsost => `${wsost.weight}:[${wsost.element.map(sost => `${sost.colIndex}/${sost.selCrit}`)}]` )}`)
+    }
+
+    private weightAdjustment(ivcEndingPeriod: Value, ivcPeriodBefore: Value): number {
+        return (ivcEndingPeriod > ivcPeriodBefore ? 1 : -1) * 0.3
+    }
 
 }
