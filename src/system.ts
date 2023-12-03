@@ -70,8 +70,8 @@ export class LonelyLobsterSystem {
         // update workers stats after having worked
         this.workers.forEach(wo => wo.utilization(this))
 
-        // show valuechains line for current time
-        this.showLine()
+        // show valuechains line for current timestamp on console
+        //this.showLine()
     }
 
 //----------------------------------------------------------------------

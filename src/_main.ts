@@ -96,7 +96,7 @@ function apiMode(): void {
             return 
         }
 
-        console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        //console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         webSessions.set(req.sessionID, lonelyLobsterSystem!)
         lonelyLobsterSystem.clock.setTo(-1) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
@@ -107,14 +107,14 @@ function apiMode(): void {
     // API call - ITERATE
     //------------------------------
     app.post('/iterate', (req, res) => {
-        console.log("_main: app.post /iterate ------------------------------------")
+        //console.log("_main: app.post /iterate ------------------------------------")
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
             console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
             res.send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
             return
         }
-        console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        //console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
 //      lonelyLobsterSystem.clock.tick()
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
         res.send(lonelyLobsterSystem.nextSystemState(req.body))
@@ -124,14 +124,14 @@ function apiMode(): void {
     // API call - provide STATISTICS 
     //------------------------------
     app.get('/statistics', (req, res) => {
-        console.log("\n_main: app.post /statistics ------------------------------------")
+        //console.log("\n_main: app.post /statistics ------------------------------------")
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
             console.log("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
             res.send("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        console.log("_main: app.post /statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        //console.log("_main: app.post /statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
         res.send(lonelyLobsterSystem.systemStatistics( 
                                 interval <= 0 ? 0 // stats from the very beginning on

@@ -87,18 +87,19 @@ type WeightDistributionElement<T> = {
 
 // change weigth of an element and then normalize weights of the array  
 
-export function arrayWithModifiedWeightOfAnElement<T>(arr: WeightedElement<T>[], elem: WeightedElement<T>, increase: number): WeightedElement<T>[] {
-    const foundElem = arr.find(e => e === elem)
+export function arrayWithModifiedWeightOfAnElement<T>(arr: WeightedElement<T>[], element: T, increase: number, polished: (w: number) => number): WeightedElement<T>[] {
+    const foundElem = arr.find(e => e.element === element)
     if (!foundElem) throw new Error("helpers.ts: arrayWithModifiedWeightOfAnElement(): could not find element")
     foundElem.weight += increase
-    return arrayWithNormalizedWeights<T>(arr)
+    return arrayWithNormalizedWeights<T>(arr, polished)
 }
 
 // normalize the weights in the array proportionally so the sum of all weights == 1
 
-function arrayWithNormalizedWeights<T>(arr: WeightedElement<T>[]): WeightedElement<T>[] {
-    const sumOfWeigths = arr.map(we => we.weight).reduce((a, b) => a + b, 0)
-    return arr.map(we => { return { element: we.element, weight: we.weight / sumOfWeigths } })
+export function arrayWithNormalizedWeights<T>(arr: WeightedElement<T>[], polished: (w: number) => number): WeightedElement<T>[] {
+    const polishedArr = arr.map(we => { return { element: we.element, weight: polished(we.weight) } }) // safeguard against negative values
+    const sumOfWeigths = polishedArr.map(we => we.weight).reduce((a, b) => a + b, 0)
+    return polishedArr.map(we => { return { element: we.element, weight: we.weight / sumOfWeigths } })
 }
 
 // if weightedElements are [{ element: A, weight: 0,3 }, { element: B, weight: 0,2 }, { element: C, weight: 0,5 }], 
@@ -111,14 +112,14 @@ function arrayWithWeightDistribition<T>(arr: WeightedElement<T>[], from: number 
 
 // Randomly pick element of an array of weighted elements where the likelihood of being picked is proportional to its weight
 
-function randomlyPickedElement<T>(arr: WeightDistributionElement<T>[]): WeightedElement<T> {
+function randomlyPickedElement<T>(arr: WeightDistributionElement<T>[]): T {
     if (arr.length <= 1) throw new Error("helpers.ts: randomlyPickedElement(): cannot pick element from empty array")
     const r = Math.random()
-    return arr.filter(wde => wde.distFrom <= r && wde.distTo > r)[0].weightedElement
+    return arr.filter(wde => wde.distFrom <= r && wde.distTo > r)[0].weightedElement.element
 }
 
 // Randomly pick element of an array of weighted elements where the likelihood of being picked is proportional to its weight
 
-export function randomlyPickedByWeigths<T>(arr: WeightedElement<T>[]): WeightedElement<T> {
-    return randomlyPickedElement(arrayWithWeightDistribition<T>(arrayWithNormalizedWeights<T>(arr)))
+export function randomlyPickedByWeigths<T>(arr: WeightedElement<T>[], polished: (w: number) => number): T {
+    return randomlyPickedElement(arrayWithWeightDistribition<T>(arrayWithNormalizedWeights<T>(arr, polished)))
 }

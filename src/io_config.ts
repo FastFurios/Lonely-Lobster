@@ -8,7 +8,7 @@ import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuec
 import { Worker, AssignmentSet, Assignment, WeightedSortStrategy } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
-import { SortVector, SelectionCriterion, SortStrategy } from "./helpers.js"
+import { SortVector, SelectionCriterion, SortStrategy, arrayWithNormalizedWeights} from "./helpers.js"
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -130,11 +130,11 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         if (woj.select_next_work_item_available_sort_vector_sequences) {  // the new property, introduced in Rel.3, is used
             weightedSortVectorSequences = woj.select_next_work_item_available_sort_vector_sequences == undefined 
                                         ? [{ element: [], weight: 1 }] // random ("[]") is the only available selection strategy 
-                                        : woj.select_next_work_item_available_sort_vector_sequences?.map(svsj => { 
+                                        : arrayWithNormalizedWeights(woj.select_next_work_item_available_sort_vector_sequences.map(svsj => { 
                                             return { 
                                                 element: svsj.map(svj => sortVectorFromJson(svj)),
                                                 weight: 1
-                                            }})      
+                                            }}), (x => x) /* take numbers as is */)      
             //console.log(`io_config/createNewWorker: sort_vector new mode for ${woj.worker_id}`)
         } else if (woj.select_next_work_item_sort_vector_sequence) {
             // in case we did not find the new property "select_next_work_item_available_sort_vector_sequences" try to find the deprecated old
