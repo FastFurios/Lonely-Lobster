@@ -94,20 +94,23 @@ const weightAdjustmentFactor: number  = 0.3
 
 // --- WORKER class --------------------------------------
 export class Worker {
-    private logWorkerWorked:            LogEntryWorkerWorked[]  = []
-    private logWorkerLearnedAndAdapted: LogEntryWorkerLearnedAndAdapted[]  = []
+    private logWorker:          LogEntryWorker[] = []
     stats:                      WorkerStats      = { assignments: [], utilization: 0 }
 
     constructor(private sys:                        LonelyLobsterSystem,
                 public  id:                         WorkerName,
                 public  weightedSortStrategies:     WeightedSortStrategy[]) {
         console.log(`${this.id}'s available weighted sort strategies: ${this.weightedSortStrategies.map(wsost => `${wsost.weight.toPrecision(2)}:[${wsost.element.map(sost => `${sost.colIndex}/${sost.selCrit}`)}]` )}`)
-        this.logLearnedAndAdapted(0, this.weightedSortStrategies[0].element, this.weightedSortStrategies[0].element) // initialize worker's learning & adaption log
+        this.logEventLearnedAndAdapted(0, this.weightedSortStrategies[0].element, this.weightedSortStrategies[0].element) // initialize worker's learning & adaption log
     }
 
-    private logWorked(): void { this.logWorkerWorked.push(new LogEntryWorkerWorked(this.sys, this)) }
+    private logEventWorked(): void { this.logWorker.push(new LogEntryWorkerWorked(this.sys, this)) }
 
-    private logLearnedAndAdapted(ivc: Value, adjustedSost: SortStrategy, chosenSost: SortStrategy): void { this.logWorkerLearnedAndAdapted.push(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedSost, chosenSost)) }
+    private logEventLearnedAndAdapted(ivc: Value, adjustedSost: SortStrategy, chosenSost: SortStrategy): void { this.logWorker.push(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedSost, chosenSost)) }
+
+    private get logWorkerWorked(): LogEntryWorkerWorked[] { return this.logWorker.filter(le => le.logEntryType == LogEntryType.workerWorked) }
+
+    private get logWorkerLearnedAndAdapted(): LogEntryWorkerLearnedAndAdapted[] { return <LogEntryWorkerLearnedAndAdapted[]>this.logWorker.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted) }
 
     private  workItemsAtHand(asSet: AssignmentSet): WorkItem[] {
         const pss: ProcessStep[] = asSet.assignments.filter(as => as.worker.id == this.id).map(as => as.valueChainProcessStep.processStep)
@@ -141,7 +144,7 @@ export class Worker {
         if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
 
         wi.logWorkedOn(this)
-        this.logWorked()
+        this.logEventWorked()
 
         //console.log(`${this.id} worked in ${wi.log[0].workItemBasketHolder.id} on ${wi.id}; (s)he's realized an individual value contribution of : ${this.individualValueContribution(0, this.sys.clock.time).toPrecision(2)}`)
     }
@@ -184,7 +187,7 @@ export class Worker {
                 this.currentSortStrategy, 
                 this.weightAdjustment(ivcep, this.individualValueContributionPeriodBefore),
                 this.polishWeight)
-        this.logLearnedAndAdapted(ivcep, 
+        this.logEventLearnedAndAdapted(ivcep, 
                                   this.currentSortStrategy,
                                   randomlyPickedByWeigths<SortStrategy>(this.weightedSortStrategies, this.polishWeight))
         //console.log(`${this.id}'s log:\n ${this.logWorkerLearnedAndAdapted.map(le => le.stringified())}`)
