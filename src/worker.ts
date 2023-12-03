@@ -94,8 +94,8 @@ const weightAdjustmentFactor: number  = 0.3
 
 // --- WORKER class --------------------------------------
 export class Worker {
-    logWorkerWorked:            LogEntryWorkerWorked[]  = []
-    logWorkerLearnedAndAdapted: LogEntryWorkerLearnedAndAdapted[]  = []
+    private logWorkerWorked:            LogEntryWorkerWorked[]  = []
+    private logWorkerLearnedAndAdapted: LogEntryWorkerLearnedAndAdapted[]  = []
     stats:                      WorkerStats      = { assignments: [], utilization: 0 }
 
     constructor(private sys:                        LonelyLobsterSystem,
@@ -147,7 +147,7 @@ export class Worker {
     }
 
     public utilization(sys: LonelyLobsterSystem): void {
-        this.stats.utilization = this.logWorked.length / (this.sys.clock.time - this.sys.clock.firstIteration) * 100 
+        this.stats.utilization = this.logWorkerWorked.length / (this.sys.clock.time - this.sys.clock.firstIteration) * 100 
         this.stats.assignments = sys.assignmentSet.assignments
                                 .filter(a => a.worker.id == this.id)
                                 .map(a => { return { valueChain:  a.valueChainProcessStep.valueChain,
@@ -192,13 +192,14 @@ export class Worker {
         console.log(`${this.id} chose sort strategy: [${this.currentSortStrategy.map(sost => `${sost.colIndex}/${sost.selCrit}`)}]`)
     }
 
+    private polishWeight(w: number): number {
+        return w < 0.1 ? 0.1 : w
+    }
+
     private weightAdjustment(ivcEndingPeriod: Value, ivcPeriodBefore: Value): number {
         return (ivcEndingPeriod > ivcPeriodBefore ? 1 
                                                   : ivcEndingPeriod < ivcPeriodBefore ? -1 : 0) * 0.3
     }
 
-    private polishWeight(w: number): number {
-        return w < 0.1 ? 0.1 : w
-    }
 
 }
