@@ -5,10 +5,11 @@
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, WeightedSortStrategy } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
-import { SortVector, SelectionCriterion, SortStrategy, arrayWithNormalizedWeights} from "./helpers.js"
+import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
+import { randomBytes } from "crypto"
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -103,10 +104,14 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         measure:             WiExtInfoElem
         selection_criterion: SelectionCriterion
     }
+    interface I_availableSelectionStrategy {
+        id:         string
+        strategy:   I_sortVector[]
+    }
     interface I_worker {
         worker_id:                                              string
         select_next_work_item_sort_vector_sequence:             I_sortVector[] // deprecated, replaced by ... see next line 
-        select_next_work_item_available_sort_vector_sequences:  I_sortVector[][]
+        workitem_selection_strategies:                          I_availableSelectionStrategy[]
         process_step_assignments:                               I_process_step_assignment[]
     }
     
@@ -126,30 +131,33 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             } 
         }
 
-        let weightedSortVectorSequences: WeightedSortStrategy[]
-        if (woj.select_next_work_item_available_sort_vector_sequences) {  // the new property, introduced in Rel.3, is used
-            weightedSortVectorSequences = woj.select_next_work_item_available_sort_vector_sequences == undefined 
-                                        ? [{ element: [], weight: 1 }] // random ("[]") is the only available selection strategy 
-                                        : arrayWithNormalizedWeights(woj.select_next_work_item_available_sort_vector_sequences.map(svsj => { 
+        let weightedSelStrategies: WeightedSelectionStrategy[]
+        if (woj.workitem_selection_strategies) {  // the new property, introduced in Rel.3, is used
+            weightedSelStrategies = woj.workitem_selection_strategies == undefined 
+                                        ? [ { element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy 
+                                        : arrayWithNormalizedWeights(woj.workitem_selection_strategies.map(strat => { 
                                             return { 
-                                                element: svsj.map(svj => sortVectorFromJson(svj)),
+                                                element: { 
+                                                    id:         strat.id,
+                                                    strategy:   strat.strategy.map(svj => sortVectorFromJson(svj)) 
+                                                },
                                                 weight: 1
                                             }}), (x => x) /* take numbers as is */)      
             //console.log(`io_config/createNewWorker: sort_vector new mode for ${woj.worker_id}`)
         } else if (woj.select_next_work_item_sort_vector_sequence) {
-            // in case we did not find the new property "select_next_work_item_available_sort_vector_sequences" try to find the deprecated old
+            // in case we did not find the new property "workitem_selection_strategies" try to find the deprecated old
             // property "select_next_work_item_sort_vector_sequence"
             //console.log(`io_config/createNewWorker: sort_vector (deprecated) mode for ${woj.worker_id}`)
-            const svs: SortStrategy = woj.select_next_work_item_sort_vector_sequence == undefined 
+            const svs: SortVectorSequence = woj.select_next_work_item_sort_vector_sequence == undefined 
                                           ? [] // random ("[]") is the only available selection strategy
                                           : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
-            weightedSortVectorSequences = [{ element: svs, weight: 1 }]
+            weightedSelStrategies = [{ element: {id: "#unnamed#", strategy: svs}, weight: 1 }]
         } else 
-            weightedSortVectorSequences = [{ element: [], weight: 1 }]
+            weightedSelStrategies = [{ element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy
 
         //console.log(`io_config/createNewWorker: sort vector sequences for ${woj.worker_id} are ${weightedSortVectorSequences.map(wsvs => `weight=${wsvs.relativeWeight} svs=${wsvs.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}` )}; `)
 
-        return new Worker(sys, woj.worker_id, weightedSortVectorSequences) 
+        return new Worker(sys, woj.worker_id, weightedSelStrategies) 
     }
 
     const addWorkerAssignment = (psaj: I_process_step_assignment, newWorker: Worker, vcs: ValueChain[], asSet: AssignmentSet): void  => {

@@ -55,19 +55,19 @@ export interface SortVector {
     colIndex:  WiExtInfoElem,
     selCrit:   SelectionCriterion
 }
-export type SortStrategy = SortVector[]
+export type SortVectorSequence = SortVector[]  // export deprecated since V3.0.0
 
-export function topElemAfterSort(arrArr: WiExtInfoTuple[], sost: SortStrategy): WiExtInfoTuple {
+export function topElemAfterSort(arrArr: WiExtInfoTuple[], sest: SortVectorSequence): WiExtInfoTuple {
     if (arrArr.length     <  1) throw Error("topElemAfterSort(): received array w/o element") 
     if (arrArr.length     == 1) return arrArr[0]
-    if (sost.length == 0) return arrArr[Math.floor(Math.random() * arrArr.length)]   // arrArr[0]
+    if (sest.length == 0) return arrArr[Math.floor(Math.random() * arrArr.length)]   // arrArr[0]
 
-    const f = sost[0].selCrit == SelectionCriterion.maximum ? (a: number, b: number) => a > b ? a : b
+    const f = sest[0].selCrit == SelectionCriterion.maximum ? (a: number, b: number) => a > b ? a : b
                                                            : (a: number, b: number) => a < b ? a : b
-    const v          = (<number[]>arrArr.map(arr => arr[sost[0].colIndex])).reduce(f)
-    const arrArrTops = arrArr.filter(arr => arr[sost[0].colIndex] == v)
+    const v          = (<number[]>arrArr.map(arr => arr[sest[0].colIndex])).reduce(f)
+    const arrArrTops = arrArr.filter(arr => arr[sest[0].colIndex] == v)
 
-    return topElemAfterSort(arrArrTops, sost.slice(1))
+    return topElemAfterSort(arrArrTops, sest.slice(1))
 }
 
 // ------------------------------------------------------------
@@ -113,7 +113,7 @@ function arrayWithWeightDistribition<T>(arr: WeightedElement<T>[], from: number 
 // Randomly pick element of an array of weighted elements where the likelihood of being picked is proportional to its weight
 
 function randomlyPickedElement<T>(arr: WeightDistributionElement<T>[]): T {
-    if (arr.length <= 1) throw new Error("helpers.ts: randomlyPickedElement(): cannot pick element from empty array")
+    if (arr.length < 1) throw new Error("helpers.ts: randomlyPickedElement(): cannot pick element from empty array")
     const r = Math.random()
     return arr.filter(wde => wde.distFrom <= r && wde.distTo > r)[0].weightedElement.element
 }
