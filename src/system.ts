@@ -150,16 +150,24 @@ export class LonelyLobsterSystem {
     }
 
     private i_workerState(wo: Worker): I_WorkerState {
-        return {
-            worker:      wo.id,
+        //console.log("system.i_workerState(" + wo.id + "): wo.weightedSelectionStrategies = " + wo.weightedSelectionStrategies.map(sest => sest.element.id + ": " + sest.weight))
+        const aux =  {
+            worker: wo.id,
             utilization: wo.stats.utilization,
             assignments: wo.stats.assignments.map(a => {
                 return {
                     valueChain:  a.valueChain.id,
                     processStep: a.processStep.id
                 }
-            })
+            }),
+            weightedSelectionStrategies: wo.weightedSelectionStrategies.map(sest => { 
+                return {
+                    id:     sest.element.id,
+                    weight: sest.weight
+            }})
         }
+        //console.log("system.i_workerState(" + wo.id + "): aux = " + aux.worker + ": " + aux.weightedSelectionStrategies.map(sest => sest.id + ": " + sest.weight))
+        return aux
     }
 
     private i_systemState(): I_SystemState {
@@ -179,7 +187,9 @@ export class LonelyLobsterSystem {
             this.workOrderList({ time:          this.clock.time,
                                  newWorkOrders: iterReq.newWorkOrders } ))
         
-        return this.i_systemState()
+        const aux = this.i_systemState()        
+        //console.log("system.nextSystemState(...): aux = " + aux.workersState.map(wo => wo.worker + ":" + wo.weightedSelectionStrategies.map(sest => sest.id + ": " + sest.weight)))
+        return aux
     }
     
 //----------------------------------------------------------------------
@@ -195,7 +205,7 @@ export class LonelyLobsterSystem {
             .filter(wi => wi.wasInValueChainAt(t))
             .map(wi => wi.accumulatedEffort(t))
             .reduce((a, b) => a + b, 0)
-//      console.log("workingCapitalAt(" + t + ")=" + aux)
+        //console.log("workingCapitalAt(" + t + ")=" + aux)
         return aux
     }
 
@@ -265,7 +275,7 @@ export class LonelyLobsterSystem {
         for (let t = fromTime + 1; t <= toTime; t++) {
             accumulatedWorkingCapital += this.workingCapitalAt(t)
         }
-//      console.log("avgWorkingCapitalBetween(" + fromTime + " to " + toTime + "): accumulatedWorkingCapital= " + accumulatedWorkingCapital + "; interval=" + interval)
+        //console.log("avgWorkingCapitalBetween(" + fromTime + " to " + toTime + "): accumulatedWorkingCapital= " + accumulatedWorkingCapital + "; interval=" + interval)
         return accumulatedWorkingCapital / interval
     }
 

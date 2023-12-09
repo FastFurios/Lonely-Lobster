@@ -88,14 +88,15 @@ type ValueChainProcessStep = {
 }
 
 type WorkerStats = {
-    assignments: ValueChainProcessStep[],  
-    utilization: number // in percent, i.e. 55 is 55%
+    assignments:                    ValueChainProcessStep[],  
+    utilization:                    number, // in percent, i.e. 55 is 55%
+    weigthedSelectionStrategies?:   WeightedSelectionStrategy[]
 }
 
 export type WeightedSelectionStrategy = WeightedElement<SelectionStrategy>
 
 const observationPeriod: TimeUnit = 20   // <= should come via the config json file sometime
-const weightAdjustmentFactor: number  = 0.3
+//const weightAdjustmentFactor: number  = 0.3
 
 // --- WORKER class --------------------------------------
 export class Worker {
@@ -161,6 +162,7 @@ export class Worker {
                                 .map(a => { return { valueChain:  a.valueChainProcessStep.valueChain,
                                                      processStep: a.valueChainProcessStep.processStep }
                                             })
+        this.stats.weigthedSelectionStrategies = this.weightedSelectionStrategies                         
     }
 
     //----------------------------------------------------------------------
@@ -203,7 +205,7 @@ export class Worker {
     }
 
     private polishWeightFactor(w: number): number {
-        return w < 0.1 ? 0.1 : w
+        return w < 0.01 ? 0.01 : w
     }
 
     private weightAdjustment(ivcEndingPeriod: Value, ivcPeriodBefore: Value): number {

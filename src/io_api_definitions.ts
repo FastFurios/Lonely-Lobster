@@ -62,14 +62,20 @@ export interface I_OutputBasket {
 }
 
 export interface I_ValueChainProcessStep {
-    valueChain:  ValueChainId,
+    valueChain:  ValueChainId
     processStep: ProcessStepId
+}
+
+export interface I_WeightedSelectionStrategy {
+    id: string
+    weight: number
 }
 
 export interface I_WorkerState {
     worker:                         WorkerName
     utilization:                    number
     assignments:                    I_ValueChainProcessStep[]
+    weightedSelectionStrategies:    I_WeightedSelectionStrategy[]
 }
 
 export interface I_SystemState {
