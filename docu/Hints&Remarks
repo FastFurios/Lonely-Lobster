@@ -19,7 +19,7 @@ $ node target/_main.js --batch config/LonelyLobster_00.json data/workorders_000.
 $ PORT=3000    // create and set shell variable PORT
 $ export PORT  // export to environment
 
-
+tail -n +9 learning-stats.csv
 
 Sometimes also:
 git push origin main

@@ -1,0 +1,22 @@
+argv[2]=--api, argv[3]=-n, argv[4]=+9
+
+Running in api mode ...
+Express is listening at http://localhost:3000
+_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = fle2GJoVW4R18ppxUCxwiTuk89w15b0f
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Rusty;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Rusty;36;min-re-et;0.49;0.26;0.26;min-re-et
+40; Rusty;38;min-re-et;0.61;0.20;0.20;min-re-et
+60; Rusty;38;min-re-et;0.61;0.20;0.20;min-re-et
+80; Rusty;38;min-re-et;0.61;0.20;0.20;max-et
+100; Rusty;36;max-et;0.75;0.012;0.24;min-re-et
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;36;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;36;min-re-et;0.49;0.26;0.26;random
+60; Vicky;36;random;0.49;0.26;0.26;max-et
+80; Vicky;36;max-et;0.49;0.26;0.26;min-re-et
+100; Vicky;38;min-re-et;0.61;0.20;0.20;min-re-et

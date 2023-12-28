@@ -7,11 +7,12 @@ import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingA
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
-import { Worker, AssignmentSet } from './worker.js'
+import { Worker, AssignmentSet, LogEntryWorkerLearnedAndAdapted } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_OutputBasket, I_WorkerState } from './io_api_definitions.js'
+import { LogEntryType } from './logging.js'
 import { environment } from './environment.js'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
@@ -30,14 +31,14 @@ interface WiElapTimeValAdd {
 //    LONELY LOBSTER SYSTEM
 //----------------------------------------------------------------------
 export class LonelyLobsterSystem {
-    public valueChains:     ValueChain[] = []
-    public workers:         Worker[]  = []
+    public valueChains:     ValueChain[]    = []
+    public workers:         Worker[]        = []
     public assignmentSet!:  AssignmentSet
-    public workOrderInFlow: WorkOrder[] = []
+    public workOrderInFlow: WorkOrder[]     = []
     public outputBasket:    OutputBasket 
     public clock:           Clock    
-    public idGen  = wiIdGenerator()
-    public tagGen = wiTagGenerator(wiTags)
+    public idGen                            = wiIdGenerator()
+    public tagGen                           = wiTagGenerator(wiTags)
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
@@ -160,7 +161,7 @@ export class LonelyLobsterSystem {
                     processStep: a.processStep.id
                 }
             }),
-            weightedSelectionStrategies: wo.weightedSelectionStrategies.map(sest => { 
+            weightedSelectionStrategies: wo.currentWeightedSelectionStrategies.map(sest => { 
                 return {
                     id:     sest.element.id,
                     weight: sest.weight
@@ -285,6 +286,27 @@ export class LonelyLobsterSystem {
     }
         
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
+
+        /* debug */ // this.workers.forEach(wo => console.log(wo.id + ": " + wo.logWorker.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted).map(le => "\t" + le.stringified() + "\n").reduce((a, b) => a + b) + "\n"))
+        /* debug */ //this.workers.forEach(wo => console.log(wo.id + ": " + wo.logWorker.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted).map(le => (<LogEntryWorkerLearnedAndAdapted>le).weigthedSelectionStrategies.map(wsest => wsest.weight).reduce((a, b) => a + b) + "\n").reduce((a, b) => a + b)))
+        /* debug 
+        for(let wo of this.workers) {
+            console.log(wo.id + ": ")
+            for (let le of wo.logWorker) {
+                if (le.logEntryType == LogEntryType.workerLearnedAndAdapted) {
+                  console.log("system: le.WsestAsString = " + (<LogEntryWorkerLearnedAndAdapted>le).WsestAsString)
+                    console.log("system: le.weigthedSelectionStrategies: ")
+                    for (let wsest of (<LogEntryWorkerLearnedAndAdapted>le).weigthedSelectionStrategies) {
+                        console.log("\t" + wsest.weight.toPrecision(2) + ": " + wsest.element.id)
+                    }
+                  console.log(le.stringified() + "\n")
+                }
+            }
+        }
+        */
+        console.log((<LogEntryWorkerLearnedAndAdapted>this.workers[0].logWorker.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted)[0]).plainFacts(true))
+        this.workers.forEach(wo => wo.logWorker.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted).forEach(le => console.log((<LogEntryWorkerLearnedAndAdapted>le).plainFacts(false))))
+
         const interval:TimeUnit = toTime - fromTime
         const statEvents: StatsEventForExitingAProcessStep[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
                                                               .concat(this.outputBasket.flowStats(fromTime, toTime))

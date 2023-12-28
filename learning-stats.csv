@@ -1,0 +1,13 @@
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Rusty;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Rusty;36;min-re-et;0.49;0.26;0.26;min-re-et
+40; Rusty;36;min-re-et;0.49;0.26;0.26;min-re-et
+60; Rusty;36;min-re-et;0.49;0.26;0.26;min-re-et
+80; Rusty;5.1;min-re-et;0.27;0.37;0.37;random
+100; Rusty;4.8;random;0.38;0.52;0.095;max-et
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;36;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;36;min-re-et;0.49;0.26;0.26;min-re-et
+60; Vicky;36;min-re-et;0.49;0.26;0.26;random
+80; Vicky;3.3;random;0.65;0.34;0.013;min-re-et
+100; Vicky;6.5;min-re-et;0.73;0.26;0.010;min-re-et

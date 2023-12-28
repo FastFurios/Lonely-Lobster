@@ -9,7 +9,6 @@ import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy } from './
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
-import { randomBytes } from "crypto"
 
 export interface DebugShowOptions  {
     clock:          boolean,

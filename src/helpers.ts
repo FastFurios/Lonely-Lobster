@@ -85,13 +85,15 @@ type WeightDistributionElement<T> = {
     distTo:          number // btw 0 and 1  ... from-to covers a space with length of the weight on the range 0 to 1
 }
 
-// change weigth of an element and then normalize weights of the array  
+// change weigth of an element; no normalization of weights of the array  
 
-export function arrayWithModifiedWeightOfAnElement<T>(arr: WeightedElement<T>[], element: T, increase: number, polished: (w: number) => number): WeightedElement<T>[] {
-    const foundElem = arr.find(e => e.element === element)
-    if (!foundElem) throw new Error("helpers.ts: arrayWithModifiedWeightOfAnElement(): could not find element")
-    foundElem.weight += increase
-    return arrayWithNormalizedWeights<T>(arr, polished)
+export function arrayWithModifiedWeightOfAnElement<T>(arr: WeightedElement<T>[], element: T, weightIncrease: number): WeightedElement<T>[] {
+    return arr.map(we => {
+        if (we.element == element) 
+            return { weight: we.weight + weightIncrease, element: we.element } 
+        else
+            return we
+    })       
 }
 
 // normalize the weights in the array proportionally so the sum of all weights == 1
