@@ -120,23 +120,40 @@ function apiMode(): void {
         res.send(lonelyLobsterSystem.nextSystemState(req.body))
     })
 
-    //------------------------------
-    // API call - provide STATISTICS 
-    //------------------------------
+    //-------------------------------------
+    // API call - provide SYSTEM STATISTICS 
+    //-------------------------------------
     app.get('/statistics', (req, res) => {
-        //console.log("\n_main: app.post /statistics ------------------------------------")
+        //console.log("\n_main: app.post /system statistics ------------------------------------")
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
-            console.log("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.send("_main(): app.post /statistics: could not find a LonelyLobsterSystem for webSession")
+            console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+            res.send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        //console.log("_main: app.post /statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        //console.log("_main: app.post /system statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
         res.send(lonelyLobsterSystem.systemStatistics( 
                                 interval <= 0 ? 0 // stats from the very beginning on
                                                 : lonelyLobsterSystem.clock.time <= interval ? 0 : lonelyLobsterSystem.clock.time - interval, // stats of the trailing time window of length "interval"
                                 lonelyLobsterSystem.clock.time))
+    })
+
+    //-------------------------------------
+    // API call - provide LEARNING STATISTICS 
+    //-------------------------------------
+    app.get('/learn-stats', (req, res) => {
+        console.log("\n_main: app.get /learning statistics ------------------------------------")
+        const lonelyLobsterSystem = webSessions.get(req.sessionID)
+        if (!lonelyLobsterSystem) { 
+            console.log("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+            res.send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
+            return
+        }            
+        console.log("_main: app.get /learning statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        const aux = lonelyLobsterSystem.learningStatistics
+        //console.log("_main: app.get /learning statistics : sessionID = " +  req.sessionID + ": " + aux[0].map(e => `${e.worker} t=${e.timestamp}\t`).reduce((a, b) => a + b))
+        res.send(aux)
     })
 
     //---------------------------------

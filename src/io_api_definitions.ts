@@ -87,9 +87,9 @@ export interface I_SystemState {
     version:                        string  // code version of this Lonely Lobster backend service 
 }
 
-//-------------------------------
-// response to statistics request
-//-------------------------------
+//-----------------------------------------
+// response to system sstatistics request
+//-----------------------------------------
 interface WorkItemStatsCycleTime {
     min: number | undefined,
     avg: number | undefined,
@@ -178,4 +178,18 @@ export interface PsExtended {
     flowStats?: I_ProcessStepStatistics
 }  
 
-    
+//-----------------------------------------
+// response toLearning statistics request
+//-----------------------------------------
+
+export type I_WeightedSelectionStrategyAtTimestamp = {
+    timestamp:                          Timestamp,
+    selectionStrategyNamesWithWeights:  I_WeightedSelectionStrategy[]
+}
+
+export type I_LearningStatsWorker = { 
+    worker: WorkerName,
+    series: I_WeightedSelectionStrategyAtTimestamp[]
+}
+
+export type I_LearningStatsWorkers = I_LearningStatsWorker[]

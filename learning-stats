@@ -1,0 +1,831 @@
+argv[2]=--api, argv[3]=undefined, argv[4]=undefined
+
+Running in api mode ...
+Express is listening at http://localhost:3000
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Rusty;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Rusty;26;min-re-et;0.49;0.26;0.26;max-et
+40; Rusty;2.8;max-et;0.65;0.013;0.34;random
+60; Rusty;9.1;random;0.50;0.010;0.49;random
+80; Rusty;0.92;random;0.71;0.015;0.28;min-re-et
+100; Rusty;8.3;min-re-et;0.78;0.011;0.21;min-re-et
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;26;min-re-et;0.49;0.26;0.26;random
+40; Vicky;1.6;random;0.65;0.34;0.013;min-re-et
+60; Vicky;13;min-re-et;0.73;0.26;0.010;max-et
+80; Vicky;0.14;max-et;0.97;0.013;0.014;min-re-et
+100; Vicky;8.6;min-re-et;0.98;0.010;0.010;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;26;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;27;min-re-et;0.61;0.20;0.20;min-re-et
+60; Vicky;30;min-re-et;0.70;0.15;0.15;min-re-et
+80; Vicky;29;min-re-et;0.57;0.22;0.22;min-re-et
+100; Vicky;25;min-re-et;0.38;0.31;0.31;random
+120; Vicky;29;random;0.29;0.24;0.47;random
+140; Vicky;27;random;0.42;0.34;0.24;min-re-et
+160; Vicky;28;min-re-et;0.55;0.26;0.19;max-et
+180; Vicky;28;max-et;0.43;0.43;0.14;max-et
+200; Vicky;25;max-et;0.61;0.19;0.20;min-re-et
+220; Vicky;29;min-re-et;0.70;0.15;0.16;min-re-et
+240; Vicky;28;min-re-et;0.57;0.21;0.22;random
+260; Vicky;31;random;0.44;0.16;0.40;random
+280; Vicky;20;random;0.62;0.23;0.15;min-re-et
+300; Vicky;30;min-re-et;0.71;0.18;0.11;min-re-et
+320; Vicky;30;min-re-et;0.78;0.13;0.087;min-re-et
+340; Vicky;28;min-re-et;0.68;0.19;0.12;min-re-et
+360; Vicky;28;min-re-et;0.55;0.28;0.18;min-re-et
+380; Vicky;30;min-re-et;0.65;0.21;0.14;min-re-et
+400; Vicky;29;min-re-et;0.50;0.30;0.20;min-re-et
+420; Vicky;27;min-re-et;0.29;0.43;0.28;min-re-et
+440; Vicky;26;min-re-et;0.014;0.60;0.39;random
+460; Vicky;30;random;0.011;0.46;0.53;max-et
+480; Vicky;30;max-et;0.015;0.23;0.76;random
+500; Vicky;25;random;0.022;0.33;0.65;random
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;16;min-re-et;0.49;0.26;0.26;max-et
+40; Vicky;25;max-et;0.37;0.43;0.20;max-et
+60; Vicky;26;max-et;0.29;0.56;0.15;max-et
+80; Vicky;23;max-et;0.41;0.37;0.22;min-re-et
+100; Vicky;13;min-re-et;0.16;0.53;0.31;random
+120; Vicky;25;random;0.12;0.41;0.47;max-et
+140; Vicky;2.5;max-et;0.18;0.15;0.67;min-re-et
+160; Vicky;21;min-re-et;0.37;0.12;0.52;min-re-et
+180; Vicky;19;min-re-et;0.094;0.17;0.74;random
+200; Vicky;14;random;0.13;0.24;0.62;random
+220; Vicky;19;random;0.10;0.19;0.71;random
+240; Vicky;20;random;0.079;0.14;0.78;random
+260; Vicky;12;random;0.11;0.21;0.68;max-et
+280; Vicky;19;max-et;0.087;0.39;0.52;min-re-et
+300; Vicky;23;min-re-et;0.30;0.30;0.40;min-re-et
+320; Vicky;20;min-re-et;0.014;0.42;0.57;random
+340; Vicky;21;random;0.011;0.32;0.67;random
+360; Vicky;14;random;0.015;0.46;0.52;max-et
+380; Vicky;23;max-et;0.012;0.59;0.40;random
+400; Vicky;17;random;0.017;0.84;0.15;min-re-et
+420; Vicky;20;min-re-et;0.24;0.64;0.11;random
+440; Vicky;18;random;0.27;0.72;0.011;max-et
+460; Vicky;16;max-et;0.39;0.60;0.016;max-et
+480; Vicky;18;max-et;0.30;0.69;0.012;max-et
+500; Vicky;16;max-et;0.43;0.56;0.017;min-re-et
+520; Vicky;19;min-re-et;0.56;0.43;0.013;max-et
+540; Vicky;12;max-et;0.80;0.18;0.019;min-re-et
+560; Vicky;12;min-re-et;0.71;0.26;0.027;min-re-et
+580; Vicky;29;min-re-et;0.78;0.20;0.021;min-re-et
+600; Vicky;26;min-re-et;0.68;0.29;0.030;min-re-et
+620; Vicky;12;min-re-et;0.55;0.41;0.043;max-et
+640; Vicky;20;max-et;0.42;0.55;0.033;max-et
+660; Vicky;23;max-et;0.32;0.65;0.026;min-re-et
+680; Vicky;28;min-re-et;0.48;0.50;0.020;max-et
+700; Vicky;15;max-et;0.69;0.29;0.028;min-re-et
+720; Vicky;28;min-re-et;0.76;0.22;0.022;max-et
+740; Vicky;18;max-et;0.96;0.013;0.027;min-re-et
+760; Vicky;19;min-re-et;0.97;0.0097;0.021;min-re-et
+780; Vicky;21;min-re-et;0.98;0.0077;0.016;min-re-et
+800; Vicky;17;min-re-et;0.96;0.014;0.023;min-re-et
+820; Vicky;27;min-re-et;0.97;0.011;0.018;min-re-et
+840; Vicky;27;min-re-et;0.98;0.0084;0.014;min-re-et
+860; Vicky;15;min-re-et;0.97;0.014;0.019;min-re-et
+880; Vicky;25;min-re-et;0.97;0.011;0.015;min-re-et
+900; Vicky;14;min-re-et;0.96;0.016;0.021;min-re-et
+920; Vicky;23;min-re-et;0.97;0.012;0.016;min-re-et
+940; Vicky;27;min-re-et;0.98;0.0093;0.013;min-re-et
+960; Vicky;12;min-re-et;0.97;0.014;0.018;min-re-et
+980; Vicky;25;min-re-et;0.98;0.011;0.014;min-re-et
+1000; Vicky;17;min-re-et;0.96;0.016;0.020;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;25;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;19;min-re-et;0.27;0.37;0.37;random
+60; Vicky;12;random;0.38;0.52;0.095;min-re-et
+80; Vicky;17;min-re-et;0.52;0.40;0.073;min-re-et
+100; Vicky;17;min-re-et;0.32;0.58;0.10;max-et
+120; Vicky;10;max-et;0.46;0.39;0.15;max-et
+140; Vicky;12;max-et;0.35;0.53;0.11;max-et
+160; Vicky;16;max-et;0.27;0.64;0.088;max-et
+180; Vicky;19;max-et;0.21;0.72;0.068;min-re-et
+200; Vicky;22;min-re-et;0.39;0.56;0.052;max-et
+220; Vicky;17;max-et;0.56;0.37;0.074;max-et
+240; Vicky;1.8;max-et;0.80;0.095;0.11;min-re-et
+260; Vicky;26;min-re-et;0.85;0.073;0.082;min-re-et
+280; Vicky;16;min-re-et;0.78;0.10;0.12;min-re-et
+300; Vicky;27;min-re-et;0.83;0.081;0.090;random
+320; Vicky;11;random;0.90;0.088;0.011;min-re-et
+340; Vicky;20;min-re-et;0.92;0.067;0.0084;min-re-et
+360; Vicky;18;min-re-et;0.89;0.096;0.014;min-re-et
+380; Vicky;23;min-re-et;0.92;0.074;0.011;max-et
+400; Vicky;18;max-et;0.98;0.011;0.012;min-re-et
+420; Vicky;23;min-re-et;0.98;0.0082;0.0090;min-re-et
+440; Vicky;15;min-re-et;0.97;0.014;0.014;min-re-et
+460; Vicky;24;min-re-et;0.98;0.011;0.011;min-re-et
+480; Vicky;26;min-re-et;0.98;0.0084;0.0084;min-re-et
+500; Vicky;19;min-re-et;0.97;0.014;0.014;min-re-et
+520; Vicky;16;min-re-et;0.96;0.020;0.020;min-re-et
+540; Vicky;16;min-re-et;0.94;0.029;0.029;min-re-et
+560; Vicky;15;min-re-et;0.92;0.041;0.041;max-et
+580; Vicky;20;max-et;0.71;0.26;0.032;min-re-et
+600; Vicky;15;min-re-et;0.58;0.38;0.046;min-re-et
+620; Vicky;24;min-re-et;0.68;0.29;0.035;max-et
+640; Vicky;20;max-et;0.94;0.014;0.049;min-re-et
+660; Vicky;24;min-re-et;0.95;0.011;0.037;min-re-et
+680; Vicky;18;min-re-et;0.93;0.015;0.053;min-re-et
+700; Vicky;27;min-re-et;0.95;0.012;0.041;min-re-et
+720; Vicky;22;min-re-et;0.92;0.017;0.059;min-re-et
+740; Vicky;28;min-re-et;0.94;0.013;0.045;min-re-et
+760; Vicky;10;min-re-et;0.92;0.018;0.064;min-re-et
+780; Vicky;26;min-re-et;0.94;0.014;0.050;min-re-et
+800; Vicky;11;min-re-et;0.91;0.020;0.071;min-re-et
+820; Vicky;12;min-re-et;0.93;0.016;0.055;random
+840; Vicky;26;random;0.72;0.012;0.27;min-re-et
+860; Vicky;17;min-re-et;0.59;0.017;0.39;min-re-et
+880; Vicky;28;min-re-et;0.69;0.013;0.30;min-re-et
+900; Vicky;18;min-re-et;0.55;0.019;0.43;min-re-et
+920; Vicky;15;min-re-et;0.36;0.027;0.61;min-re-et
+940; Vicky;17;min-re-et;0.51;0.021;0.47;random
+960; Vicky;23;random;0.39;0.016;0.59;min-re-et
+980; Vicky;20;min-re-et;0.13;0.023;0.85;random
+1000; Vicky;15;random;0.19;0.032;0.78;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;29;min-re-et;0.49;0.26;0.26;random
+40; Vicky;15;random;0.65;0.34;0.013;max-et
+60; Vicky;22;max-et;0.50;0.49;0.010;min-re-et
+80; Vicky;17;min-re-et;0.28;0.70;0.015;min-re-et
+100; Vicky;24;min-re-et;0.45;0.54;0.011;min-re-et
+120; Vicky;16;min-re-et;0.21;0.77;0.016;max-et
+140; Vicky;16;max-et;0.16;0.83;0.012;max-et
+160; Vicky;17;max-et;0.12;0.87;0.0095;max-et
+180; Vicky;18;max-et;0.096;0.90;0.0077;max-et
+200; Vicky;18;max-et;0.074;0.92;0.0077;max-et
+220; Vicky;19;max-et;0.057;0.94;0.0077;max-et
+240; Vicky;8.2;max-et;0.081;0.91;0.014;max-et
+260; Vicky;14;max-et;0.062;0.93;0.011;max-et
+280; Vicky;10;max-et;0.088;0.90;0.016;max-et
+300; Vicky;14;max-et;0.068;0.92;0.012;max-et
+320; Vicky;15;max-et;0.052;0.94;0.0093;max-et
+340; Vicky;21;max-et;0.040;0.95;0.0077;max-et
+360; Vicky;23;max-et;0.031;0.96;0.0077;max-et
+380; Vicky;16;max-et;0.044;0.94;0.014;max-et
+400; Vicky;15;max-et;0.063;0.92;0.020;max-et
+420; Vicky;15;max-et;0.090;0.88;0.029;max-et
+440; Vicky;18;max-et;0.069;0.91;0.022;max-et
+460; Vicky;13;max-et;0.099;0.87;0.032;min-re-et
+480; Vicky;20;min-re-et;0.31;0.67;0.025;max-et
+500; Vicky;21;max-et;0.24;0.75;0.019;min-re-et
+520; Vicky;22;min-re-et;0.41;0.57;0.015;max-et
+540; Vicky;9.6;max-et;0.59;0.39;0.021;max-et
+560; Vicky;23;max-et;0.45;0.53;0.016;max-et
+580; Vicky;10;max-et;0.65;0.33;0.023;max-et
+600; Vicky;11;max-et;0.50;0.48;0.018;max-et
+620; Vicky;10;max-et;0.71;0.26;0.025;max-et
+640; Vicky;22;max-et;0.55;0.43;0.019;max-et
+660; Vicky;16;max-et;0.78;0.19;0.028;min-re-et
+680; Vicky;21;min-re-et;0.83;0.15;0.021;min-re-et
+700; Vicky;31;min-re-et;0.87;0.11;0.016;min-re-et
+720; Vicky;11;min-re-et;0.82;0.16;0.023;min-re-et
+740; Vicky;32;min-re-et;0.86;0.12;0.018;min-re-et
+760; Vicky;12;min-re-et;0.80;0.18;0.026;min-re-et
+780; Vicky;19;min-re-et;0.84;0.14;0.020;min-re-et
+800; Vicky;7.6;min-re-et;0.78;0.19;0.028;min-re-et
+820; Vicky;29;min-re-et;0.83;0.15;0.022;min-re-et
+840; Vicky;25;min-re-et;0.75;0.21;0.031;min-re-et
+860; Vicky;15;min-re-et;0.65;0.31;0.044;min-re-et
+880; Vicky;20;min-re-et;0.73;0.24;0.034;max-et
+900; Vicky;13;max-et;0.94;0.013;0.044;min-re-et
+920; Vicky;29;min-re-et;0.96;0.0099;0.034;min-re-et
+940; Vicky;24;min-re-et;0.94;0.014;0.048;min-re-et
+960; Vicky;19;min-re-et;0.91;0.020;0.069;min-re-et
+980; Vicky;21;min-re-et;0.93;0.016;0.053;min-re-et
+1000; Vicky;26;min-re-et;0.95;0.012;0.041;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;8.1;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;17;min-re-et;0.61;0.20;0.20;random
+60; Vicky;21;random;0.47;0.15;0.38;random
+80; Vicky;14;random;0.67;0.22;0.12;min-re-et
+100; Vicky;24;min-re-et;0.74;0.17;0.091;max-et
+120; Vicky;13;max-et;0.88;0.012;0.11;min-re-et
+140; Vicky;15;min-re-et;0.91;0.0091;0.083;random
+160; Vicky;26;random;0.70;0.0077;0.29;min-re-et
+180; Vicky;2.0;min-re-et;0.57;0.014;0.42;random
+200; Vicky;26;random;0.44;0.011;0.55;min-re-et
+220; Vicky;20;min-re-et;0.19;0.016;0.79;random
+240; Vicky;19;random;0.28;0.022;0.70;random
+260; Vicky;22;random;0.21;0.017;0.77;random
+280; Vicky;19;random;0.31;0.025;0.67;random
+300; Vicky;16;random;0.44;0.035;0.53;random
+320; Vicky;27;random;0.34;0.027;0.64;min-re-et
+340; Vicky;22;min-re-et;0.050;0.039;0.91;random
+360; Vicky;20;random;0.072;0.055;0.87;min-re-et
+380; Vicky;19;min-re-et;0.011;0.059;0.93;random
+400; Vicky;19;random;0.0082;0.045;0.95;random
+420; Vicky;23;random;0.0077;0.035;0.96;random
+440; Vicky;17;random;0.014;0.049;0.94;random
+460; Vicky;21;random;0.011;0.038;0.95;random
+480; Vicky;20;random;0.016;0.054;0.93;random
+500; Vicky;22;random;0.012;0.042;0.95;random
+520; Vicky;16;random;0.017;0.060;0.92;random
+540; Vicky;28;random;0.013;0.046;0.94;max-et
+560; Vicky;27;max-et;0.014;0.010;0.98;random
+580; Vicky;24;random;0.020;0.015;0.97;random
+600; Vicky;7.7;random;0.028;0.021;0.95;random
+620; Vicky;18;random;0.022;0.016;0.96;random
+640; Vicky;14;random;0.031;0.023;0.95;random
+660; Vicky;17;random;0.024;0.018;0.96;random
+680; Vicky;17;random;0.018;0.014;0.97;random
+700; Vicky;26;random;0.014;0.011;0.98;random
+720; Vicky;8.7;random;0.020;0.015;0.96;random
+740; Vicky;23;random;0.015;0.012;0.97;random
+760; Vicky;10;random;0.022;0.017;0.96;random
+780; Vicky;16;random;0.017;0.013;0.97;random
+800; Vicky;4.4;random;0.024;0.018;0.96;random
+820; Vicky;23;random;0.019;0.014;0.97;random
+840; Vicky;15;random;0.027;0.020;0.95;random
+860; Vicky;9.5;random;0.038;0.029;0.93;random
+880; Vicky;28;random;0.029;0.022;0.95;random
+900; Vicky;18;random;0.042;0.032;0.93;max-et
+920; Vicky;6.9;max-et;0.043;0.010;0.95;random
+940; Vicky;18;random;0.033;0.0079;0.96;random
+960; Vicky;15;random;0.047;0.014;0.94;random
+980; Vicky;11;random;0.067;0.020;0.91;random
+1000; Vicky;13;random;0.051;0.016;0.93;random
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;19;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;7.7;min-re-et;0.27;0.37;0.37;random
+60; Vicky;26;random;0.21;0.28;0.51;random
+80; Vicky;5.4;random;0.29;0.40;0.30;random
+100; Vicky;17;random;0.23;0.31;0.46;max-et
+120; Vicky;9.0;max-et;0.32;0.014;0.66;random
+140; Vicky;25;random;0.25;0.011;0.74;random
+160; Vicky;18;random;0.35;0.016;0.63;min-re-et
+180; Vicky;11;min-re-et;0.078;0.022;0.90;random
+200; Vicky;31;random;0.060;0.017;0.92;random
+220; Vicky;27;random;0.086;0.025;0.89;random
+240; Vicky;15;random;0.12;0.035;0.84;random
+260; Vicky;27;random;0.094;0.027;0.88;random
+280; Vicky;22;random;0.13;0.039;0.83;min-re-et
+300; Vicky;22;min-re-et;0.33;0.030;0.64;random
+320; Vicky;22;random;0.48;0.042;0.48;min-re-et
+340; Vicky;23;min-re-et;0.60;0.033;0.37;min-re-et
+360; Vicky;15;min-re-et;0.43;0.047;0.53;min-re-et
+380; Vicky;22;min-re-et;0.56;0.036;0.41;min-re-et
+400; Vicky;26;min-re-et;0.66;0.028;0.31;min-re-et
+420; Vicky;16;min-re-et;0.51;0.039;0.45;random
+440; Vicky;9.7;random;0.74;0.056;0.21;min-re-et
+460; Vicky;25;min-re-et;0.80;0.043;0.16;min-re-et
+480; Vicky;29;min-re-et;0.84;0.033;0.12;random
+500; Vicky;4.3;random;0.95;0.038;0.011;min-re-et
+520; Vicky;23;min-re-et;0.96;0.029;0.0087;min-re-et
+540; Vicky;28;min-re-et;0.97;0.022;0.0077;min-re-et
+560; Vicky;28;min-re-et;0.95;0.032;0.014;min-re-et
+580; Vicky;14;min-re-et;0.93;0.045;0.020;min-re-et
+600; Vicky;14;min-re-et;0.95;0.035;0.016;min-re-et
+620; Vicky;33;min-re-et;0.96;0.027;0.012;min-re-et
+640; Vicky;29;min-re-et;0.94;0.038;0.017;min-re-et
+660; Vicky;3.4;min-re-et;0.92;0.055;0.025;min-re-et
+680; Vicky;27;min-re-et;0.94;0.042;0.019;min-re-et
+700; Vicky;14;min-re-et;0.91;0.060;0.027;min-re-et
+720; Vicky;5.9;min-re-et;0.88;0.086;0.039;min-re-et
+740; Vicky;19;min-re-et;0.90;0.066;0.030;min-re-et
+760; Vicky;7.3;min-re-et;0.86;0.094;0.042;min-re-et
+780; Vicky;25;min-re-et;0.89;0.072;0.033;min-re-et
+800; Vicky;21;min-re-et;0.85;0.10;0.047;min-re-et
+820; Vicky;28;min-re-et;0.88;0.080;0.036;min-re-et
+840; Vicky;6.9;min-re-et;0.84;0.11;0.051;min-re-et
+860; Vicky;31;min-re-et;0.87;0.088;0.039;min-re-et
+880; Vicky;23;min-re-et;0.82;0.13;0.056;min-re-et
+900; Vicky;21;min-re-et;0.74;0.18;0.080;max-et
+920; Vicky;9.4;max-et;0.89;0.012;0.097;min-re-et
+940; Vicky;5.4;min-re-et;0.84;0.017;0.14;min-re-et
+960; Vicky;24;min-re-et;0.88;0.013;0.11;min-re-et
+980; Vicky;7.0;min-re-et;0.83;0.019;0.15;min-re-et
+1000; Vicky;16;min-re-et;0.87;0.015;0.12;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;17;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;28;min-re-et;0.61;0.20;0.20;min-re-et
+60; Vicky;16;min-re-et;0.44;0.28;0.28;min-re-et
+80; Vicky;20;min-re-et;0.57;0.22;0.22;min-re-et
+100; Vicky;27;min-re-et;0.67;0.17;0.17;max-et
+120; Vicky;16;max-et;0.79;0.012;0.20;random
+140; Vicky;13;random;0.97;0.015;0.012;min-re-et
+160; Vicky;15;min-re-et;0.98;0.011;0.0095;min-re-et
+180; Vicky;15;min-re-et;0.98;0.0086;0.0077;min-re-et
+200; Vicky;27;min-re-et;0.98;0.0077;0.0077;min-re-et
+220; Vicky;25;min-re-et;0.97;0.014;0.014;min-re-et
+240; Vicky;17;min-re-et;0.96;0.020;0.020;min-re-et
+260; Vicky;22;min-re-et;0.97;0.016;0.016;min-re-et
+280; Vicky;3.4;min-re-et;0.96;0.022;0.022;min-re-et
+300; Vicky;18;min-re-et;0.97;0.017;0.017;min-re-et
+320; Vicky;26;min-re-et;0.97;0.013;0.013;min-re-et
+340; Vicky;18;min-re-et;0.96;0.019;0.019;min-re-et
+360; Vicky;11;min-re-et;0.95;0.027;0.027;min-re-et
+380; Vicky;20;min-re-et;0.96;0.021;0.021;min-re-et
+400; Vicky;18;min-re-et;0.94;0.030;0.030;min-re-et
+420; Vicky;22;min-re-et;0.95;0.023;0.023;min-re-et
+440; Vicky;31;min-re-et;0.97;0.017;0.017;min-re-et
+460; Vicky;5.9;min-re-et;0.95;0.025;0.025;min-re-et
+480; Vicky;26;min-re-et;0.96;0.019;0.019;min-re-et
+500; Vicky;7.1;min-re-et;0.95;0.027;0.027;max-et
+520; Vicky;1.0;max-et;0.96;0.010;0.028;min-re-et
+540; Vicky;26;min-re-et;0.97;0.0078;0.022;min-re-et
+560; Vicky;26;min-re-et;0.98;0.0077;0.017;min-re-et
+580; Vicky;31;min-re-et;0.98;0.0077;0.013;min-re-et
+600; Vicky;17;min-re-et;0.97;0.014;0.018;random
+620; Vicky;20;random;0.74;0.011;0.24;min-re-et
+640; Vicky;23;min-re-et;0.80;0.0084;0.19;min-re-et
+660; Vicky;26;min-re-et;0.85;0.0077;0.14;min-re-et
+680; Vicky;13;min-re-et;0.78;0.014;0.21;random
+700; Vicky;24;random;0.60;0.011;0.39;random
+720; Vicky;26;random;0.46;0.0084;0.53;random
+740; Vicky;19;random;0.66;0.014;0.33;random
+760; Vicky;21;random;0.51;0.011;0.48;random
+780; Vicky;16;random;0.72;0.016;0.26;min-re-et
+800; Vicky;19;min-re-et;0.79;0.012;0.20;min-re-et
+820; Vicky;28;min-re-et;0.84;0.0093;0.15;random
+840; Vicky;20;random;0.98;0.012;0.012;min-re-et
+860; Vicky;20;min-re-et;0.97;0.017;0.017;min-re-et
+880; Vicky;14;min-re-et;0.95;0.024;0.024;min-re-et
+900; Vicky;15;min-re-et;0.96;0.018;0.018;min-re-et
+920; Vicky;3.4;min-re-et;0.95;0.026;0.026;min-re-et
+940; Vicky;22;min-re-et;0.96;0.020;0.020;min-re-et
+960; Vicky;26;min-re-et;0.97;0.016;0.016;min-re-et
+980; Vicky;14;min-re-et;0.96;0.022;0.022;min-re-et
+1000; Vicky;24;min-re-et;0.97;0.017;0.017;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;5.7;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;29;min-re-et;0.61;0.20;0.20;min-re-et
+60; Vicky;23;min-re-et;0.44;0.28;0.28;maxv/minreet
+80; Vicky;28;maxv/minreet;0.34;0.45;0.22;maxv/minreet
+100; Vicky;14;maxv/minreet;0.48;0.21;0.31;random
+120; Vicky;30;random;0.37;0.16;0.47;random
+140; Vicky;4.7;random;0.53;0.23;0.24;min-re-et
+160; Vicky;22;min-re-et;0.64;0.18;0.19;min-re-et
+180; Vicky;19;min-re-et;0.48;0.25;0.27;min-re-et
+200; Vicky;28;min-re-et;0.60;0.20;0.20;min-re-et
+220; Vicky;20;min-re-et;0.43;0.28;0.29;maxv/minreet
+240; Vicky;19;maxv/minreet;0.59;0.014;0.40;min-re-et
+260; Vicky;9.8;min-re-et;0.41;0.020;0.57;random
+280; Vicky;3.0;random;0.59;0.028;0.39;random
+300; Vicky;22;random;0.45;0.021;0.53;min-re-et
+320; Vicky;27;min-re-et;0.58;0.017;0.41;min-re-et
+340; Vicky;6.1;min-re-et;0.40;0.024;0.58;random
+360; Vicky;13;random;0.31;0.018;0.68;min-re-et
+380; Vicky;22;min-re-et;0.47;0.014;0.52;random
+400; Vicky;17;random;0.66;0.020;0.32;min-re-et
+420; Vicky;23;min-re-et;0.74;0.015;0.24;min-re-et
+440; Vicky;5.7;min-re-et;0.63;0.022;0.35;min-re-et
+460; Vicky;20;min-re-et;0.72;0.017;0.27;random
+480; Vicky;12;random;0.96;0.023;0.013;min-re-et
+500; Vicky;16;min-re-et;0.97;0.017;0.010;min-re-et
+520; Vicky;24;min-re-et;0.98;0.013;0.0080;min-re-et
+540; Vicky;8.1;min-re-et;0.97;0.019;0.014;min-re-et
+560; Vicky;30;min-re-et;0.97;0.015;0.011;min-re-et
+580; Vicky;17;min-re-et;0.96;0.021;0.016;min-re-et
+600; Vicky;27;min-re-et;0.97;0.016;0.012;min-re-et
+620; Vicky;14;min-re-et;0.96;0.023;0.017;min-re-et
+640; Vicky;28;min-re-et;0.97;0.018;0.013;min-re-et
+660; Vicky;30;min-re-et;0.98;0.014;0.010;min-re-et
+680; Vicky;10;min-re-et;0.97;0.020;0.015;min-re-et
+700; Vicky;25;min-re-et;0.97;0.015;0.011;min-re-et
+720; Vicky;4.1;min-re-et;0.96;0.021;0.016;min-re-et
+740; Vicky;0.0;min-re-et;0.95;0.031;0.023;min-re-et
+760; Vicky;27;min-re-et;0.96;0.024;0.018;min-re-et
+780; Vicky;12;min-re-et;0.94;0.034;0.025;min-re-et
+800; Vicky;14;min-re-et;0.95;0.026;0.019;min-re-et
+820; Vicky;17;min-re-et;0.97;0.020;0.015;min-re-et
+840; Vicky;27;min-re-et;0.97;0.015;0.011;min-re-et
+860; Vicky;13;min-re-et;0.96;0.022;0.016;min-re-et
+880; Vicky;22;min-re-et;0.97;0.017;0.013;min-re-et
+900; Vicky;8.7;min-re-et;0.96;0.024;0.018;min-re-et
+920; Vicky;28;min-re-et;0.97;0.019;0.014;min-re-et
+940; Vicky;9.0;min-re-et;0.95;0.026;0.020;min-re-et
+960; Vicky;27;min-re-et;0.96;0.020;0.015;min-re-et
+980; Vicky;22;min-re-et;0.95;0.029;0.022;min-re-et
+1000; Vicky;27;min-re-et;0.96;0.022;0.017;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;24;min-re-et;0.49;0.26;0.26;max-et
+40; Vicky;26;max-et;0.37;0.43;0.20;min-re-et
+60; Vicky;33;min-re-et;0.52;0.33;0.15;min-re-et
+80; Vicky;36;min-re-et;0.63;0.25;0.12;min-re-et
+100; Vicky;33;min-re-et;0.47;0.36;0.17;min-re-et
+120; Vicky;30;min-re-et;0.24;0.52;0.24;min-re-et
+140; Vicky;34;min-re-et;0.42;0.40;0.18;min-re-et
+160; Vicky;32;min-re-et;0.17;0.57;0.26;max-et
+180; Vicky;24;max-et;0.24;0.38;0.37;min-re-et
+200; Vicky;30;min-re-et;0.42;0.29;0.29;min-re-et
+220; Vicky;34;min-re-et;0.55;0.23;0.22;max-et
+240; Vicky;24;max-et;0.70;0.013;0.28;min-re-et
+260; Vicky;37;min-re-et;0.77;0.0098;0.22;min-re-et
+280; Vicky;30;min-re-et;0.68;0.014;0.31;min-re-et
+300; Vicky;29;min-re-et;0.54;0.020;0.44;min-re-et
+320; Vicky;28;min-re-et;0.34;0.029;0.63;random
+340; Vicky;25;random;0.48;0.042;0.48;min-re-et
+360; Vicky;33;min-re-et;0.60;0.032;0.37;min-re-et
+380; Vicky;28;min-re-et;0.43;0.046;0.52;random
+400; Vicky;26;random;0.62;0.065;0.32;min-re-et
+420; Vicky;31;min-re-et;0.70;0.050;0.25;min-re-et
+440; Vicky;32;min-re-et;0.77;0.039;0.19;min-re-et
+460; Vicky;28;min-re-et;0.68;0.055;0.27;min-re-et
+480; Vicky;34;min-re-et;0.75;0.043;0.21;min-re-et
+500; Vicky;34;min-re-et;0.81;0.033;0.16;min-re-et
+520; Vicky;33;min-re-et;0.73;0.047;0.23;random
+540; Vicky;24;random;0.93;0.060;0.013;min-re-et
+560; Vicky;27;min-re-et;0.94;0.046;0.0098;min-re-et
+580; Vicky;33;min-re-et;0.96;0.035;0.0077;min-re-et
+600; Vicky;33;min-re-et;0.94;0.050;0.014;min-re-et
+620; Vicky;32;min-re-et;0.91;0.072;0.020;min-re-et
+640; Vicky;32;min-re-et;0.93;0.055;0.016;min-re-et
+660; Vicky;36;min-re-et;0.95;0.043;0.012;min-re-et
+680; Vicky;32;min-re-et;0.92;0.061;0.017;min-re-et
+700; Vicky;31;min-re-et;0.89;0.087;0.025;min-re-et
+720; Vicky;34;min-re-et;0.91;0.067;0.019;min-re-et
+740; Vicky;37;min-re-et;0.93;0.051;0.015;min-re-et
+760; Vicky;34;min-re-et;0.91;0.073;0.021;min-re-et
+780; Vicky;33;min-re-et;0.87;0.10;0.030;min-re-et
+800; Vicky;33;min-re-et;0.90;0.081;0.023;min-re-et
+820; Vicky;35;min-re-et;0.92;0.062;0.018;max-et
+840; Vicky;18;max-et;0.97;0.011;0.019;min-re-et
+860; Vicky;35;min-re-et;0.98;0.0081;0.014;min-re-et
+880; Vicky;35;min-re-et;0.97;0.014;0.020;random
+900; Vicky;21;random;0.98;0.014;0.010;min-re-et
+920; Vicky;36;min-re-et;0.98;0.011;0.0078;min-re-et
+940; Vicky;32;min-re-et;0.97;0.016;0.014;min-re-et
+960; Vicky;27;min-re-et;0.96;0.023;0.020;min-re-et
+980; Vicky;30;min-re-et;0.97;0.017;0.016;min-re-et
+1000; Vicky;33;min-re-et;0.97;0.013;0.012;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;27;min-re-et;0.49;0.26;0.26;random
+40; Vicky;30;random;0.37;0.20;0.43;min-re-et
+60; Vicky;33;min-re-et;0.52;0.15;0.33;min-re-et
+80; Vicky;34;min-re-et;0.63;0.12;0.25;maxv/minreet
+100; Vicky;36;maxv/minreet;0.48;0.32;0.19;min-re-et
+120; Vicky;33;min-re-et;0.26;0.46;0.28;maxv/minreet
+140; Vicky;36;maxv/minreet;0.20;0.58;0.21;min-re-et
+160; Vicky;30;min-re-et;0.012;0.72;0.27;maxv/minreet
+180; Vicky;37;maxv/minreet;0.0095;0.79;0.20;random
+200; Vicky;31;random;0.012;0.98;0.012;maxv/minreet
+220; Vicky;35;maxv/minreet;0.0095;0.98;0.0095;maxv/minreet
+240; Vicky;34;maxv/minreet;0.014;0.97;0.014;maxv/minreet
+260; Vicky;36;maxv/minreet;0.011;0.98;0.011;maxv/minreet
+280; Vicky;39;maxv/minreet;0.0084;0.98;0.0084;maxv/minreet
+300; Vicky;36;maxv/minreet;0.014;0.97;0.014;maxv/minreet
+320; Vicky;34;maxv/minreet;0.020;0.96;0.020;maxv/minreet
+340; Vicky;35;maxv/minreet;0.016;0.97;0.016;maxv/minreet
+360; Vicky;35;maxv/minreet;0.022;0.96;0.022;maxv/minreet
+380; Vicky;33;maxv/minreet;0.032;0.94;0.032;maxv/minreet
+400; Vicky;34;maxv/minreet;0.025;0.95;0.025;maxv/minreet
+420; Vicky;34;maxv/minreet;0.035;0.93;0.035;maxv/minreet
+440; Vicky;34;maxv/minreet;0.027;0.95;0.027;maxv/minreet
+460; Vicky;36;maxv/minreet;0.021;0.96;0.021;maxv/minreet
+480; Vicky;34;maxv/minreet;0.030;0.94;0.030;maxv/minreet
+500; Vicky;37;maxv/minreet;0.023;0.95;0.023;maxv/minreet
+520; Vicky;36;maxv/minreet;0.033;0.93;0.033;maxv/minreet
+540; Vicky;33;maxv/minreet;0.047;0.91;0.047;maxv/minreet
+560; Vicky;36;maxv/minreet;0.036;0.93;0.036;maxv/minreet
+580; Vicky;37;maxv/minreet;0.028;0.94;0.028;min-re-et
+600; Vicky;34;min-re-et;0.010;0.96;0.028;maxv/minreet
+620; Vicky;35;maxv/minreet;0.0078;0.97;0.022;maxv/minreet
+640; Vicky;34;maxv/minreet;0.014;0.96;0.031;maxv/minreet
+660; Vicky;32;maxv/minreet;0.020;0.94;0.044;maxv/minreet
+680; Vicky;35;maxv/minreet;0.016;0.95;0.034;maxv/minreet
+700; Vicky;33;maxv/minreet;0.022;0.93;0.048;maxv/minreet
+720; Vicky;35;maxv/minreet;0.017;0.95;0.037;maxv/minreet
+740; Vicky;37;maxv/minreet;0.013;0.96;0.029;maxv/minreet
+760; Vicky;36;maxv/minreet;0.019;0.94;0.041;maxv/minreet
+780; Vicky;34;maxv/minreet;0.027;0.91;0.058;maxv/minreet
+800; Vicky;34;maxv/minreet;0.021;0.93;0.045;maxv/minreet
+820; Vicky;34;maxv/minreet;0.030;0.91;0.064;maxv/minreet
+840; Vicky;32;maxv/minreet;0.042;0.87;0.091;random
+860; Vicky;25;random;0.046;0.94;0.011;maxv/minreet
+880; Vicky;32;maxv/minreet;0.035;0.96;0.0084;maxv/minreet
+900; Vicky;36;maxv/minreet;0.027;0.97;0.0077;min-re-et
+920; Vicky;34;min-re-et;0.010;0.98;0.010;random
+940; Vicky;21;random;0.010;0.98;0.010;maxv/minreet
+960; Vicky;34;maxv/minreet;0.0078;0.98;0.0077;maxv/minreet
+980; Vicky;33;maxv/minreet;0.014;0.97;0.014;maxv/minreet
+1000; Vicky;26;maxv/minreet;0.020;0.96;0.020;maxv/minreet
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;33;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;35;min-re-et;0.61;0.20;0.20;min-re-et
+60; Vicky;30;min-re-et;0.44;0.28;0.28;min-re-et
+80; Vicky;34;min-re-et;0.57;0.22;0.22;min-re-et
+100; Vicky;33;min-re-et;0.38;0.31;0.31;maxv/minreet
+120; Vicky;35;maxv/minreet;0.29;0.47;0.24;maxv/minreet
+140; Vicky;37;maxv/minreet;0.23;0.59;0.18;min-re-et
+160; Vicky;35;min-re-et;0.013;0.75;0.23;maxv/minreet
+180; Vicky;38;maxv/minreet;0.0098;0.81;0.18;maxv/minreet
+200; Vicky;34;maxv/minreet;0.014;0.73;0.26;maxv/minreet
+220; Vicky;35;maxv/minreet;0.011;0.79;0.20;maxv/minreet
+240; Vicky;32;maxv/minreet;0.016;0.70;0.28;random
+260; Vicky;32;random;0.022;0.96;0.014;maxv/minreet
+280; Vicky;32;maxv/minreet;0.017;0.97;0.011;maxv/minreet
+300; Vicky;31;maxv/minreet;0.024;0.96;0.015;maxv/minreet
+320; Vicky;39;maxv/minreet;0.018;0.97;0.012;maxv/minreet
+340; Vicky;37;maxv/minreet;0.026;0.96;0.017;maxv/minreet
+360; Vicky;36;maxv/minreet;0.037;0.94;0.024;maxv/minreet
+380; Vicky;33;maxv/minreet;0.053;0.91;0.034;maxv/minreet
+400; Vicky;37;maxv/minreet;0.041;0.93;0.026;maxv/minreet
+420; Vicky;34;maxv/minreet;0.058;0.90;0.037;maxv/minreet
+440; Vicky;32;maxv/minreet;0.083;0.86;0.053;maxv/minreet
+460; Vicky;38;maxv/minreet;0.064;0.89;0.041;min-re-et
+480; Vicky;32;min-re-et;0.011;0.95;0.043;maxv/minreet
+500; Vicky;37;maxv/minreet;0.0081;0.96;0.033;maxv/minreet
+520; Vicky;35;maxv/minreet;0.014;0.94;0.047;maxv/minreet
+540; Vicky;33;maxv/minreet;0.020;0.91;0.068;maxv/minreet
+560; Vicky;32;maxv/minreet;0.029;0.87;0.097;maxv/minreet
+580; Vicky;39;maxv/minreet;0.022;0.90;0.074;maxv/minreet
+600; Vicky;36;maxv/minreet;0.032;0.86;0.11;maxv/minreet
+620; Vicky;33;maxv/minreet;0.046;0.80;0.15;maxv/minreet
+640; Vicky;29;maxv/minreet;0.065;0.72;0.22;random
+660; Vicky;22;random;0.082;0.91;0.013;maxv/minreet
+680; Vicky;37;maxv/minreet;0.063;0.93;0.0097;random
+700; Vicky;21;random;0.063;0.93;0.010;maxv/minreet
+720; Vicky;36;maxv/minreet;0.049;0.94;0.0077;maxv/minreet
+740; Vicky;36;maxv/minreet;0.037;0.95;0.0077;maxv/minreet
+760; Vicky;32;maxv/minreet;0.053;0.93;0.014;min-re-et
+780; Vicky;31;min-re-et;0.010;0.97;0.015;maxv/minreet
+800; Vicky;37;maxv/minreet;0.0080;0.98;0.011;maxv/minreet
+820; Vicky;36;maxv/minreet;0.014;0.97;0.016;maxv/minreet
+840; Vicky;34;maxv/minreet;0.020;0.96;0.023;maxv/minreet
+860; Vicky;30;maxv/minreet;0.029;0.94;0.033;maxv/minreet
+880; Vicky;38;maxv/minreet;0.022;0.95;0.026;maxv/minreet
+900; Vicky;35;maxv/minreet;0.032;0.93;0.037;maxv/minreet
+920; Vicky;32;maxv/minreet;0.046;0.90;0.052;maxv/minreet
+940; Vicky;31;maxv/minreet;0.065;0.86;0.075;maxv/minreet
+960; Vicky;41;maxv/minreet;0.050;0.89;0.057;min-re-et
+980; Vicky;34;min-re-et;0.010;0.93;0.060;maxv/minreet
+1000; Vicky;33;maxv/minreet;0.015;0.90;0.085;maxv/minreet
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;max-et;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;22;min-re-et;0.49;0.26;0.26;min-re-et
+40; Vicky;31;min-re-et;0.61;0.20;0.20;random
+60; Vicky;24;random;0.75;0.24;0.012;min-re-et
+80; Vicky;31;min-re-et;0.80;0.19;0.0095;max-et
+100; Vicky;20;max-et;0.98;0.012;0.012;min-re-et
+120; Vicky;35;min-re-et;0.98;0.0093;0.0093;min-re-et
+140; Vicky;31;min-re-et;0.97;0.014;0.014;min-re-et
+160; Vicky;35;min-re-et;0.98;0.011;0.011;min-re-et
+180; Vicky;33;min-re-et;0.97;0.016;0.016;min-re-et
+200; Vicky;32;min-re-et;0.96;0.022;0.022;min-re-et
+220; Vicky;35;min-re-et;0.97;0.017;0.017;min-re-et
+240; Vicky;32;min-re-et;0.95;0.025;0.025;random
+260; Vicky;23;random;0.96;0.025;0.010;min-re-et
+280; Vicky;32;min-re-et;0.97;0.019;0.0078;min-re-et
+300; Vicky;35;min-re-et;0.98;0.015;0.0077;min-re-et
+320; Vicky;32;min-re-et;0.96;0.021;0.014;min-re-et
+340; Vicky;33;min-re-et;0.97;0.016;0.011;min-re-et
+360; Vicky;38;min-re-et;0.98;0.012;0.0084;min-re-et
+380; Vicky;31;min-re-et;0.97;0.018;0.014;min-re-et
+400; Vicky;33;min-re-et;0.98;0.014;0.011;min-re-et
+420; Vicky;32;min-re-et;0.96;0.019;0.016;min-re-et
+440; Vicky;31;min-re-et;0.95;0.028;0.022;min-re-et
+460; Vicky;35;min-re-et;0.96;0.021;0.017;min-re-et
+480; Vicky;32;min-re-et;0.94;0.031;0.025;min-re-et
+500; Vicky;31;min-re-et;0.92;0.044;0.035;min-re-et
+520; Vicky;35;min-re-et;0.94;0.034;0.027;min-re-et
+540; Vicky;33;min-re-et;0.91;0.048;0.039;min-re-et
+560; Vicky;37;min-re-et;0.93;0.037;0.030;min-re-et
+580; Vicky;31;min-re-et;0.90;0.053;0.042;min-re-et
+600; Vicky;33;min-re-et;0.93;0.041;0.033;min-re-et
+620; Vicky;30;min-re-et;0.90;0.058;0.047;min-re-et
+640; Vicky;35;min-re-et;0.92;0.045;0.036;min-re-et
+660; Vicky;32;min-re-et;0.89;0.064;0.051;min-re-et
+680; Vicky;36;min-re-et;0.91;0.049;0.039;min-re-et
+700; Vicky;36;min-re-et;0.93;0.038;0.030;min-re-et
+720; Vicky;33;min-re-et;0.90;0.054;0.043;min-re-et
+740; Vicky;31;min-re-et;0.86;0.077;0.062;min-re-et
+760; Vicky;35;min-re-et;0.89;0.059;0.048;min-re-et
+780; Vicky;32;min-re-et;0.85;0.084;0.068;min-re-et
+800; Vicky;32;min-re-et;0.88;0.065;0.052;min-re-et
+820; Vicky;32;min-re-et;0.83;0.093;0.075;max-et
+840; Vicky;23;max-et;0.91;0.011;0.081;min-re-et
+860; Vicky;31;min-re-et;0.93;0.0084;0.063;random
+880; Vicky;24;random;0.98;0.011;0.011;min-re-et
+900; Vicky;36;min-re-et;0.98;0.0081;0.0081;min-re-et
+920; Vicky;32;min-re-et;0.97;0.014;0.014;min-re-et
+940; Vicky;35;min-re-et;0.98;0.011;0.011;min-re-et
+960; Vicky;31;min-re-et;0.97;0.016;0.016;min-re-et
+980; Vicky;33;min-re-et;0.98;0.012;0.012;min-re-et
+1000; Vicky;32;min-re-et;0.97;0.017;0.017;min-re-et
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;34;min-re-et;0.49;0.26;0.26;random
+40; Vicky;33;random;0.65;0.34;0.013;min-re-et
+60; Vicky;34;min-re-et;0.73;0.26;0.010;min-re-et
+80; Vicky;36;min-re-et;0.79;0.20;0.0079;min-re-et
+100; Vicky;30;min-re-et;0.70;0.29;0.014;min-re-et
+120; Vicky;32;min-re-et;0.77;0.22;0.011;maxv/minreet
+140; Vicky;37;maxv/minreet;0.59;0.40;0.0084;maxv/minreet
+160; Vicky;31;maxv/minreet;0.84;0.14;0.014;min-re-et
+180; Vicky;34;min-re-et;0.88;0.11;0.011;min-re-et
+200; Vicky;29;min-re-et;0.83;0.16;0.016;min-re-et
+220; Vicky;35;min-re-et;0.87;0.12;0.012;min-re-et
+240; Vicky;33;min-re-et;0.81;0.17;0.017;min-re-et
+260; Vicky;37;min-re-et;0.85;0.13;0.013;min-re-et
+280; Vicky;31;min-re-et;0.79;0.19;0.019;maxv/minreet
+300; Vicky;34;maxv/minreet;0.61;0.38;0.015;min-re-et
+320; Vicky;38;min-re-et;0.70;0.29;0.011;min-re-et
+340; Vicky;28;min-re-et;0.57;0.41;0.016;random
+360; Vicky;30;random;0.44;0.32;0.24;min-re-et
+380; Vicky;34;min-re-et;0.57;0.25;0.19;maxv/minreet
+400; Vicky;37;maxv/minreet;0.44;0.42;0.14;min-re-et
+420; Vicky;30;min-re-et;0.20;0.60;0.21;maxv/minreet
+440; Vicky;35;maxv/minreet;0.15;0.69;0.16;maxv/minreet
+460; Vicky;41;maxv/minreet;0.12;0.76;0.12;min-re-et
+480; Vicky;32;min-re-et;0.011;0.85;0.14;random
+500; Vicky;23;random;0.013;0.98;0.011;maxv/minreet
+520; Vicky;34;maxv/minreet;0.0098;0.98;0.0088;maxv/minreet
+540; Vicky;37;maxv/minreet;0.0077;0.98;0.0077;maxv/minreet
+560; Vicky;39;maxv/minreet;0.0077;0.98;0.0077;maxv/minreet
+580; Vicky;29;maxv/minreet;0.014;0.97;0.014;maxv/minreet
+600; Vicky;40;maxv/minreet;0.011;0.98;0.011;maxv/minreet
+620; Vicky;38;maxv/minreet;0.016;0.97;0.016;maxv/minreet
+640; Vicky;35;maxv/minreet;0.022;0.96;0.022;maxv/minreet
+660; Vicky;36;maxv/minreet;0.017;0.97;0.017;maxv/minreet
+680; Vicky;39;maxv/minreet;0.013;0.97;0.013;maxv/minreet
+700; Vicky;30;maxv/minreet;0.019;0.96;0.019;maxv/minreet
+720; Vicky;32;maxv/minreet;0.014;0.97;0.014;maxv/minreet
+740; Vicky;36;maxv/minreet;0.011;0.98;0.011;maxv/minreet
+760; Vicky;35;maxv/minreet;0.016;0.97;0.016;maxv/minreet
+780; Vicky;31;maxv/minreet;0.023;0.95;0.023;maxv/minreet
+800; Vicky;33;maxv/minreet;0.017;0.97;0.017;maxv/minreet
+820; Vicky;37;maxv/minreet;0.013;0.97;0.013;maxv/minreet
+840; Vicky;37;maxv/minreet;0.019;0.96;0.019;maxv/minreet
+860; Vicky;37;maxv/minreet;0.027;0.95;0.027;maxv/minreet
+880; Vicky;37;maxv/minreet;0.039;0.92;0.039;maxv/minreet
+900; Vicky;36;maxv/minreet;0.056;0.89;0.056;min-re-et
+920; Vicky;28;min-re-et;0.010;0.93;0.059;maxv/minreet
+940; Vicky;38;maxv/minreet;0.0081;0.95;0.045;maxv/minreet
+960; Vicky;37;maxv/minreet;0.014;0.92;0.064;maxv/minreet
+980; Vicky;33;maxv/minreet;0.020;0.89;0.092;maxv/minreet
+1000; Vicky;35;maxv/minreet;0.016;0.91;0.071;maxv/minreet
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+20; Vicky;26;min-re-et;0.49;0.26;0.26;maxv/minreet
+40; Vicky;39;maxv/minreet;0.37;0.43;0.20;random
+60; Vicky;25;random;0.46;0.53;0.012;maxv/minreet
+80; Vicky;37;maxv/minreet;0.35;0.64;0.0095;maxv/minreet
+100; Vicky;37;maxv/minreet;0.51;0.48;0.014;maxv/minreet
+120; Vicky;36;maxv/minreet;0.72;0.26;0.020;maxv/minreet
+140; Vicky;37;maxv/minreet;0.56;0.43;0.016;maxv/minreet
+160; Vicky;30;maxv/minreet;0.79;0.18;0.022;min-re-et
+180; Vicky;33;min-re-et;0.84;0.14;0.017;maxv/minreet
+200; Vicky;36;maxv/minreet;0.65;0.34;0.013;min-re-et
+220; Vicky;33;min-re-et;0.50;0.48;0.019;min-re-et
+240; Vicky;28;min-re-et;0.28;0.69;0.027;min-re-et
+260; Vicky;33;min-re-et;0.45;0.53;0.021;maxv/minreet
+280; Vicky;35;maxv/minreet;0.34;0.64;0.016;maxv/minreet
+300; Vicky;33;maxv/minreet;0.49;0.49;0.023;maxv/minreet
+320; Vicky;30;maxv/minreet;0.70;0.27;0.033;min-re-et
+340; Vicky;36;min-re-et;0.77;0.20;0.025;maxv/minreet
+360; Vicky;37;maxv/minreet;0.59;0.39;0.019;maxv/minreet
+380; Vicky;32;maxv/minreet;0.85;0.13;0.028;min-re-et
+400; Vicky;39;min-re-et;0.88;0.096;0.021;min-re-et
+420; Vicky;31;min-re-et;0.83;0.14;0.030;min-re-et
+440; Vicky;31;min-re-et;0.87;0.11;0.023;min-re-et
+460; Vicky;34;min-re-et;0.90;0.082;0.018;min-re-et
+480; Vicky;35;min-re-et;0.92;0.063;0.014;min-re-et
+500; Vicky;34;min-re-et;0.89;0.090;0.020;min-re-et
+520; Vicky;31;min-re-et;0.84;0.13;0.028;min-re-et
+540; Vicky;33;min-re-et;0.88;0.098;0.022;min-re-et
+560; Vicky;34;min-re-et;0.91;0.076;0.017;min-re-et
+580; Vicky;35;min-re-et;0.93;0.058;0.013;min-re-et
+600; Vicky;32;min-re-et;0.90;0.083;0.018;min-re-et
+620; Vicky;38;min-re-et;0.92;0.064;0.014;min-re-et
+640; Vicky;32;min-re-et;0.89;0.091;0.020;min-re-et
+660; Vicky;35;min-re-et;0.91;0.070;0.015;min-re-et
+680; Vicky;30;min-re-et;0.88;0.10;0.022;min-re-et
+700; Vicky;30;min-re-et;0.91;0.077;0.017;maxv/minreet
+720; Vicky;37;maxv/minreet;0.70;0.29;0.013;min-re-et
+740; Vicky;36;min-re-et;0.57;0.41;0.019;min-re-et
+760; Vicky;30;min-re-et;0.38;0.59;0.027;maxv/minreet
+780; Vicky;30;maxv/minreet;0.29;0.69;0.021;maxv/minreet
+800; Vicky;30;maxv/minreet;0.42;0.55;0.029;maxv/minreet
+820; Vicky;37;maxv/minreet;0.32;0.66;0.023;min-re-et
+840; Vicky;34;min-re-et;0.031;0.94;0.032;maxv/minreet
+860; Vicky;33;maxv/minreet;0.045;0.91;0.046;maxv/minreet
+880; Vicky;32;maxv/minreet;0.064;0.87;0.066;maxv/minreet
+900; Vicky;36;maxv/minreet;0.049;0.90;0.051;maxv/minreet
+920; Vicky;35;maxv/minreet;0.070;0.86;0.072;maxv/minreet
+940; Vicky;29;maxv/minreet;0.10;0.80;0.10;maxv/minreet
+960; Vicky;38;maxv/minreet;0.077;0.84;0.080;maxv/minreet
+980; Vicky;33;maxv/minreet;0.11;0.78;0.11;min-re-et
+1000; Vicky;33;min-re-et;0.011;0.86;0.13;maxv/minreet
+
+_main: app.post /initialize ------------------------------------
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+_t_||_Blue.Step-A__________________| |_Green.Step-1_________________| _#outs__CT:[min___avg___max]_TP:[__#______$]
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et
+time; worker; ivc; adjusted; min-re-et;maxv/minreet;random;chosen
+-1; Vicky;0.0;min-re-et;0.33;0.33;0.33;min-re-et

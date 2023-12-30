@@ -9,6 +9,7 @@ import { ValueChain } from './valuechain.js'
 import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from './workitem.js'
 import { ProcessStep } from './workitembasketholder.js'
 import { LonelyLobsterSystem } from './system'
+import { I_WeightedSelectionStrategyAtTimestamp, I_LearningStatsWorker } from './io_api_definitions.js'
 
 
 //----------------------------------------------------------------------
@@ -75,6 +76,22 @@ class LogEntryWorkerWorked extends LogEntryWorker {
                   `${this.chosenSelectionStrategy.id}`
 } 
 
+export class LogWorker {
+    constructor(public log: LogEntryWorker[]=[]) {}
+
+    public add = (lew: LogEntryWorker) => this.log.push(lew) 
+
+    public get statsOverTime(): I_WeightedSelectionStrategyAtTimestamp[] {
+        return this.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted).map(lew => { 
+            return {
+                timestamp:  lew.timestamp,
+                selectionStrategyNamesWithWeights: (<LogEntryWorkerLearnedAndAdapted>lew).weigthedSelectionStrategies.map(wsest => { return {id: wsest.element.id, weight: wsest.weight}})
+            }
+        })
+    } 
+}
+
+
 //----------------------------------------------------------------------
 //    ASSIGNMENTS OF WORKERS TO PROCESS STEPS
 //----------------------------------------------------------------------
@@ -115,8 +132,8 @@ const weightAdjustmentFactor: number  = 0.3 // <= should come via the config jso
 
 // --- WORKER class --------------------------------------
 export class Worker {
-    /* private */ logWorker:    LogEntryWorker[] = []
-    stats:                      WorkerStats      = { assignments: [], utilization: 0 }
+    logWorker:    LogWorker     = new LogWorker([])
+    stats:        WorkerStats   = { assignments: [], utilization: 0 }
 
     constructor(private sys:                            LonelyLobsterSystem,
                 public  id:                             WorkerName,
@@ -124,15 +141,15 @@ export class Worker {
         this.logEventLearnedAndAdapted(0, weightedSelectionStrategies[0].element, weightedSelectionStrategies[0].element, weightedSelectionStrategies) // initialize worker's learning & adaption log
     }
 
-    private logEventWorked(): void { this.logWorker.push(new LogEntryWorkerWorked(this.sys, this)) }
+    private logEventWorked(): void { this.logWorker.add(new LogEntryWorkerWorked(this.sys, this)) }
 
     private logEventLearnedAndAdapted(ivc: Value, adjustedSest: SelectionStrategy, chosenSest: SelectionStrategy, weightedSelectionStrategies: WeightedSelectionStrategy[]): void { 
-        this.logWorker.push(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedSest, chosenSest, weightedSelectionStrategies))
+        this.logWorker.add(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedSest, chosenSest, weightedSelectionStrategies))
     }
 
-    private get logWorkerWorked(): LogEntryWorkerWorked[] { return this.logWorker.filter(le => le.logEntryType == LogEntryType.workerWorked) }
+    private get logWorkerWorked(): LogEntryWorkerWorked[] { return this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerWorked) }
 
-    private get logWorkerLearnedAndAdapted(): LogEntryWorkerLearnedAndAdapted[] { return <LogEntryWorkerLearnedAndAdapted[]>this.logWorker.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted) }
+    public get logWorkerLearnedAndAdapted(): LogEntryWorkerLearnedAndAdapted[] { return <LogEntryWorkerLearnedAndAdapted[]>this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted) }
 
     private  workItemsAtHand(asSet: AssignmentSet): WorkItem[] {
         const pss: ProcessStep[] = asSet.assignments.filter(as => as.worker.id == this.id).map(as => as.valueChainProcessStep.processStep)
@@ -180,6 +197,13 @@ export class Worker {
     //----------------------------------------------------------------------
     //    Learning & Adaption 
     //----------------------------------------------------------------------
+
+    public get statsOverTime(): I_LearningStatsWorker {
+        return {
+            worker: this.id,
+            series: this.logWorker.statsOverTime
+        }
+    }
 
     private individualValueContribution(fromTime: Timestamp, toTime: Timestamp): Value {
         return this.sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(this, fromTime, toTime)).reduce((a, b) => a + b, 0)
