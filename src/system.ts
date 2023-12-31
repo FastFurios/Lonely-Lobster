@@ -7,7 +7,7 @@ import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingA
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
-import { Worker, AssignmentSet } from './worker.js'
+import { Worker, AssignmentSet, LearnAndAdaptParms } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
@@ -30,14 +30,15 @@ interface WiElapTimeValAdd {
 //    LONELY LOBSTER SYSTEM
 //----------------------------------------------------------------------
 export class LonelyLobsterSystem {
-    public valueChains:     ValueChain[]    = []
-    public workers:         Worker[]        = []
-    public assignmentSet!:  AssignmentSet
-    public workOrderInFlow: WorkOrder[]     = []
-    public outputBasket:    OutputBasket 
-    public clock:           Clock    
-    public idGen                            = wiIdGenerator()
-    public tagGen                           = wiTagGenerator(wiTags)
+    public valueChains:         ValueChain[]        = []
+    public workers:             Worker[]            = []
+    public assignmentSet!:      AssignmentSet
+    public workOrderInFlow:     WorkOrder[]         = []
+    public outputBasket:        OutputBasket 
+    public clock:               Clock    
+    public idGen                                    = wiIdGenerator()
+    public tagGen                                   = wiTagGenerator(wiTags)
+    public learnAndAdaptParms!: LearnAndAdaptParms
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
@@ -89,11 +90,12 @@ export class LonelyLobsterSystem {
         }
       }
 
-      public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
+    public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
 
-      public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
+    public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
 
-  
+    public addLearningParameters(laps: LearnAndAdaptParms) { this.learnAndAdaptParms = laps }
+
 //----------------------------------------------------------------------
 //    API mode - Iteration
 //----------------------------------------------------------------------
@@ -150,7 +152,6 @@ export class LonelyLobsterSystem {
     }
 
     private i_workerState(wo: Worker): I_WorkerState {
-        //console.log("system.i_workerState(" + wo.id + "): wo.weightedSelectionStrategies = " + wo.weightedSelectionStrategies.map(sest => sest.element.id + ": " + sest.weight))
         const aux =  {
             worker: wo.id,
             utilization: wo.stats.utilization,
@@ -166,7 +167,6 @@ export class LonelyLobsterSystem {
                     weight: sest.weight
             }})
         }
-        //console.log("system.i_workerState(" + wo.id + "): aux = " + aux.worker + ": " + aux.weightedSelectionStrategies.map(sest => sest.id + ": " + sest.weight))
         return aux
     }
 
@@ -188,7 +188,6 @@ export class LonelyLobsterSystem {
                                  newWorkOrders: iterReq.newWorkOrders } ))
         
         const aux = this.i_systemState()        
-        //console.log("system.nextSystemState(...): aux = " + aux.workersState.map(wo => wo.worker + ":" + wo.weightedSelectionStrategies.map(sest => sest.id + ": " + sest.weight)))
         return aux
     }
     
@@ -205,7 +204,6 @@ export class LonelyLobsterSystem {
             .filter(wi => wi.wasInValueChainAt(t))
             .map(wi => wi.accumulatedEffort(t))
             .reduce((a, b) => a + b, 0)
-        //console.log("workingCapitalAt(" + t + ")=" + aux)
         return aux
     }
 
@@ -275,7 +273,6 @@ export class LonelyLobsterSystem {
         for (let t = fromTime + 1; t <= toTime; t++) {
             accumulatedWorkingCapital += this.workingCapitalAt(t)
         }
-        //console.log("avgWorkingCapitalBetween(" + fromTime + " to " + toTime + "): accumulatedWorkingCapital= " + accumulatedWorkingCapital + "; interval=" + interval)
         return accumulatedWorkingCapital / interval
     }
 
@@ -309,10 +306,7 @@ export class LonelyLobsterSystem {
 //    API mode - Learning Statistics
 //----------------------------------------------------------------------
 public get learningStatistics(): I_LearningStatsWorkers {
-    console.log("sys.learningStatistics()")
-    const aux: I_LearningStatsWorkers = this.workers.map(wo => wo.statsOverTime)
-    console.log("sys.learningStatistics(): w= " + aux[0].worker + ": " + aux[0].series.map(e => `t=${e.timestamp}\t`).reduce((a, b) => a + b))
-    return aux
+    return this.workers.map(wo => wo.statsOverTime)
 }
 
 //----------------------------------------------------------------------

@@ -4,8 +4,9 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
+import { TimeUnit } from "./io_api_definitions"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
@@ -20,6 +21,9 @@ interface I_TimeValueFctAndArg {
     function: string,
     argument: number
 }
+
+const observationPeriodDefault: TimeUnit  = 20   
+const weightAdjustmentDefault:  number    = 0.3  
 
 // -------------------------------------------------------------------------
 // Create system configuration from JSON file (when running in batch mode)
@@ -64,7 +68,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         process_steps:          I_process_step[]  
     }
 
-    function valueDegrationFct(timeValueFctAndArg: I_TimeValueFctAndArg): TimeValuationFct {
+    function valueDegradationFct(timeValueFctAndArg: I_TimeValueFctAndArg): TimeValuationFct {
         switch (timeValueFctAndArg?.function) {
             case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
             case "expired"   : return expired.bind(null, timeValueFctAndArg.argument)
@@ -84,7 +88,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     const sys = new LonelyLobsterSystem(systemId, debugShowOptions)
 
     const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.bar_length)
-    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, vcj.injection_throughput, valueDegrationFct(vcj.value_degration))
+    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, vcj.injection_throughput, valueDegradationFct(vcj.value_degration))
     const addProcStepsToValChain = (pssj: I_process_step[], vc: ValueChain) : void          => pssj.forEach(psj => vc.processSteps.push(newProcessStep(psj, vc))) 
     const filledValueChain       = (vcj:  I_value_chain)                    : ValueChain    => {
         const newVc: ValueChain = newEmptyValueChain(vcj)
@@ -142,19 +146,15 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                                                 },
                                                 weight: 1
                                             }}), (x => x) /* take numbers as is */)      
-            //console.log(`io_config/createNewWorker: sort_vector new mode for ${woj.worker_id}`)
         } else if (woj.select_next_work_item_sort_vector_sequence) {
             // in case we did not find the new property "workitem_selection_strategies" try to find the deprecated old
             // property "select_next_work_item_sort_vector_sequence"
-            //console.log(`io_config/createNewWorker: sort_vector (deprecated) mode for ${woj.worker_id}`)
             const svs: SortVectorSequence = woj.select_next_work_item_sort_vector_sequence == undefined 
                                           ? [] // random ("[]") is the only available selection strategy
                                           : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
             weightedSelStrategies = [{ element: {id: "#unnamed#", strategy: svs}, weight: 1 }]
         } else 
             weightedSelStrategies = [{ element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy
-
-        //console.log(`io_config/createNewWorker: sort vector sequences for ${woj.worker_id} are ${weightedSortVectorSequences.map(wsvs => `weight=${wsvs.relativeWeight} svs=${wsvs.sortVectorSequence.map(svs => `${svs.colIndex}/${svs.selCrit}`)}` )}; `)
 
         return new Worker(sys, woj.worker_id, weightedSelStrategies) 
     }
@@ -191,6 +191,16 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     paj.workers.forEach((woj: I_worker) => createAndAssignWorker(woj, workers, valueChains, asSet))
     
     sys.addWorkersAndAssignments(workers, asSet)
+
+    const learnAndAdaptParms: LearnAndAdaptParms = paj.learn_and_adapt_parms ? 
+        {
+            observationPeriod: paj.learn_and_adapt_parms.observation_period ? paj.learn_and_adapt_parms.observation_period : 20,
+            adjustmentFactor:  paj.learn_and_adapt_parms.adjustment_factor  ? paj.learn_and_adapt_parms.adjustment_factor  : 0.3 
+        } : {
+            observationPeriod: 20,
+            adjustmentFactor:  0.3 
+        }
+    sys.addLearningParameters(learnAndAdaptParms)
 
     // return the configured system
     return sys
