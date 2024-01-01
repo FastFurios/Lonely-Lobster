@@ -1,7 +1,7 @@
 //----------------------------------------------------------------------
 //    VALUE CHAIN 
 //----------------------------------------------------------------------
-import { TimeUnit, Timestamp, Value, ValueChainId, Effort } from './io_api_definitions'
+import { TimeUnit, Timestamp, Value, ValueChainId, Effort, Injection } from './io_api_definitions'
 import { LonelyLobsterSystem } from './system.js'
 import { WorkItem } from './workitem.js'
 import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
@@ -32,8 +32,8 @@ export class ValueChain {
     constructor(public sys:             LonelyLobsterSystem,
                 public id:              ValueChainId,
                 public totalValueAdd:   Value,
-                public injectionThroughput?: number,
-                public valueDegration: TimeValuationFct = net) {   // call signatutre is valueDegration(totalValueAdd: Value, excessTime: Timeunit) where excessTime is the additional time above the minimal cycle time it took to reach the output basket
+                public injection:       Injection,
+                public valueDegration:  TimeValuationFct = net) {   // call signatutre is valueDegration(totalValueAdd: Value, excessTime: Timeunit) where excessTime is the additional time above the minimal cycle time it took to reach the output basket
     }   
 
     public createAndInjectNewWorkItem(): void { 

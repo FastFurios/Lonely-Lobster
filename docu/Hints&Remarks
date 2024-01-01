@@ -3,10 +3,10 @@ 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
 backup copy:  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
 
 
-git push https://github.com/FastFurios/Lonely-Lobster.git
-git push https://github.com/FastFurios/Angular-Book-Monkey.git
 git push https://github.com/FastFurios/Angular-Testbed.git
+git push https://github.com/FastFurios/Lonely-Lobster.git
 
+git push https://github.com/FastFurios/Angular-Book-Monkey.git
 git push https://github.com/FastFurios/Typescript-Playground.git
 
 
@@ -22,6 +22,9 @@ $ export PORT  // export to environment
 Sometimes also:
 git push origin main
 git push origin master
+
+Sharing API definitions:
+~/sw_projects/Angular-Testbed$ sh getApiDefsFromBackend.sh
 
 
 Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net

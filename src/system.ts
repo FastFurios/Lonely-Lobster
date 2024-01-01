@@ -133,7 +133,7 @@ export class LonelyLobsterSystem {
         return {
             id:                 vc.id,
             totalValueAdd:      vc.totalValueAdd,
-            injectionThroughput:vc.injectionThroughput ? vc.injectionThroughput : 1,
+            injection:          vc.injection,
             processSteps:       vc.processSteps.map(ps => this.i_processStep(ps))
         }
     }

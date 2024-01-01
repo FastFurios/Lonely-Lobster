@@ -15,6 +15,8 @@ export  type WorkerName     = string
 export  type TimeUnit       = number
 export  type Timestamp      = number
 export  type RgbColor       = [number, number, number]
+export  type Injection      = { throughput: number, probability: number }
+
 
 //-------------------------
 // request to iterate
@@ -49,13 +51,14 @@ export interface I_ProcessStep {
     workItemFlow:                   number
 }
 
+export type I_Injection = Injection
+
 export interface I_ValueChain {
     id:                             ValueChainId
     totalValueAdd:                  Value
-    injectionThroughput:            number
+    injection:                      I_Injection,
     processSteps:                   I_ProcessStep[]
 }
-
 
 export interface I_OutputBasket {
     workItems:                      I_WorkItem[]

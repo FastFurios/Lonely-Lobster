@@ -4,7 +4,7 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
-import { TimeUnit } from "./io_api_definitions"
+import { I_Injection, Injection, TimeUnit } from "./io_api_definitions"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
 import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
@@ -63,8 +63,8 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     interface I_value_chain {
         value_chain_id:         string
         value_add:              number,
-        injection_throughput?:  number,
-        value_degration:        I_TimeValueFctAndArg,
+        injection?:             I_Injection,
+        value_degradation:      I_TimeValueFctAndArg,
         process_steps:          I_process_step[]  
     }
 
@@ -87,8 +87,13 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 
     const sys = new LonelyLobsterSystem(systemId, debugShowOptions)
 
+    function filledInjectionParms(inj?: I_Injection): Injection {
+        return inj ? { "throughput":  inj!.throughput  ? inj!.throughput  : 1, "probability": inj!.probability ? inj!.probability : 1 }
+                   : { "throughput":  1,                                       "probability": 1 } 
+    }                                                
+
     const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.bar_length)
-    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, vcj.injection_throughput, valueDegradationFct(vcj.value_degration))
+    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, filledInjectionParms(vcj.injection), valueDegradationFct(vcj.value_degradation))
     const addProcStepsToValChain = (pssj: I_process_step[], vc: ValueChain) : void          => pssj.forEach(psj => vc.processSteps.push(newProcessStep(psj, vc))) 
     const filledValueChain       = (vcj:  I_value_chain)                    : ValueChain    => {
         const newVc: ValueChain = newEmptyValueChain(vcj)
