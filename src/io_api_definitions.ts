@@ -182,7 +182,7 @@ export interface PsExtended {
 }  
 
 //-----------------------------------------
-// response toLearning statistics request
+// response to Learning statistics request
 //-----------------------------------------
 
 export type I_WeightedSelectionStrategyAtTimestamp = {

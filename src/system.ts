@@ -35,14 +35,14 @@ export class LonelyLobsterSystem {
     public assignmentSet!:      AssignmentSet
     public workOrderInFlow:     WorkOrder[]         = []
     public outputBasket:        OutputBasket 
-    public clock:               Clock    
+    public clock:               Clock               = new Clock(this, -1)
     public idGen                                    = wiIdGenerator()
     public tagGen                                   = wiTagGenerator(wiTags)
     public learnAndAdaptParms!: LearnAndAdaptParms
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
-        this.clock          = new Clock(this, -1)
+        //this.clock          = new Clock(this, -1)
         this.outputBasket   = new OutputBasket(this)
     }
 
@@ -276,7 +276,7 @@ export class LonelyLobsterSystem {
         return accumulatedWorkingCapital / interval
     }
 
-    private avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+    private avgContribution(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime
         return (endProductMoreStatistics.discountedValueAdd - endProductMoreStatistics.normEffort) / interval
     }
@@ -287,7 +287,7 @@ export class LonelyLobsterSystem {
                                                               .concat(this.outputBasket.flowStats(fromTime, toTime))
         const endProductMoreStatistics: I_EndProductMoreStatistics = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
         const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
-        const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
+        const avgDiscValueAdd   = this.avgContribution(endProductMoreStatistics, fromTime, toTime)
         return {
             timestamp:          this.clock.time,
             valueChains:        this.valueChains.map(vc => this.vcStatistics(statEvents, vc, interval)),
@@ -303,8 +303,9 @@ export class LonelyLobsterSystem {
     }
 
 //----------------------------------------------------------------------
-//    API mode - Learning Statistics
+//    API mode - Learning Statistics (= workers' weighted workitem selection strategies over time)
 //----------------------------------------------------------------------
+
 public get learningStatistics(): I_LearningStatsWorkers {
     return this.workers.map(wo => wo.statsOverTime)
 }

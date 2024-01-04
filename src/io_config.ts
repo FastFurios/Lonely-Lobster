@@ -6,7 +6,7 @@ import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
 import { I_Injection, Injection, TimeUnit } from "./io_api_definitions"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
@@ -21,6 +21,8 @@ interface I_TimeValueFctAndArg {
     function: string,
     argument: number
 }
+
+type I_SuccessMeasureFct = string
 
 const observationPeriodDefault: TimeUnit  = 20   
 const weightAdjustmentDefault:  number    = 0.3  
@@ -75,6 +77,19 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             default: { 
                 console.log(`WARNING: Reading system parameters: value degration function \"${timeValueFctAndArg?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
                 return net
+            }
+        }
+    }
+
+    function successMeasureFct(smf: I_SuccessMeasureFct): SuccessMeasureFunction  {
+        console.log("io_config: successMeasureFct(\"" + smf + "\")")
+        switch (smf) {
+            case "ivc":     return successMeasureIvc   // ivc = individual value contribution (how much realized value is attributed to my effort?)
+            case "roce":    return successMeasureRoce  // roce = system's return on capital employed 
+            case "none":    return successMeasureNone  // no measurement 
+            default: { 
+                console.log(`WARNING: Reading system parameters: learn & adapt success function \"${smf}\" not known to Lonely Lobster; resorting to \"successMeasureNone()\"`)
+                return successMeasureNone
             }
         }
     }
@@ -200,11 +215,15 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     const learnAndAdaptParms: LearnAndAdaptParms = paj.learn_and_adapt_parms ? 
         {
             observationPeriod: paj.learn_and_adapt_parms.observation_period ? paj.learn_and_adapt_parms.observation_period : 20,
+            successMeasureFct: successMeasureFct(paj.learn_and_adapt_parms.success_measure_function ? paj.learn_and_adapt_parms.success_measure_function : "none"),
             adjustmentFactor:  paj.learn_and_adapt_parms.adjustment_factor  ? paj.learn_and_adapt_parms.adjustment_factor  : 0.3 
         } : {
             observationPeriod: 20,
+            successMeasureFct: successMeasureFct(paj.learn_and_adapt_parms.success_measure_function ? paj.learn_and_adapt_parms.success_measure_function : "none"),
             adjustmentFactor:  0.3 
         }
+    console.log("io_config: learn&adapt: successMeasureFct = " + learnAndAdaptParms.successMeasureFct)
+
     sys.addLearningParameters(learnAndAdaptParms)
 
     // return the configured system

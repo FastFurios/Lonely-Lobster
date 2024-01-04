@@ -86,7 +86,7 @@ function apiMode(): void {
     // API call - INITIALIZE 
     //------------------------------
     app.post('/initialize', (req, res) => {
-        console.log("\n_main: app.post /initialize ------------------------------------")
+        //console.log("\n_main: app.post /initialize ------------------------------------")
 
         let lonelyLobsterSystem: LonelyLobsterSystem 
         try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
@@ -140,7 +140,7 @@ function apiMode(): void {
     })
 
     //-------------------------------------
-    // API call - provide LEARNING STATISTICS 
+    // API call - provide LEARNING STATISTICS - workitem selection strategies weights of workers over time
     //-------------------------------------
     app.get('/learn-stats', (req, res) => {
         console.log("\n_main: app.get /learning statistics ------------------------------------")
@@ -150,7 +150,7 @@ function apiMode(): void {
             res.send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        console.log("_main: app.get /learning statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        //console.log("_main: app.get /learning statistics : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         const aux = lonelyLobsterSystem.learningStatistics
         //console.log("_main: app.get /learning statistics : sessionID = " +  req.sessionID + ": " + aux[0].map(e => `${e.worker} t=${e.timestamp}\t`).reduce((a, b) => a + b))
         res.send(aux)

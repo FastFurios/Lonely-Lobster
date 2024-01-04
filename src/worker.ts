@@ -9,10 +9,13 @@ import { ValueChain } from './valuechain.js'
 import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from './workitem.js'
 import { ProcessStep } from './workitembasketholder.js'
 import { LonelyLobsterSystem } from './system'
-import { I_WeightedSelectionStrategyAtTimestamp, I_LearningStatsWorker } from './io_api_definitions.js'
+import { I_WeightedSelectionStrategyAtTimestamp, I_LearningStatsWorker, I_SystemStatistics } from './io_api_definitions.js'
+
+export type SuccessMeasureFunction = (sys: LonelyLobsterSystem, wo: Worker) => number
 
 export type LearnAndAdaptParms = {
     observationPeriod:  TimeUnit
+    successMeasureFct:  SuccessMeasureFunction
     adjustmentFactor:   number
 }
 
@@ -54,7 +57,7 @@ class LogEntryWorkerWorked extends LogEntryWorker {
 /* no export */ export class LogEntryWorkerLearnedAndAdapted extends LogEntryWorker {
     constructor (       sys:                                        LonelyLobsterSystem,
                         worker:                                     Worker,
-                 public individualValueContributionOfEndingPeriod:  Value,
+                 public measurementOfEndingPeriod:                  Value,
                  public adjustedSelectionStrategy:                  SelectionStrategy,
                  public chosenSelectionStrategy:                    SelectionStrategy,
                  public weigthedSelectionStrategies:                WeightedSelectionStrategy[] ) {
@@ -66,7 +69,7 @@ class LogEntryWorkerWorked extends LogEntryWorker {
                                         .reduce((a, b) => a + b)
 
     public stringified = () => `${this.stringifiedLe()}, ${this.worker.id},` +
-                               `ivc=${this.individualValueContributionOfEndingPeriod.toPrecision(2)}, ` +
+                               `measurement=${this.measurementOfEndingPeriod.toPrecision(2)}, ` +
                                `adjusted strategy: [${this.adjustedSelectionStrategy.id}],  ` +
                                `newly chosen: [${this.chosenSelectionStrategy.id}]\n` +
                                this.stringifiedWeightedSelectionStrategies()
@@ -74,7 +77,7 @@ class LogEntryWorkerWorked extends LogEntryWorker {
     public plainFacts = (header: boolean) => 
         header  ? `time; worker; ivc; adjusted; ${this.weigthedSelectionStrategies.map(wsest => `${wsest.element.id};`).reduce((a, b) => a + b)}` + "chosen" 
                 : `${this.timestamp}; ${this.worker.id};` +
-                  `${this.individualValueContributionOfEndingPeriod.toPrecision(2)};` +
+                  `${this.measurementOfEndingPeriod.toPrecision(2)};` +
                   `${this.adjustedSelectionStrategy.id};` +
                   `${this.weigthedSelectionStrategies.map(wsest => `${wsest.weight.toPrecision(2)};`).reduce((a, b) => a + b)}` + 
                   `${this.chosenSelectionStrategy.id}`
@@ -86,6 +89,8 @@ export class LogWorker {
     public add = (lew: LogEntryWorker) => this.log.push(lew) 
 
     public get statsOverTime(): I_WeightedSelectionStrategyAtTimestamp[] {
+        //console.log("LogWorker.statsOverTime() = " + this.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted)
+        //                                                 .map(lew => console.log((<LogEntryWorkerLearnedAndAdapted>lew).stringified())))
         return this.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted).map(lew => { 
             return {
                 timestamp:  lew.timestamp,
@@ -131,8 +136,33 @@ type WorkerStats = {
 
 export type WeightedSelectionStrategy = WeightedElement<SelectionStrategy>
 
+// --- Learning and Adpting Success Functions -------------------------------------------
+
+export function successMeasureIvc(sys: LonelyLobsterSystem, wo: Worker): number {
+    return sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(wo, sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod, sys.clock.time)).reduce((a, b) => a + b, 0)
+}
+
+export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number {
+    if (sys.learnAndAdaptParms.successMeasureFct == successMeasureRoce) {
+        if (!Worker.sysStats || Worker.sysStats.timestamp < sys.clock.time) {
+            //console.log(wo.id + " at " + sys.clock.time + ": work() Worker.sysStats.timestamp = " + Worker.sysStats?.timestamp)
+            Worker.sysStats = sys.systemStatistics(
+                sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod,
+                sys.clock.time)
+        }
+    }
+    const aux =  Worker.sysStats.outputBasket.economics.roce  
+    //console.log("successMeasureRoce("+ wo.id +") returns: " + aux)
+    return aux
+}
+
+export function successMeasureNone(sys: LonelyLobsterSystem, wo: Worker): number {
+    return 0  
+}
+
 // --- WORKER class --------------------------------------
 export class Worker {
+    static sysStats: I_SystemStatistics
     logWorker:    LogWorker     = new LogWorker([])
     stats:        WorkerStats   = { assignments: [], utilization: 0 }
 
@@ -163,7 +193,14 @@ export class Worker {
 
     public work(asSet: AssignmentSet): void {
         // --- learning and adaption -----
-        if (this.sys.clock.time > 0 && this.sys.clock.time % this.sys.learnAndAdaptParms.observationPeriod == 0) this.adjustWeightAndChooseNewSelectionStrategy()
+        if (this.sys.clock.time > 0 && this.sys.clock.time % this.sys.learnAndAdaptParms.observationPeriod == 0) {
+
+            const measurementEndingPeriod: number = this.sys.learnAndAdaptParms.successMeasureFct(this.sys, this) 
+            this.adjustWeightAndChooseNewSelectionStrategy(measurementEndingPeriod,         
+                                                           this.measurementPeriodBefore,    
+                                                           this.weightAdjustment,                       
+                                                           this.sys.learnAndAdaptParms.adjustmentFactor)
+        }
 
         // --- working -----
         if (this.hasWorkedAt(this.sys.clock.time)) return    // worker has already worked at current time
@@ -206,43 +243,38 @@ export class Worker {
         }
     }
 
-    private individualValueContribution(fromTime: Timestamp, toTime: Timestamp): Value {
-        return this.sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(this, fromTime, toTime)).reduce((a, b) => a + b, 0)
-    } 
-
-    private get individualValueContributionEndingPeriod(): Value {
-        return this.individualValueContribution(this.sys.clock.time - this.sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : this.sys.clock.time - this.sys.learnAndAdaptParms.observationPeriod, this.sys.clock.time)
-    } 
-
-    private get individualValueContributionPeriodBefore(): Value {
-        return (this.logWorkerLearnedAndAdapted[this.logWorkerLearnedAndAdapted.length - 1]).individualValueContributionOfEndingPeriod
+    private get measurementPeriodBefore(): Value {
+        return (this.logWorkerLearnedAndAdapted[this.logWorkerLearnedAndAdapted.length - 1]).measurementOfEndingPeriod
     }
 
     private get currentSelectionStrategy(): SelectionStrategy {
         return this.logWorkerLearnedAndAdapted[this.logWorkerLearnedAndAdapted.length - 1].chosenSelectionStrategy
     }
 
-    public /* */ get currentWeightedSelectionStrategies(): WeightedSelectionStrategy[] {
+    public /* private? */ get currentWeightedSelectionStrategies(): WeightedSelectionStrategy[] {
         return this.logWorkerLearnedAndAdapted[this.logWorkerLearnedAndAdapted.length - 1].weigthedSelectionStrategies
     }
 
-    private adjustWeightAndChooseNewSelectionStrategy(): void {
-        const ivcep = this.individualValueContributionEndingPeriod
-        const weightIncrease = this.weightAdjustment(ivcep, this.individualValueContributionPeriodBefore)
+    private adjustWeightAndChooseNewSelectionStrategy(endingPeriodMeasurement:  Value, 
+                                                      periodBeforeMeasurment:   Value, 
+                                                      weightAdjustmentFunction: (epm: Value, pbm: Value, waf: number) => number,
+                                                      weigthAdjustmentFactor:   number): void {
+        const weightIncrease = weightAdjustmentFunction(endingPeriodMeasurement, periodBeforeMeasurment, weigthAdjustmentFactor)
         const modifiedWeightedSelectionStrategies = arrayWithModifiedWeightOfAnElement<SelectionStrategy>(this.currentWeightedSelectionStrategies, 
                                                                                                           this.currentSelectionStrategy, 
                                                                                                           weightIncrease)
         const newNormedWeightedSelectionStrategies = arrayWithNormalizedWeights<SelectionStrategy>(modifiedWeightedSelectionStrategies, this.ensuredMinimum)
         const nextSelectionStrategy = newNormedWeightedSelectionStrategies?.length > 0  ? randomlyPickedByWeigths<SelectionStrategy>(newNormedWeightedSelectionStrategies, this.ensuredMinimum) : this.currentSelectionStrategy
-        this.logEventLearnedAndAdapted(ivcep, this.currentSelectionStrategy, nextSelectionStrategy, newNormedWeightedSelectionStrategies)
+        this.logEventLearnedAndAdapted(endingPeriodMeasurement, this.currentSelectionStrategy, nextSelectionStrategy, newNormedWeightedSelectionStrategies)
     }
 
     private ensuredMinimum(w: number): number {
         return w < 0.01 ? 0.01 : w
     }
 
-    private weightAdjustment(ivcEndingPeriod: Value, ivcPeriodBefore: Value): number {
-        return (ivcEndingPeriod > ivcPeriodBefore ? 1 
-                                                  : ivcEndingPeriod < ivcPeriodBefore ? -1 : 0) * this.sys.learnAndAdaptParms.adjustmentFactor
+    private weightAdjustment(measurementEndingPeriod: Value, measurementPeriodBefore: Value, weigthAdjustFactor: number): number {
+        return weigthAdjustFactor *
+               (measurementEndingPeriod > measurementPeriodBefore ? 1 
+                                                                  : measurementEndingPeriod < measurementPeriodBefore ? -1 : 0) 
     }
 }
