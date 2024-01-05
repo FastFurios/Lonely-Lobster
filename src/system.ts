@@ -94,7 +94,7 @@ export class LonelyLobsterSystem {
 
     public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
 
-    public addLearningParameters(laps: LearnAndAdaptParms) { this.learnAndAdaptParms = laps }
+    public addLearningParameters(laps: LearnAndAdaptParms) { this.learnAndAdaptParms = laps; Worker.sysStats = <any>undefined }
 
 //----------------------------------------------------------------------
 //    API mode - Iteration
