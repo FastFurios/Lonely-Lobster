@@ -29,8 +29,8 @@ Sharing API definitions:
 
 Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net
 - frontend:
--- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonelylobster.azurewebsites.net/initialize/"
--- check if enviroment.ts contains the new frontend version number 
+-- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonelylobster.azurewebsites.net/initialize/" (check environment.prod.ts file)
+-- check if enviroment.prod.ts contains the new frontend version number 
 -- $ ng build --configuration production // creates a new distribution package
 
 - backend:
@@ -40,6 +40,7 @@ Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net
 in VSCode:
 - open folder ~/sw_projects/azure/Lonely-Lobster/
 - open Azure (left navigation panel in VSCode)
+- log in to Azure
 - select subscription
 - select "App Services"
 - select webapp, e.g. "LonelyLobster"

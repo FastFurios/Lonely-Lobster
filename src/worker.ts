@@ -136,30 +136,6 @@ type WorkerStats = {
 
 export type WeightedSelectionStrategy = WeightedElement<SelectionStrategy>
 
-// --- Learning and Adpting Success Functions -------------------------------------------
-
-export function successMeasureIvc(sys: LonelyLobsterSystem, wo: Worker): number {
-    return sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(wo, sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod, sys.clock.time)).reduce((a, b) => a + b, 0)
-}
-
-export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number {
-    if (sys.learnAndAdaptParms.successMeasureFct == successMeasureRoce) {
-        if (!Worker.sysStats || Worker.sysStats.timestamp < sys.clock.time) {
-            //console.log(wo.id + " at " + sys.clock.time + ": work() Worker.sysStats.timestamp = " + Worker.sysStats?.timestamp)
-            Worker.sysStats = sys.systemStatistics(
-                sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod,
-                sys.clock.time)
-        }
-    }
-    const aux =  Worker.sysStats.outputBasket.economics.roce  
-    //console.log("successMeasureRoce("+ wo.id +") returns: " + aux)
-    return aux
-}
-
-export function successMeasureNone(sys: LonelyLobsterSystem, wo: Worker): number {
-    return 0  
-}
-
 // --- WORKER class --------------------------------------
 export class Worker {
     static sysStats: I_SystemStatistics
@@ -278,3 +254,28 @@ export class Worker {
                                                                   : measurementEndingPeriod < measurementPeriodBefore ? -1 : 0) 
     }
 }
+
+// --- Learning and Adpting Success Functions -------------------------------------------
+
+export function successMeasureIvc(sys: LonelyLobsterSystem, wo: Worker): number {
+    return sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(wo, sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod, sys.clock.time)).reduce((a, b) => a + b, 0)
+}
+
+export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number {
+    if (sys.learnAndAdaptParms.successMeasureFct == successMeasureRoce) {
+        if (!Worker.sysStats || Worker.sysStats.timestamp < sys.clock.time) {
+            //console.log(wo.id + " at " + sys.clock.time + ": work() Worker.sysStats.timestamp = " + Worker.sysStats?.timestamp)
+            Worker.sysStats = sys.systemStatistics(
+                sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod,
+                sys.clock.time)
+        }
+    }
+    const aux =  Worker.sysStats.outputBasket.economics.roce  
+    //console.log("successMeasureRoce("+ wo.id +") returns: " + aux)
+    return aux
+}
+
+export function successMeasureNone(sys: LonelyLobsterSystem, wo: Worker): number {
+    return 0  
+}
+
