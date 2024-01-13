@@ -34,6 +34,7 @@ Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net
 -- $ ng build --configuration production // creates a new distribution package
 
 - backend:
+-- tsc
 -- check if enviroment.ts contains the new backend version number 
 ~/sw_projects/Lonely-Lobster$ sh buildForAzure.sh
 
