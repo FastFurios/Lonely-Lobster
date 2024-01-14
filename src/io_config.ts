@@ -59,6 +59,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     interface I_process_step {
         process_step_id:        string
         norm_effort:            number
+        wip_limit:              number
         bar_length:             number
     } 
     
@@ -107,7 +108,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                    : { "throughput":  1,                                       "probability": 1 } 
     }                                                
 
-    const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.bar_length)
+    const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.wip_limit, psj.bar_length)
     const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, filledInjectionParms(vcj.injection), valueDegradationFct(vcj.value_degradation))
     const addProcStepsToValChain = (pssj: I_process_step[], vc: ValueChain) : void          => pssj.forEach(psj => vc.processSteps.push(newProcessStep(psj, vc))) 
     const filledValueChain       = (vcj:  I_value_chain)                    : ValueChain    => {

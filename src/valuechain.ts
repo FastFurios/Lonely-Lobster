@@ -37,8 +37,10 @@ export class ValueChain {
     }   
 
     public createAndInjectNewWorkItem(): void { 
-        const wi = new WorkItem(this.sys, this, this.processSteps[0])
-        this.processSteps[0].addToBasket(wi)
+        if (!(<ProcessStep>this.processSteps[0]).reachedWipLimit()) { 
+            const wi = new WorkItem(this.sys, this, this.processSteps[0])
+            this.processSteps[0].addToBasket(wi)
+        }
     }
 
     private nextWorkItemBasketHolder(ps: ProcessStep): WorkItemBasketHolder {
@@ -47,10 +49,12 @@ export class ValueChain {
     }
 
     private moveWorkItemToNextWorkItemBasketHolder(wi: WorkItem): void {
-        (<ProcessStep>wi.currentProcessStep).removeFromBasket(wi)
         const nextProcessStep: WorkItemBasketHolder = this.nextWorkItemBasketHolder(<ProcessStep>wi.currentProcessStep) 
-        wi.currentProcessStep = nextProcessStep
-        nextProcessStep.addToBasket(wi)
+        if (nextProcessStep == this.sys.outputBasket || !(<ProcessStep>nextProcessStep).reachedWipLimit()) { 
+            (<ProcessStep>wi.currentProcessStep).removeFromBasket(wi)
+            wi.currentProcessStep = nextProcessStep
+            nextProcessStep.addToBasket(wi)
+        }
     }
 
     public updateWorkItemExtendedInfos(): void {

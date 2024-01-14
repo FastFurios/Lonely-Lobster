@@ -5,8 +5,7 @@
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
-import { Worker } from './worker.js'
-import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics } from './io_api_definitions.js'
+import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
 
 // ------------------------------------------------------------
 // WORKITEM BASKET HOLDER
@@ -58,9 +57,12 @@ export class ProcessStep extends WorkItemBasketHolder  {
                        id:            string,
                 public valueChain:    ValueChain,
                 public normEffort:    Effort,
+                public wipLimit:      WipLimit,
                        barLen:        number) {
         super(sys, id, barLen)
     }
+
+    public reachedWipLimit(): boolean { return this.wipLimit ? this.workItemBasket.length >= this.wipLimit : false }
 
     public removeFromBasket(workItem: WorkItem) { 
         this.lastIterationFlowRate += this.workItemBasket.some(wi => wi == workItem) ? 1 : 0  

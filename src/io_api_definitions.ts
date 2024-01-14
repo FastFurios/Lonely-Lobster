@@ -5,18 +5,18 @@
 // the master of this file is located in the project "Lonely Lobster".
 // Do not forget to copy the latest version over to the Angular frontend project (use the "$ sh getApiDefsFromBackend.sh") 
 
-export  type Effort         = number // measured in Worker Time Units
-export  type Value          = number // measured in Worker Time Units
-export  type ValueChainId   = string
-export  type ProcessStepId  = string
-export  type WorkItemId     = number
-export  type WorkItemTag    = [string, string]
-export  type WorkerName     = string
-export  type TimeUnit       = number
-export  type Timestamp      = number
-export  type RgbColor       = [number, number, number]
-export  type Injection      = { throughput: number, probability: number }
-
+export type Effort         = number // measured in Worker Time Units
+export type Value          = number // measured in Worker Time Units
+export type ValueChainId   = string
+export type ProcessStepId  = string
+export type WorkItemId     = number
+export type WorkItemTag    = [string, string]
+export type WorkerName     = string
+export type TimeUnit       = number
+export type Timestamp      = number
+export type RgbColor       = [number, number, number]
+export type Injection      = { throughput: number, probability: number }
+export type WipLimit       = number | undefined
 
 //-------------------------
 // request to iterate
@@ -47,6 +47,7 @@ export interface I_WorkItem {
 export interface I_ProcessStep {
     id:                             ProcessStepId
     normEffort:                     Effort
+    wipLimit:                       WipLimit,
     workItems:                      I_WorkItem[]
     workItemFlow:                   number
 }
