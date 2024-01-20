@@ -5,7 +5,7 @@
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
-import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
+import { Timestamp, Value, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
 
 // ------------------------------------------------------------
 // WORKITEM BASKET HOLDER
@@ -132,6 +132,10 @@ export class OutputBasket extends WorkItemBasketHolder {
             ...wiBasedStats,
             avgElapsedTime: wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1),  
         }
+    }
+
+    public revenues(fromTime: Timestamp, toTime: Timestamp): Value {
+        return this.statsOfArrivedWorkitemsBetween(fromTime, toTime).discountedValueAdd
     }
 
     public stringified  = () => `t=${this.sys.clock.time} ${this.id}:\n` + this.stringifyBasketItems()

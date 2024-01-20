@@ -137,8 +137,8 @@ export type I_EndProductMoreStatistics = I_EndProductStatistics & {
 }
 
 type I_Economics = I_EndProductMoreStatistics & {
-    avgWorkingCapital:  Value 
-    roce:               Value
+    rociVar:            number  // return on avg. capital required when workers only paid when they work
+    rociFix:            number  // return on avg. capital required with fixed staff of workers no matter if they (can) work or not
 }
 
 interface I_OutputBasketStatistics {

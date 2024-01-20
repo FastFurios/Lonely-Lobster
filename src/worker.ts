@@ -154,7 +154,7 @@ export class Worker {
         this.logWorker.add(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedSest, chosenSest, weightedSelectionStrategies))
     }
 
-    private get logWorkerWorked(): LogEntryWorkerWorked[] { return this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerWorked) }
+    public get logWorkerWorked(): LogEntryWorkerWorked[] { return this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerWorked) }
 
     public get logWorkerLearnedAndAdapted(): LogEntryWorkerLearnedAndAdapted[] { return <LogEntryWorkerLearnedAndAdapted[]>this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted) }
 
@@ -261,8 +261,8 @@ export function successMeasureIvc(sys: LonelyLobsterSystem, wo: Worker): number 
     return sys.outputBasket.workItemBasket.map((wi: WorkItem) => wi.workerValueContribution(wo, sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod, sys.clock.time)).reduce((a, b) => a + b, 0)
 }
 
-export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number {
-    if (sys.learnAndAdaptParms.successMeasureFct == successMeasureRoce) {
+export function successMeasureRociVar(sys: LonelyLobsterSystem, wo: Worker): number {
+    if (sys.learnAndAdaptParms.successMeasureFct == successMeasureRociVar) {
         if (!Worker.sysStats || Worker.sysStats.timestamp < sys.clock.time) {
             //console.log(wo.id + " at " + sys.clock.time + ": work() Worker.sysStats.timestamp = " + Worker.sysStats?.timestamp)
             Worker.sysStats = sys.systemStatistics(
@@ -270,7 +270,7 @@ export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number
                 sys.clock.time)
         }
     }
-    const aux =  Worker.sysStats.outputBasket.economics.roce  
+    const aux =  Worker.sysStats.outputBasket.economics.rociVar  
     //console.log("successMeasureRoce("+ wo.id +") returns: " + aux)
     return aux
 }
