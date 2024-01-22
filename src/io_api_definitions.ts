@@ -137,8 +137,9 @@ export type I_EndProductMoreStatistics = I_EndProductStatistics & {
 }
 
 type I_Economics = I_EndProductMoreStatistics & {
-    rociVar:            number  // return on avg. capital required when workers only paid when they work
-    rociFix:            number  // return on avg. capital required with fixed staff of workers no matter if they (can) work or not
+    avgWorkingCapital:  Effort,
+    roceVar:            number, // ROCE with returns based on variable cost only
+    roceFix:            number, // ROCE with returns based on total cost by fix staff
 }
 
 interface I_OutputBasketStatistics {

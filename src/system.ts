@@ -286,7 +286,6 @@ export class LonelyLobsterSystem {
         }
     }
 
-/*
     private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime
         let accumulatedWorkingCapital = 0
@@ -295,12 +294,23 @@ export class LonelyLobsterSystem {
         }
         return accumulatedWorkingCapital / interval
     }
-    private avgContribution(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime
-        return (endProductMoreStatistics.discountedValueAdd - endProductMoreStatistics.normEffort) / interval
-    }
-*/
 
+    private avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+        const interval: TimeUnit = toTime - fromTime
+        return endProductMoreStatistics.discountedValueAdd / interval
+    }
+
+    private avgNormEffort(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+        const interval: TimeUnit = toTime - fromTime
+        return endProductMoreStatistics.normEffort / interval
+    }
+
+    private avgFixStaffCost(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+        const interval: TimeUnit = toTime - fromTime
+        return this.workers.length
+    }
+
+    /* tbd begin
     private costFunctionWithVariableWorkers(wos: Worker[]): CostFunctionForTimestamp {
         return (t) => wos.flatMap(wo => wo.logWorkerWorked).filter(le => le.timestamp == t).length
     }
@@ -331,20 +341,21 @@ export class LonelyLobsterSystem {
         }
         const ebit = finTimeSeries[finTimeSeries.length - 1].balance
         const avgCapitalInvestmentRequired = finTimeSeries.reduce((acir: Value, ft: FinancialsAtTime ): Value => acir + (ft.balance < 0 ? -ft.balance : 0), 0) / (toTime - fromTime + 1)
-/* tbd begin
+
         console.log("system.roce("+fromTime+","+toTime+"):")
         for (let i = 0; i < finTimeSeries.length; i++) {
             console.log("t="+finTimeSeries[i].time+":\t rev="+revCostOverTime[i].revenue.toPrecision(2)+",\t cost="+revCostOverTime[i].cost.toPrecision(2)
             + "\t, profit="+finTimeSeries[i].profit.toPrecision(2) + "\t, new balance=" + finTimeSeries[i].balance.toPrecision(2))
         }
         console.log("time="+this.clock.time +":\t ebit="+ebit.toPrecision(2)+",\t acir="+avgCapitalInvestmentRequired.toPrecision(2)+", \t=roci=" + (ebit / avgCapitalInvestmentRequired).toPrecision(2) + "\n")
-// tbd end */
+
 
         return {
             ebit: ebit,
             avgCapitalInvestmentRequired: avgCapitalInvestmentRequired  
         }
     }
+// tbd end */
 
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
         //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + ")")
@@ -352,9 +363,12 @@ export class LonelyLobsterSystem {
         const statEvents: StatsEventForExitingAProcessStep[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
                                                               .concat(this.outputBasket.flowStats(fromTime, toTime))
         const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
-        const rociValsVarWorkers: RoCiValues                        = this.roci(fromTime, toTime, this.costFunctionWithVariableWorkers(this.workers))
-        const rociValsFixedStaffWorkers: RoCiValues                 = this.roci(fromTime, toTime, this.costFunctionWithFixedStaffWorkers(this.workers))
+        const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
+        const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
+        const avgVarCost        = this.avgNormEffort(endProductMoreStatistics, fromTime, toTime)
+        const avgFixStaffCost   = this.avgFixStaffCost(endProductMoreStatistics, fromTime, toTime)
 
+        //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + "): avgWorkCap= " + avgWorkingCapital.toPrecision(2) + ", avgDiscValueAdd= " + avgDiscValueAdd.toPrecision(2) + ", avgVarCost= " + avgVarCost.toPrecision(2) + ", avgFixStaffCost= " + avgFixStaffCost.toPrecision(2))
         return {
             timestamp:          this.clock.time,
             valueChains:        this.valueChains.map(vc => this.vcStatistics(statEvents, vc, interval)),
@@ -362,8 +376,9 @@ export class LonelyLobsterSystem {
                 flow:           this.obStatistics(statEvents, interval),
                 economics:   {
                     ...endProductMoreStatistics,
-                    rociVar:           rociValsVarWorkers.ebit        / rociValsVarWorkers.avgCapitalInvestmentRequired,
-                    rociFix:           rociValsFixedStaffWorkers.ebit / rociValsFixedStaffWorkers.avgCapitalInvestmentRequired
+                    avgWorkingCapital: avgWorkingCapital,
+                    roceVar:           (avgDiscValueAdd - avgVarCost)      / avgWorkingCapital,
+                    roceFix:           (avgDiscValueAdd - avgFixStaffCost) / avgWorkingCapital
                 }
             }
         } 

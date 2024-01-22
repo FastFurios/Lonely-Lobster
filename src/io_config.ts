@@ -6,7 +6,7 @@ import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
 import { I_Injection, Injection, TimeUnit } from "./io_api_definitions"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRociVar, successMeasureNone } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
@@ -86,7 +86,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         console.log("io_config: successMeasureFct(\"" + smf + "\")")
         switch (smf) {
             case "ivc":     return successMeasureIvc   // ivc = individual value contribution (how much realized value is attributed to my effort?)
-            case "roce":    return successMeasureRociVar  // roce = system's return on capital employed 
+            case "roce":    return successMeasureRoce  // roce = system's return on capital employed 
             case "none":    return successMeasureNone  // no measurement 
             default: { 
                 console.log(`WARNING: Reading system parameters: learn & adapt success function \"${smf}\" not known to Lonely Lobster; resorting to \"successMeasureNone()\"`)
