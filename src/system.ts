@@ -11,7 +11,7 @@ import { Worker, AssignmentSet, LearnAndAdaptParms } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
-         I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers } from './io_api_definitions.js'
+         I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, I_VcPsWipLimit, I_IterationRequestWithWipLimits } from './io_api_definitions.js'
 import { environment } from './environment.js'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
@@ -97,14 +97,11 @@ export class LonelyLobsterSystem {
 //    API mode - Initialization
 //----------------------------------------------------------------------
 
-    public emptyIterationRequest(): I_IterationRequest {
+    public emptyIterationRequest(): I_IterationRequestWithWipLimits {
         return {
-          time: 0,
-          newWorkOrders: this.valueChains.map(vc => { 
-            return {
-              valueChainId: vc.id, 
-              numWorkOrders: 0
-            }})
+          time:          0,
+          newWorkOrders: this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
+          wipLimits:     []
         }
       }
 
@@ -200,14 +197,27 @@ export class LonelyLobsterSystem {
         }
       }
 
-    public nextSystemState(iterReq: I_IterationRequest): I_SystemState { // iterReq is undefined when initialization request received
+    private wipLimits(): I_VcPsWipLimit[] {          
+        return this.valueChains.flatMap(vc => vc.processSteps.map(ps => {return {vc: vc.id, ps: ps.id, wipLimit: ps.wipLimit}}))
+    }
+
+    private setWipLimits(wipLimits: I_VcPsWipLimit[]): void {
+        for (let wl of wipLimits) {
+            const vc = this.valueChains.find(vc => vc.id == wl.vc.trim())
+            if (!vc) throw Error(`System: setWipLimits(): value-chain ${vc} not found`)
+            const ps: ProcessStep = vc.processSteps.find(ps => ps.id == wl.ps.trim())!
+            if (!ps) throw Error(`System: setWipLimits(): process-step ${ps} not found`)
+            ps.setWipLimit(wl.wipLimit ? wl.wipLimit : 0)
+        }
+    }
+
+    public nextSystemState(iterReq: I_IterationRequestWithWipLimits): I_SystemState { // iterReq is undefined when initialization request received
+        this.setWipLimits(iterReq.wipLimits)
         this.doNextIteration(
             this.clock.time, 
             this.workOrderList({ time:          this.clock.time,
-                                 newWorkOrders: iterReq.newWorkOrders } ))
-        
-        const aux = this.i_systemState()        
-        return aux
+                                 newWorkOrders: iterReq.newWorkOrders} ))
+        return this.i_systemState()        
     }
     
 //----------------------------------------------------------------------
@@ -305,9 +315,8 @@ export class LonelyLobsterSystem {
         return endProductMoreStatistics.normEffort / interval
     }
 
-    private avgFixStaffCost(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime
-        return this.workers.length
+    private avgFixStaffCost(endProductMoreStatistics?: I_EndProductMoreStatistics, fromTime?: Timestamp, toTime?: Timestamp): Value {
+       return this.workers.length
     }
 
     /* tbd begin

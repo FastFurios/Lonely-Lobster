@@ -115,7 +115,6 @@ function apiMode(): void {
             return
         }
         //console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
-//      lonelyLobsterSystem.clock.tick()
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
         res.send(lonelyLobsterSystem.nextSystemState(req.body))
     })
@@ -127,7 +126,7 @@ function apiMode(): void {
         //console.log("\n_main: app.post /system statistics ------------------------------------")
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
-            console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+            console.log("_main(): app.post /system statistics: +could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
             res.send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
