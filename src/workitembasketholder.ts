@@ -52,22 +52,30 @@ export abstract class WorkItemBasketHolder {
 
 export class ProcessStep extends WorkItemBasketHolder  {
     public lastIterationFlowRate: number = 0
+    public wipLimit:              WipLimit
 
     constructor(       sys:           LonelyLobsterSystem,
                        id:            string,
                 public valueChain:    ValueChain,
                 public normEffort:    Effort,
-                public wipLimit:      WipLimit,
+                       wipLimit:      WipLimit | undefined,
                        barLen:        number) {
         super(sys, id, barLen)
+        this.wipLimit = wipLimit ? wipLimit : 0
     }
 
-    public reachedWipLimit(): boolean { return this.wipLimit ? this.workItemBasket.length >= this.wipLimit : false }
+    public reachedWipLimit(): boolean { 
+        return this.wipLimit > 0 ? this.workItemBasket.length >= this.wipLimit : false 
+    }
 
     public removeFromBasket(workItem: WorkItem) { 
         this.lastIterationFlowRate += this.workItemBasket.some(wi => wi == workItem) ? 1 : 0  
         this.workItemBasket = this.workItemBasket.filter(wi => wi != workItem)  
     }
+
+    public setWipLimit(wipLimit: WipLimit) {
+        this.wipLimit = wipLimit
+    } 
 
     public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.stringifyBasketItems()
 }

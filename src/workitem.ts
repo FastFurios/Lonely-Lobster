@@ -3,7 +3,6 @@
 //----------------------------------------------------------------------
 //-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service 
 
-import { of } from 'rxjs'
 import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag } from './io_api_definitions'
 import { LogEntry, LogEntryType } from './logging.js'
 import { LonelyLobsterSystem } from './system.js'

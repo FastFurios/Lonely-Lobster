@@ -16,11 +16,12 @@ export type TimeUnit       = number
 export type Timestamp      = number
 export type RgbColor       = [number, number, number]
 export type Injection      = { throughput: number, probability: number }
-export type WipLimit       = number | undefined
+export type WipLimit       = number
 
 //-------------------------
 // request to iterate
 //-------------------------
+
 export interface I_IterationRequest {
     time: number
     newWorkOrders: {
@@ -28,6 +29,17 @@ export interface I_IterationRequest {
         numWorkOrders: number
     }[]
 }
+
+export interface I_VcPsWipLimit {
+    vc:         ValueChainId
+    ps:         ProcessStepId
+    wipLimit:   WipLimit | undefined
+}
+
+export type I_IterationRequestWithWipLimits = I_IterationRequest & {
+    wipLimits: I_VcPsWipLimit[]
+}
+
 
 //-------------------------
 // response on "iterate" request
@@ -92,7 +104,7 @@ export interface I_SystemState {
 }
 
 //-----------------------------------------
-// response to system sstatistics request
+// response to system statistics request
 //-----------------------------------------
 interface WorkItemStatsCycleTime {
     min: number | undefined,
@@ -179,6 +191,7 @@ export interface ObExtended {
 
 export interface PsExtended {
     ps:         I_ProcessStep
+    vcId:       ValueChainId
     wosUtil:    WorkerWithUtilization[]
     flowStats?: I_ProcessStepStatistics
 }  
