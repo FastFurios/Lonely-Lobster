@@ -64,35 +64,35 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
-    public doNextIteration(now: Timestamp, wos: WorkOrder[]): void {
-   
-        if (this.clock.time < 1) this.showHeader()
+    public doNextIterations(/*now: Timestamp,*/ wos: WorkOrder[], batchSize: number = 1): void {
+        for (let i = 0; i < batchSize; i++) {
+            if (this.clock.time < 1) this.showHeader()
 
-        // populate process steps with work items (and first process steps with new work orders)
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
-        this.valueChains.forEach(vc => vc.letWorkItemsFlow())
-        if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
+            // populate process steps with work items (and first process steps with new work orders)
+            this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
+            this.valueChains.forEach(vc => vc.letWorkItemsFlow())
+            if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
 
-        // tick the clock to the next interval
-        this.clock.tick()
+            // tick the clock to the next interval
+            this.clock.tick()
 
-        // prepare workitem extended statistical infos before workers make their choice 
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
+            // prepare workitem extended statistical infos before workers make their choice 
+            this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
 
-        // workers select workitems and work them
-        this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
-        this.workers.forEach(wo => wo.work(this.assignmentSet))
- 
-        // update workitem extended statistical infos after workers have done their work 
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
+            // workers select workitems and work them
+            this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
+            this.workers.forEach(wo => wo.work(this.assignmentSet))
+    
+            // update workitem extended statistical infos after workers have done their work 
+            this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
 
-        // update workers stats after having worked
-        this.workers.forEach(wo => wo.utilization(this))
+            // update workers stats after having worked
+            this.workers.forEach(wo => wo.utilization(this))
 
-        // show valuechains line for current timestamp on console
-        //this.showLine()
+            // show valuechains line for current timestamp on console
+            //this.showLine()
+        }
     }
-
 //----------------------------------------------------------------------
 //    API mode - Initialization
 //----------------------------------------------------------------------
@@ -100,6 +100,7 @@ export class LonelyLobsterSystem {
     public emptyIterationRequest(): I_IterationRequestWithWipLimits {
         return {
           time:          0,
+          batchSize:     0,
           newWorkOrders: this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
           wipLimits:     []
         }
@@ -117,7 +118,7 @@ export class LonelyLobsterSystem {
 
     private workOrderList(iterReq: I_IterationRequest): WorkOrder[] {
         return iterReq.newWorkOrders.flatMap(nwo => duplicate<WorkOrder>(
-                                                { timestamp:    this.clock.time, // iterReq.time!, 
+                                                { timestamp:    this.clock.time,
                                                   valueChain:   this.valueChains.find(vc => vc.id == nwo.valueChainId.trim())! },
                                                   nwo.numWorkOrders ))
     }
@@ -213,10 +214,12 @@ export class LonelyLobsterSystem {
 
     public nextSystemState(iterReq: I_IterationRequestWithWipLimits): I_SystemState { // iterReq is undefined when initialization request received
         this.setWipLimits(iterReq.wipLimits)
-        this.doNextIteration(
-            this.clock.time, 
+        this.doNextIterations(
+//          this.clock.time, 
             this.workOrderList({ time:          this.clock.time,
-                                 newWorkOrders: iterReq.newWorkOrders} ))
+                                 batchSize:     iterReq.batchSize,
+                                 newWorkOrders: iterReq.newWorkOrders} ),
+            iterReq.batchSize)
         return this.i_systemState()        
     }
     

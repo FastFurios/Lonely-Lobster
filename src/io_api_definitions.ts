@@ -22,12 +22,15 @@ export type WipLimit       = number
 // request to iterate
 //-------------------------
 
+export interface VcNumWorkOrder {
+    valueChainId:  ValueChainId 
+    numWorkOrders: number
+}
+
 export interface I_IterationRequest {
-    time: number
-    newWorkOrders: {
-        valueChainId:ValueChainId 
-        numWorkOrders: number
-    }[]
+    time:           number
+    batchSize:      number
+    newWorkOrders:  VcNumWorkOrder[] 
 }
 
 export interface I_VcPsWipLimit {
