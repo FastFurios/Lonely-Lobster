@@ -9,9 +9,10 @@ import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
 import { Worker, AssignmentSet, LearnAndAdaptParms } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
-import { Timestamp, TimeUnit, Value, I_VcWorkOrderParms,
+import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
-         I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, I_VcPsWipLimit, I_VcNumWorkOrder } from './io_api_definitions.js'
+         I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
+         I_VcPsWipLimit } from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { resolve } from 'path'
 
@@ -124,13 +125,12 @@ export class LonelyLobsterSystem {
 //    API mode - Initialization
 //----------------------------------------------------------------------
 
-    public emptyIterationRequest(): I_IterationRequest {
-        return {
-          batchSize:     0,
-          workOrderParmss: this.valueChains.map(vc => { return { valueChainId: vc.id, parms: 0 }}),
-          wipLimits:     []
-        }
-      }
+    public emptyIterationRequest(): I_IterationRequests {
+        return [{
+            vcsWorkOrders: this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
+            wipLimits:     []
+          }]
+    }
 
     public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
 
@@ -142,11 +142,11 @@ export class LonelyLobsterSystem {
 //    API mode - Iteration
 //----------------------------------------------------------------------
 
-    private workOrderList(vcWorkOrderParmss: I_VcWorkOrderParms[]): WorkOrder[] {
-        return vcWorkOrderParmss.flatMap(wop => duplicate<WorkOrder>(
+    private workOrderList(vcsWos: I_VcWorkOrders[]): WorkOrder[] {
+        return vcsWos.flatMap(vcWos => duplicate<WorkOrder>(
                                                 { timestamp:    this.clock.time,
-                                                  valueChain:   this.valueChains.find(vc => vc.id == wop.valueChainId.trim())! },
-                                                  (<I_VcNumWorkOrder>wop.parms)))
+                                                  valueChain:   this.valueChains.find(vc => vc.id == vcWos.valueChainId.trim())! },
+                                                vcWos.numWorkOrders))
     }
 
     private i_workItem (wi: WorkItem): I_WorkItem { 
@@ -224,10 +224,11 @@ export class LonelyLobsterSystem {
         }
       }
 
-    private wipLimits(): I_VcPsWipLimit[] {          
+/*
+      private wipLimits(): I_VcPsWipLimit[] {          
         return this.valueChains.flatMap(vc => vc.processSteps.map(ps => {return {vc: vc.id, ps: ps.id, wipLimit: ps.wipLimit}}))
     }
-
+*/
     private setWipLimits(wipLimits: I_VcPsWipLimit[]): void {
         for (let wl of wipLimits) {
             const vc = this.valueChains.find(vc => vc.id == wl.vc.trim())
@@ -238,12 +239,12 @@ export class LonelyLobsterSystem {
         }
     }
 
-    public nextSystemState(iterReq: I_IterationRequest) { 
-        if (iterReq.batchSize > 1) // batch mode
+    public nextSystemState(iterReqs: I_IterationRequests) { 
+        if (iterReqs.length > 1) // batch mode
             throw Error("System: received bacth request: not yet supported by the backend")
-        console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReq.batchSize)
-        this.setWipLimits(iterReq.wipLimits)
-        this.doOneIteration(this.workOrderList(iterReq.workOrderParmss))
+        console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReqs.length)
+        this.setWipLimits(iterReqs[0].wipLimits)
+        this.doOneIteration(this.workOrderList(iterReqs[0].vcsWorkOrders))
         console.log("\tSystem: nextSystemState(): doOneIteration done; returning i_systemState")
         return this.i_systemState()        
     }
