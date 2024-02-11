@@ -9,10 +9,11 @@ import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
 import { Worker, AssignmentSet, LearnAndAdaptParms } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
-import { Timestamp, TimeUnit, Value,
+import { Timestamp, TimeUnit, Value, I_VcWorkOrderParms,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
-         I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, I_VcPsWipLimit, I_IterationRequestWithWipLimits } from './io_api_definitions.js'
+         I_IterationRequest, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, I_VcPsWipLimit, I_VcNumWorkOrder } from './io_api_definitions.js'
 import { environment } from './environment.js'
+import { resolve } from 'path'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
     clock:          false,
@@ -57,6 +58,7 @@ export class LonelyLobsterSystem {
     public idGen                                    = wiIdGenerator()
     public tagGen                                   = wiTagGenerator(wiTags)
     public learnAndAdaptParms!: LearnAndAdaptParms
+    private workOrders:         WorkOrder[]         = []
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
@@ -64,44 +66,68 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
-    public doNextIterations(/*now: Timestamp,*/ wos: WorkOrder[], batchSize: number = 1): void {
-        for (let i = 0; i < batchSize; i++) {
-            if (this.clock.time < 1) this.showHeader()
-
-            // populate process steps with work items (and first process steps with new work orders)
-            this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
-            this.valueChains.forEach(vc => vc.letWorkItemsFlow())
-            if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
-
-            // tick the clock to the next interval
-            this.clock.tick()
-
-            // prepare workitem extended statistical infos before workers make their choice 
-            this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
-
-            // workers select workitems and work them
-            this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
-            this.workers.forEach(wo => wo.work(this.assignmentSet))
-    
-            // update workitem extended statistical infos after workers have done their work 
-            this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
-
-            // update workers stats after having worked
-            this.workers.forEach(wo => wo.utilization(this))
-
-            // show valuechains line for current timestamp on console
-            //this.showLine()
-        }
+/*
+    public doNextIterations(wos: WorkOrder[], batchSize: number): void {  // promise to do <batchSize> iterations
+        console.log("\t\tSystem: doNextIterations() with batchSize = " + batchSize)
+        this.workOrders = wos
+        return new Promise<void>((resolve, reject) => {
+            this.iterate(batchSize) // returns promise to do <batchSize> iterations
+                .then(() => { console.log("\t\tSystem: doNextIterations()  resolve()"); resolve()}) // resolve promise to do <batchSize> iteration what it's now done
+        }) 
     }
+
+// --- if batch size > 1 then iterate asynchroneously ----    
+    private iterate(i: number): Promise<void> { // promise to do <batchSize> iterations
+        console.log("\t\t\tSystem: iterate() with i = " + i)
+        new Promise<number>((res, rej) => {
+            if (i < 1) 
+                rej() // no further iterations to do
+            else {
+                this.doOneIteration()
+                res(i - 1)
+            }
+        })
+        .then(i => this.iterate(i))
+        .catch(() => { console.log("\t\t\tSystem: iterate() resolve()"); resolve() }) // resolve promise to do <batchSize> iteration what it's now done
+    }
+*/
+    public doOneIteration(wos: WorkOrder[]): void {
+        console.log("\t\t\t\tSystem: doOneIteration():  clock = " + this.clock.time)
+        //if (this.clock.time < 1) this.showHeader()
+
+        // populate process steps with work items (and first process steps with new work orders)
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
+        this.valueChains.forEach(vc => vc.letWorkItemsFlow())
+        if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
+
+        // tick the clock to the next interval
+        this.clock.tick()
+
+        // prepare workitem extended statistical infos before workers make their choice 
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
+
+        // workers select workitems and work them
+        this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
+        this.workers.forEach(wo => wo.work(this.assignmentSet))
+
+        // update workitem extended statistical infos after workers have done their work 
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
+
+        // update workers stats after having worked
+        this.workers.forEach(wo => wo.utilization(this))
+
+        // show valuechains line for current timestamp on console
+        //this.showLine()
+    }
+    
 //----------------------------------------------------------------------
 //    API mode - Initialization
 //----------------------------------------------------------------------
 
-    public emptyIterationRequest(): I_IterationRequestWithWipLimits {
+    public emptyIterationRequest(): I_IterationRequest {
         return {
-          time:          0,
           batchSize:     0,
-          newWorkOrders: this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
+          workOrderParmss: this.valueChains.map(vc => { return { valueChainId: vc.id, parms: 0 }}),
           wipLimits:     []
         }
       }
@@ -116,11 +142,11 @@ export class LonelyLobsterSystem {
 //    API mode - Iteration
 //----------------------------------------------------------------------
 
-    private workOrderList(iterReq: I_IterationRequest): WorkOrder[] {
-        return iterReq.newWorkOrders.flatMap(nwo => duplicate<WorkOrder>(
+    private workOrderList(vcWorkOrderParmss: I_VcWorkOrderParms[]): WorkOrder[] {
+        return vcWorkOrderParmss.flatMap(wop => duplicate<WorkOrder>(
                                                 { timestamp:    this.clock.time,
-                                                  valueChain:   this.valueChains.find(vc => vc.id == nwo.valueChainId.trim())! },
-                                                  nwo.numWorkOrders ))
+                                                  valueChain:   this.valueChains.find(vc => vc.id == wop.valueChainId.trim())! },
+                                                  (<I_VcNumWorkOrder>wop.parms)))
     }
 
     private i_workItem (wi: WorkItem): I_WorkItem { 
@@ -212,14 +238,13 @@ export class LonelyLobsterSystem {
         }
     }
 
-    public nextSystemState(iterReq: I_IterationRequestWithWipLimits): I_SystemState { // iterReq is undefined when initialization request received
+    public nextSystemState(iterReq: I_IterationRequest) { 
+        if (iterReq.batchSize > 1) // batch mode
+            throw Error("System: received bacth request: not yet supported by the backend")
+        console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReq.batchSize)
         this.setWipLimits(iterReq.wipLimits)
-        this.doNextIterations(
-//          this.clock.time, 
-            this.workOrderList({ time:          this.clock.time,
-                                 batchSize:     iterReq.batchSize,
-                                 newWorkOrders: iterReq.newWorkOrders} ),
-            iterReq.batchSize)
+        this.doOneIteration(this.workOrderList(iterReq.workOrderParmss))
+        console.log("\tSystem: nextSystemState(): doOneIteration done; returning i_systemState")
         return this.i_systemState()        
     }
     
@@ -321,53 +346,6 @@ export class LonelyLobsterSystem {
     private avgFixStaffCost(endProductMoreStatistics?: I_EndProductMoreStatistics, fromTime?: Timestamp, toTime?: Timestamp): Value {
        return this.workers.length
     }
-
-    /* tbd begin
-    private costFunctionWithVariableWorkers(wos: Worker[]): CostFunctionForTimestamp {
-        return (t) => wos.flatMap(wo => wo.logWorkerWorked).filter(le => le.timestamp == t).length
-    }
-
-    private costFunctionWithFixedStaffWorkers(wos: Worker[]): CostFunctionForTimestamp {
-        return (t) => wos.length
-    }
-
-    private roci(fromTime: Timestamp, toTime: Timestamp, cost: CostFunctionForTimestamp): RoCiValues {  // return on required capital invested
-        if (fromTime == 0) fromTime = 1 // to keep the averages clean we do not want to include period 0 as nothing happens there 
-
-        const revCostOverTime: RevenuesAndCostAtTime[] = []
-        for (let t = fromTime; t <= toTime; t++) {
-            revCostOverTime.push({
-                time:       t,
-                revenue:    this.outputBasket.revenues(t, t),
-                cost:       cost(t)
-            })
-        }
-        const finTimeSeries: FinancialsTimeSeries = []
-        for (let i = 0; i < revCostOverTime.length; i++) {
-            const profit: Value = revCostOverTime[i].revenue - revCostOverTime[i].cost 
-            finTimeSeries.push({
-                time:       revCostOverTime[i].time,
-                profit:     profit,      
-                balance:    (finTimeSeries.length < 1 ? 0 : finTimeSeries[i-1].balance) + profit  // balance at end of iteration step i.e. time(stamp)         
-            })
-        }
-        const ebit = finTimeSeries[finTimeSeries.length - 1].balance
-        const avgCapitalInvestmentRequired = finTimeSeries.reduce((acir: Value, ft: FinancialsAtTime ): Value => acir + (ft.balance < 0 ? -ft.balance : 0), 0) / (toTime - fromTime + 1)
-
-        console.log("system.roce("+fromTime+","+toTime+"):")
-        for (let i = 0; i < finTimeSeries.length; i++) {
-            console.log("t="+finTimeSeries[i].time+":\t rev="+revCostOverTime[i].revenue.toPrecision(2)+",\t cost="+revCostOverTime[i].cost.toPrecision(2)
-            + "\t, profit="+finTimeSeries[i].profit.toPrecision(2) + "\t, new balance=" + finTimeSeries[i].balance.toPrecision(2))
-        }
-        console.log("time="+this.clock.time +":\t ebit="+ebit.toPrecision(2)+",\t acir="+avgCapitalInvestmentRequired.toPrecision(2)+", \t=roci=" + (ebit / avgCapitalInvestmentRequired).toPrecision(2) + "\n")
-
-
-        return {
-            ebit: ebit,
-            avgCapitalInvestmentRequired: avgCapitalInvestmentRequired  
-        }
-    }
-// tbd end */
 
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
         //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + ")")

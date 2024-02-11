@@ -22,15 +22,13 @@ export type WipLimit       = number
 // request to iterate
 //-------------------------
 
-export interface VcNumWorkOrder {
-    valueChainId:  ValueChainId 
-    numWorkOrders: number
-}
+export type I_VcNumWorkOrder = number  // if in one-by-one mode the frontend passes on the number of new workorders determined by the frontend
 
-export interface I_IterationRequest {
-    time:           number
-    batchSize:      number
-    newWorkOrders:  VcNumWorkOrder[] 
+export type I_VcInjectionParms = Injection // if in batch-mode the injection parms are passed to the backend so it can randomly generate workorders at evry iteration in the batch
+
+export type I_VcWorkOrderParms = {
+    valueChainId:  ValueChainId 
+    parms:         I_VcNumWorkOrder | I_VcInjectionParms
 }
 
 export interface I_VcPsWipLimit {
@@ -39,10 +37,11 @@ export interface I_VcPsWipLimit {
     wipLimit:   WipLimit | undefined
 }
 
-export type I_IterationRequestWithWipLimits = I_IterationRequest & {
-    wipLimits: I_VcPsWipLimit[]
+export interface I_IterationRequest {
+    batchSize:      number // if batchsize > 1 then in batch mode
+    workOrderParmss:I_VcWorkOrderParms[] 
+    wipLimits:      I_VcPsWipLimit[]
 }
-
 
 //-------------------------
 // response on "iterate" request

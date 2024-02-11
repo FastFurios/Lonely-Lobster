@@ -12,6 +12,7 @@ import cors     from "cors"
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
+import { I_SystemState } from './io_api_definitions.js'
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -86,7 +87,7 @@ function apiMode(): void {
     // API call - INITIALIZE 
     //------------------------------
     app.post('/initialize', (req, res) => {
-        //console.log("\n_main: app.post /initialize ------------------------------------")
+        console.log("\n_main: app.post /initialize ------------------------------------")
 
         let lonelyLobsterSystem: LonelyLobsterSystem 
         try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
@@ -101,6 +102,7 @@ function apiMode(): void {
         lonelyLobsterSystem.clock.setTo(-1) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
         res.send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
+//                         .then((systemState:I_SystemState) => {console.log("_main: app.post /initialize: sending response with system-state "); res.send(systemState)})
     })
 
     //------------------------------
@@ -114,9 +116,10 @@ function apiMode(): void {
             res.send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
             return
         }
-        //console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+        console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
         res.send(lonelyLobsterSystem.nextSystemState(req.body))
+//                         .then((systemState:I_SystemState) => {console.log("_main: app.post /iterate: sending response with system-state "); res.send(systemState)})
     })
 
     //-------------------------------------
