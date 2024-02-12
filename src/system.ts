@@ -92,6 +92,14 @@ export class LonelyLobsterSystem {
         .catch(() => { console.log("\t\t\tSystem: iterate() resolve()"); resolve() }) // resolve promise to do <batchSize> iteration what it's now done
     }
 */
+
+
+    public doIterations(iterRequests: I_IterationRequests): void {
+        this.setWipLimits(iterRequests[0].wipLimits) // we take the first iterations wip-limits as they don't change over time anyway
+        for (let req of iterRequests)
+            this.doOneIteration(this.workOrderList(req.vcsWorkOrders))
+    }
+
     public doOneIteration(wos: WorkOrder[]): void {
         console.log("\t\t\t\tSystem: doOneIteration():  clock = " + this.clock.time)
         //if (this.clock.time < 1) this.showHeader()
@@ -240,12 +248,9 @@ export class LonelyLobsterSystem {
     }
 
     public nextSystemState(iterReqs: I_IterationRequests) { 
-        if (iterReqs.length > 1) // batch mode
-            throw Error("System: received bacth request: not yet supported by the backend")
         console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReqs.length)
-        this.setWipLimits(iterReqs[0].wipLimits)
-        this.doOneIteration(this.workOrderList(iterReqs[0].vcsWorkOrders))
-        console.log("\tSystem: nextSystemState(): doOneIteration done; returning i_systemState")
+        this.doIterations(iterReqs)
+        console.log("\tSystem: nextSystemState(): doIterations done; returning i_systemState")
         return this.i_systemState()        
     }
     
