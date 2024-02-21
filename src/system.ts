@@ -216,7 +216,7 @@ export class LonelyLobsterSystem {
             if (!vc) throw Error(`System: setWipLimits(): value-chain ${vc} not found`)
             const ps: ProcessStep = vc.processSteps.find(ps => ps.id == wl.ps.trim())!
             if (!ps) throw Error(`System: setWipLimits(): process-step ${ps} not found`)
-            ps.setWipLimit(wl.wipLimit ? wl.wipLimit : 0)
+            ps.wipLimit = wl.wipLimit ? wl.wipLimit : 0
         }
     }
 
