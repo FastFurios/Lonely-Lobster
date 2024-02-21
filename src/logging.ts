@@ -8,7 +8,8 @@ export enum LogEntryType {
     workItemMovedTo                   = "movedTo",
     workItemWorkedOn                  = "workedOn",
     workerWorked                      = "workerWorked",
-    workerLearnedAndAdapted           = "workerLearnedAndAdapted"
+    workerLearnedAndAdapted           = "workerLearnedAndAdapted",
+    wipLimitSet                       = "WIP limit set"
 }
 
 export abstract class LogEntry { // records state at end of time unit

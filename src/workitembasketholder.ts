@@ -6,6 +6,23 @@ import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
 import { Timestamp, Value, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
+import { LogEntry, LogEntryType } from './logging.js'
+
+//----------------------------------------------------------------------
+//    W.I.P. LIMIT CHANGE LOG 
+//----------------------------------------------------------------------
+
+class LogEntryWipLimit extends LogEntry {
+    constructor(public sys:             LonelyLobsterSystem,
+                public valueChain:      ValueChain, 
+                public processStep:     ProcessStep,
+                public wipLimit:        WipLimit) {
+        super(sys, LogEntryType.wipLimitSet) 
+    }
+
+    public stringified = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.processStep.id}, set wipLimit to = ${this.wipLimit}`
+}
+
 
 // ------------------------------------------------------------
 // WORKITEM BASKET HOLDER
@@ -51,8 +68,8 @@ export abstract class WorkItemBasketHolder {
 //----------------------------------------------------------------------
 
 export class ProcessStep extends WorkItemBasketHolder  {
-    public lastIterationFlowRate: number = 0
-    public wipLimit:              WipLimit
+    public  lastIterationFlowRate: number = 0
+    private wipLimitLog:           LogEntryWipLimit[] = []
 
     constructor(       sys:           LonelyLobsterSystem,
                        id:            string,
@@ -61,8 +78,11 @@ export class ProcessStep extends WorkItemBasketHolder  {
                        wipLimit:      WipLimit | undefined,
                        barLen:        number) {
         super(sys, id, barLen)
-        this.wipLimit = wipLimit ? wipLimit : 0
+        
+        this.wipLimitLog.push(new LogEntryWipLimit(sys, valueChain, this, wipLimit ? wipLimit : 0))
     }
+
+    public get wipLimit(): WipLimit { return this.wipLimitLog[this.wipLimitLog.length - 1].wipLimit }
 
     public reachedWipLimit(): boolean { 
         return this.wipLimit > 0 ? this.workItemBasket.length >= this.wipLimit : false 
@@ -73,8 +93,8 @@ export class ProcessStep extends WorkItemBasketHolder  {
         this.workItemBasket = this.workItemBasket.filter(wi => wi != workItem)  
     }
 
-    public setWipLimit(wipLimit: WipLimit) {
-        this.wipLimit = wipLimit
+    public set wipLimit(wipLimit: WipLimit) {
+        this.wipLimitLog.push(new LogEntryWipLimit(this.sys, this.valueChain, this, wipLimit))
     } 
 
     public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.stringifyBasketItems()

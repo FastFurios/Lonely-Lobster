@@ -67,33 +67,6 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
-/*
-    public doNextIterations(wos: WorkOrder[], batchSize: number): void {  // promise to do <batchSize> iterations
-        console.log("\t\tSystem: doNextIterations() with batchSize = " + batchSize)
-        this.workOrders = wos
-        return new Promise<void>((resolve, reject) => {
-            this.iterate(batchSize) // returns promise to do <batchSize> iterations
-                .then(() => { console.log("\t\tSystem: doNextIterations()  resolve()"); resolve()}) // resolve promise to do <batchSize> iteration what it's now done
-        }) 
-    }
-
-// --- if batch size > 1 then iterate asynchroneously ----    
-    private iterate(i: number): Promise<void> { // promise to do <batchSize> iterations
-        console.log("\t\t\tSystem: iterate() with i = " + i)
-        new Promise<number>((res, rej) => {
-            if (i < 1) 
-                rej() // no further iterations to do
-            else {
-                this.doOneIteration()
-                res(i - 1)
-            }
-        })
-        .then(i => this.iterate(i))
-        .catch(() => { console.log("\t\t\tSystem: iterate() resolve()"); resolve() }) // resolve promise to do <batchSize> iteration what it's now done
-    }
-*/
-
-
     public doIterations(iterRequests: I_IterationRequests): void {
         this.setWipLimits(iterRequests[0].wipLimits) // we take the first iterations wip-limits as they don't change over time anyway
         for (let req of iterRequests)
