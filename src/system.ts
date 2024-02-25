@@ -12,9 +12,9 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
-         I_VcPsWipLimit } from './io_api_definitions.js'
+         I_VcPsWipLimit, ValueChainId, ProcessStepId, WipLimit} from './io_api_definitions.js'
 import { environment } from './environment.js'
-import { resolve } from 'path'
+import { LogEntry, LogEntryType } from './logging.js'
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
     clock:          false,
@@ -47,6 +47,76 @@ type RoCiValues = {
 }
 
 //----------------------------------------------------------------------
+//    WIP LIMITS AND SYSTEM PERFORMANCE LOG
+//----------------------------------------------------------------------
+
+const WipLimitVectorElementVcPsDelimiter = "."
+type WipLimitVectorKey      =   [ValueChainId, ProcessStepId]
+type WipLimitVectorKeys     =   WipLimitVectorKey[]
+type WipLimitVectorElement  =   [ValueChainId, ProcessStepId, WipLimit]
+type WipLimitVectorElements =   WipLimitVectorElement[]
+
+
+class WipLimitsVector extends Map<string, WipLimit>{
+    constructor(wlves: WipLimitVectorElements) {
+        super(wlves.map(ve => [`${ve[0]}${WipLimitVectorElementVcPsDelimiter}${ve[1]}`, ve[2]]))
+    }
+
+    get wipLimitVectorKeys(): WipLimitVectorKeys {
+        const wlvks: WipLimitVectorKeys = []
+        for (let k of this.keys()) {
+            const [vcId, psId] = k.split(WipLimitVectorElementVcPsDelimiter)
+            wlvks.push([vcId, psId])
+        }
+        return wlvks
+    } 
+
+    get wipLimitVectorElements(): WipLimitVectorElements {
+        const wlves: WipLimitVectorElements = []
+        for (let e of this.entries()) {
+            const [vcId, psId] = e[0].split(WipLimitVectorElementVcPsDelimiter)
+            if (!vcId || !psId) throw Error("WipLimitsVector.wipLimitVectorElements(): vc or ps id undefined")
+            wlves.push([vcId, psId, e[1]])
+        }
+        return wlves
+    } 
+
+    public clone(): WipLimitsVector {
+        return new WipLimitsVector(this.wipLimitVectorElements)
+    }
+
+    public add(av: WipLimitsVector): WipLimitsVector {
+        const rv = new WipLimitsVector([])
+        this.forEach((wl, vcPs, _) => {
+            //console.log("add(): vcPs=" + vcPs + ", wl=" + wl)
+            const avVal = av.get(vcPs)
+            if (!avVal) throw Error("WipLimitTuple: add(): incompatible argument " + vcPs)
+            rv.set(vcPs, wl + avVal)
+        }) 
+        return rv
+    }
+
+    get stringified(): string {
+        let r = ""
+        this.forEach((wl, vcPs, _) => r += `[${vcPs}, ${wl}] `)
+        return r 
+    }
+}
+
+class LogEntryWipLimitsAndPerformance extends LogEntry {
+    constructor(public sys:             LonelyLobsterSystem,
+                public wipLimitsVector: WipLimitsVector,
+                public performance:     number | undefined) {
+        super(sys, LogEntryType.wipLimitsVector) 
+    }
+
+    public stringified = () => `${this.stringifiedLe()}, vc/ps = ${this.wipLimitsVector.stringified}, perf=${this.performance ? this.performance.toPrecision(2) : "-" }`
+}
+
+
+
+
+//----------------------------------------------------------------------
 //    LONELY LOBSTER SYSTEM
 //----------------------------------------------------------------------
 export class LonelyLobsterSystem {
@@ -59,7 +129,8 @@ export class LonelyLobsterSystem {
     public idGen                                    = wiIdGenerator()
     public tagGen                                   = wiTagGenerator(wiTags)
     public learnAndAdaptParms!: LearnAndAdaptParms
-    private workOrders:         WorkOrder[]         = []
+    public logWipLimitsAndPerformance: LogEntryWipLimitsAndPerformance[] = [new LogEntryWipLimitsAndPerformance(this, this.wipLimits, undefined)] 
+    //private workOrders:         WorkOrder[]         = []
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
@@ -337,6 +408,21 @@ export class LonelyLobsterSystem {
         const avgVarCost        = this.avgNormEffort(endProductMoreStatistics, fromTime, toTime)
         const avgFixStaffCost   = this.avgFixStaffCost(endProductMoreStatistics, fromTime, toTime)
 
+        const roceVar           =  (avgDiscValueAdd - avgVarCost)      / avgWorkingCapital
+        const roceFix           =  (avgDiscValueAdd - avgFixStaffCost) / avgWorkingCapital
+
+        this.logWipLimitsAndPerformance.push(new LogEntryWipLimitsAndPerformance(this, this.wipLimits, roceFix))
+
+        this.logWipLimitsAndPerformance.forEach(le => console.log(le.stringified()))  // *** debug tbd
+
+        const delta = new WipLimitsVector(this.wipLimits.wipLimitVectorKeys.map(wlvk => [wlvk[0], wlvk[1], +1]))
+        console.log("delta= " + delta.stringified)
+
+        this.wipLimits = this.wipLimits.add(delta)
+//      this.wipLimits = new WipLimitsVector(this.wipLimits.wipLimitVectorElements)
+
+        console.log("wip-limits=" + this.valueChains.flatMap(vc => vc.processSteps.map(ps => console.log(`${vc.id}.${ps.id}: ${ps.wipLimit}`))))
+
         //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + "): avgWorkCap= " + avgWorkingCapital.toPrecision(2) + ", avgDiscValueAdd= " + avgDiscValueAdd.toPrecision(2) + ", avgVarCost= " + avgVarCost.toPrecision(2) + ", avgFixStaffCost= " + avgFixStaffCost.toPrecision(2))
         return {
             timestamp:          this.clock.time,
@@ -346,8 +432,8 @@ export class LonelyLobsterSystem {
                 economics:   {
                     ...endProductMoreStatistics,
                     avgWorkingCapital: avgWorkingCapital,
-                    roceVar:           (avgDiscValueAdd - avgVarCost)      / avgWorkingCapital,
-                    roceFix:           (avgDiscValueAdd - avgFixStaffCost) / avgWorkingCapital
+                    roceVar:           roceVar,
+                    roceFix:           roceFix           
                 }
             }
         } 
@@ -387,6 +473,26 @@ public get learningStatistics(): I_LearningStatsWorkers {
     private obStatsAsString(): string {
         return"system.obStatsAsString() - left empty"  /* needs to be fixed */
     }
+
+
+//----------------------------------------------------------------------
+//    WIP LIMIT SELF-OPTIMIZATION
+//----------------------------------------------------------------------
+
+    private processStepOf(vcId: ValueChainId, psId: ProcessStepId): ProcessStep {
+        const vc = this.valueChains.find(vc => vc.id == vcId);        if (!vc) throw Error(`sys.processStepOf(vc=${vcId}, ps=${psId}): vc is undefined`)
+        const ps = vc.processSteps.find (ps => ps.id == psId);        if (!ps) throw Error(`sys.processStepOf(vc=${vcId}, ps=${psId}): ps is undefined`)
+        return ps
+    }
+
+    get wipLimits(): WipLimitsVector {
+        return new WipLimitsVector(this.valueChains.flatMap(vc => vc.processSteps.map(ps => <WipLimitVectorElement>[vc.id, ps.id, ps.wipLimit])))
+    } 
+
+    set wipLimits(wlv: WipLimitsVector) {
+        wlv.wipLimitVectorElements.forEach(wlve => this.processStepOf(wlve[0], wlve[1]).wipLimit = wlve[2])
+    } 
+
 
 //----------------------------------------------------------------------
 //    DEBUGGING

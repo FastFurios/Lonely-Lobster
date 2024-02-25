@@ -9,7 +9,7 @@ import { Timestamp, Value, Effort, I_EndProductStatistics, I_EndProductMoreStati
 import { LogEntry, LogEntryType } from './logging.js'
 
 //----------------------------------------------------------------------
-//    W.I.P. LIMIT CHANGE LOG 
+//    WIP LIMIT CHANGE LOG 
 //----------------------------------------------------------------------
 
 class LogEntryWipLimit extends LogEntry {
@@ -17,7 +17,7 @@ class LogEntryWipLimit extends LogEntry {
                 public valueChain:      ValueChain, 
                 public processStep:     ProcessStep,
                 public wipLimit:        WipLimit) {
-        super(sys, LogEntryType.wipLimitSet) 
+        super(sys, LogEntryType.wipLimitsVector) 
     }
 
     public stringified = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.processStep.id}, set wipLimit to = ${this.wipLimit}`
