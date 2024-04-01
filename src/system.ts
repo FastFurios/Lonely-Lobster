@@ -12,9 +12,10 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
-         I_VcPsWipLimit, ValueChainId, ProcessStepId, WipLimit} from './io_api_definitions.js'
+         I_VcPsWipLimit } from './io_api_definitions.js'
 import { environment } from './environment.js'
-import { LogEntry, LogEntryType } from './logging.js'
+import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
+
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
     clock:          false,
@@ -27,115 +28,64 @@ interface WiElapTimeValAdd {
     valueAdd:       Value
     elapsedTime:    Timestamp
 }
-type CostFunctionForTimestamp = (t: Timestamp) => Value
 
-type RevenuesAndCostAtTime = {
-    time:           Timestamp,
-    revenue:        Value,
-    cost:           Value
-}
-type FinancialsAtTime = {
-    time:           Timestamp,
-    profit:         Value,
-    balance:        Value
-}
-type FinancialsTimeSeries = FinancialsAtTime[] 
 
-type RoCiValues = {
-    ebit:                         Value,
-    avgCapitalInvestmentRequired: Value
-}
+
 
 //----------------------------------------------------------------------
 //    WIP LIMITS AND SYSTEM PERFORMANCE LOG
 //----------------------------------------------------------------------
 
-const WipLimitVectorElementVcPsDelimiter = "."
-type WipLimitVectorKey      =   [ValueChainId, ProcessStepId]
-type WipLimitVectorKeys     =   WipLimitVectorKey[]
-type WipLimitVectorElement  =   [ValueChainId, ProcessStepId, WipLimit]
-type WipLimitVectorElements =   WipLimitVectorElement[]
+function performanceAt(): number { return 0 }
 
+const searchParms:        PeakSearchParms     = {
+    initTemperature:                 100,     // initial temperature; need to be > 0
+    temperatureCoolingGradient:      10,      // cooling with every search iteration
+    onLevelPatience:                 0.8,     // chance that a step on same level is accepted
+    degreesPerDownhillStepTolerance: 20,      // downhill step sequences tolerance
+    initJumpDistance:                5,       // jump distances [#steps] in choosen direction; reduces when temperature cools
+    verbose:                         true     // outputs debug data if true
+   }
 
-class WipLimitsVector extends Map<string, WipLimit>{
-    constructor(wlves: WipLimitVectorElements) {
-        super(wlves.map(ve => [`${ve[0]}${WipLimitVectorElementVcPsDelimiter}${ve[1]}`, ve[2]]))
-    }
-
-    get wipLimitVectorKeys(): WipLimitVectorKeys {
-        const wlvks: WipLimitVectorKeys = []
-        for (let k of this.keys()) {
-            const [vcId, psId] = k.split(WipLimitVectorElementVcPsDelimiter)
-            wlvks.push([vcId, psId])
-        }
-        return wlvks
-    } 
-
-    get wipLimitVectorElements(): WipLimitVectorElements {
-        const wlves: WipLimitVectorElements = []
-        for (let e of this.entries()) {
-            const [vcId, psId] = e[0].split(WipLimitVectorElementVcPsDelimiter)
-            if (!vcId || !psId) throw Error("WipLimitsVector.wipLimitVectorElements(): vc or ps id undefined")
-            wlves.push([vcId, psId, e[1]])
-        }
-        return wlves
-    } 
-
-    public clone(): WipLimitsVector {
-        return new WipLimitsVector(this.wipLimitVectorElements)
-    }
-
-    public add(av: WipLimitsVector): WipLimitsVector {
-        const rv = new WipLimitsVector([])
-        this.forEach((wl, vcPs, _) => {
-            //console.log("add(): vcPs=" + vcPs + ", wl=" + wl)
-            const avVal = av.get(vcPs)
-            if (!avVal) throw Error("WipLimitTuple: add(): incompatible argument " + vcPs)
-            rv.set(vcPs, wl + avVal)
-        }) 
-        return rv
-    }
-
-    get stringified(): string {
-        let r = ""
-        this.forEach((wl, vcPs, _) => r += `[${vcPs}, ${wl}] `)
-        return r 
-    }
-}
-
-class LogEntryWipLimitsAndPerformance extends LogEntry {
-    constructor(public sys:             LonelyLobsterSystem,
-                public wipLimitsVector: WipLimitsVector,
-                public performance:     number | undefined) {
-        super(sys, LogEntryType.wipLimitsVector) 
-    }
-
-    public stringified = () => `${this.stringifiedLe()}, vc/ps = ${this.wipLimitsVector.stringified}, perf=${this.performance ? this.performance.toPrecision(2) : "-" }`
-}
-
-
-
+const wipLimitOptimizationObservationPeriod = 20
 
 //----------------------------------------------------------------------
 //    LONELY LOBSTER SYSTEM
 //----------------------------------------------------------------------
 export class LonelyLobsterSystem {
-    public valueChains:         ValueChain[]        = []
-    public workers:             Worker[]            = []
-    public assignmentSet!:      AssignmentSet
-    public workOrderInFlow:     WorkOrder[]         = []
-    public outputBasket:        OutputBasket 
-    public clock:               Clock               = new Clock(this, -1)
-    public idGen                                    = wiIdGenerator()
-    public tagGen                                   = wiTagGenerator(wiTags)
-    public learnAndAdaptParms!: LearnAndAdaptParms
-    public logWipLimitsAndPerformance: LogEntryWipLimitsAndPerformance[] = [new LogEntryWipLimitsAndPerformance(this, this.wipLimits, undefined)] 
-    //private workOrders:         WorkOrder[]         = []
+    public  valueChains:         ValueChain[]       = []
+    public  workers:             Worker[]           = []
+    public  assignmentSet!:      AssignmentSet
+    public  workOrderInFlow:     WorkOrder[]        = []
+    public  outputBasket:        OutputBasket 
+
+    public  clock:               Clock              = new Clock(this, -1)
+    public  idGen                                   = wiIdGenerator()
+    public  tagGen                                  = wiTagGenerator(wiTags)
+
+    // workers' work selection strategy learning:
+    public  learnAndAdaptParms!: LearnAndAdaptParms
+
+    // system's wip limit optimization:
+    private vdm!:               VectorDimensionMapper<ProcessStep>
+    public  wipLimitSearchLog                       = new SearchLog<ProcessStep>()
+    private searchState!:       SearchState<ProcessStep>   
+
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
-        //this.clock          = new Clock(this, -1)
         this.outputBasket   = new OutputBasket(this)
+    }
+
+    public initializeWipLimitOptimization(): void {
+        this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, undefined))))
+        this.searchState        = {
+                                    position:           new Position<ProcessStep>(this.vdm, this.vdm.vds.map(vd => vd.min ? vd.min : 1)), // initial position set to minimum of each dimension if defined; will be (partially) overwritten by potentially manually set WIP limits of the process steps at each iteration
+                                    direction:          new Direction<ProcessStep>(this.vdm, this.vdm.vds.map(_ => 1)),  // initial direction is [1, 1, ..., 1]
+                                    temperature:        searchParms.initTemperature,
+                                    downhillStepsCount: 0
+                                  }
+        console.log(`system.initializeWipLimitOptimization(): this.searchState.direction = ${this.searchState.direction}; this.vdm.vds.length= ${this.vdm.vds.length}`)
     }
 
     public doIterations(iterRequests: I_IterationRequests): void {
@@ -145,7 +95,7 @@ export class LonelyLobsterSystem {
     }
 
     public doOneIteration(wos: WorkOrder[]): void {
-        console.log("\t\t\t\tSystem: doOneIteration():  clock = " + this.clock.time)
+        //console.log("\t\t\t\tSystem: doOneIteration():  clock = " + this.clock.time)
         //if (this.clock.time < 1) this.showHeader()
 
         // populate process steps with work items (and first process steps with new work orders)
@@ -156,8 +106,20 @@ export class LonelyLobsterSystem {
         // tick the clock to the next interval
         this.clock.tick()
 
+        if (this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
+            // measure system performance with current WIP limits and adjust them
+//          console.log(`system.doOneIteration: vdm = ${this.vdm.toString(StringifyMode.verbose)}`)
+//          console.log(`system.doOneIteration: position = ${this.vdm.vds.map(vd => vd.dimension.wipLimit)}`)
+            this.searchState.position = new Position<ProcessStep>(this.vdm, this.vdm.vds.map(vd => vd.dimension.wipLimit))
+            const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
+            this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf ? currPerf : -Infinity, searchParms, this.clock.time, this.searchState)
+            console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
+            this.vdm.vds.forEach((vd, idx) => vd.dimension.wipLimit = this.searchState.position.vec[idx])
+            console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
+        }
+
         // prepare workitem extended statistical infos before workers make their choice 
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))  // +++ seems duplicate to see below
 
         // workers select workitems and work them
         this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
@@ -292,9 +254,9 @@ export class LonelyLobsterSystem {
     }
 
     public nextSystemState(iterReqs: I_IterationRequests) { 
-        console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReqs.length)
+        //console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReqs.length)
         this.doIterations(iterReqs)
-        console.log("\tSystem: nextSystemState(): doIterations done; returning i_systemState")
+        //console.log("\tSystem: nextSystemState(): doIterations done; returning i_systemState")
         return this.i_systemState()        
     }
     
@@ -411,18 +373,6 @@ export class LonelyLobsterSystem {
         const roceVar           =  (avgDiscValueAdd - avgVarCost)      / avgWorkingCapital
         const roceFix           =  (avgDiscValueAdd - avgFixStaffCost) / avgWorkingCapital
 
-        this.logWipLimitsAndPerformance.push(new LogEntryWipLimitsAndPerformance(this, this.wipLimits, roceFix))
-
-        this.logWipLimitsAndPerformance.forEach(le => console.log(le.stringified()))  // *** debug tbd
-
-        const delta = new WipLimitsVector(this.wipLimits.wipLimitVectorKeys.map(wlvk => [wlvk[0], wlvk[1], +1]))
-        console.log("delta= " + delta.stringified)
-
-        this.wipLimits = this.wipLimits.add(delta)
-//      this.wipLimits = new WipLimitsVector(this.wipLimits.wipLimitVectorElements)
-
-        console.log("wip-limits=" + this.valueChains.flatMap(vc => vc.processSteps.map(ps => console.log(`${vc.id}.${ps.id}: ${ps.wipLimit}`))))
-
         //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + "): avgWorkCap= " + avgWorkingCapital.toPrecision(2) + ", avgDiscValueAdd= " + avgDiscValueAdd.toPrecision(2) + ", avgVarCost= " + avgVarCost.toPrecision(2) + ", avgFixStaffCost= " + avgFixStaffCost.toPrecision(2))
         return {
             timestamp:          this.clock.time,
@@ -475,6 +425,7 @@ public get learningStatistics(): I_LearningStatsWorkers {
     }
 
 
+/*
 //----------------------------------------------------------------------
 //    WIP LIMIT SELF-OPTIMIZATION
 //----------------------------------------------------------------------
@@ -490,10 +441,14 @@ public get learningStatistics(): I_LearningStatsWorkers {
     } 
 
     set wipLimits(wlv: WipLimitsVector) {
+        console.log("system.wipLimits(): before setting checking process-steps:")
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => console.log(`\t${vc.id}.${ps.id}: ${ps.wipLimit}`)))
         wlv.wipLimitVectorElements.forEach(wlve => this.processStepOf(wlve[0], wlve[1]).wipLimit = wlve[2])
+        console.log("system.wipLimits(): after setting checking process-steps:")
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => console.log(`\t${vc.id}.${ps.id}: ${ps.wipLimit}`)))
     } 
 
-
+*/
 //----------------------------------------------------------------------
 //    DEBUGGING
 //----------------------------------------------------------------------

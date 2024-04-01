@@ -10,7 +10,7 @@ export enum LogEntryType {
     workerWorked                      = "workerWorked",
     workerLearnedAndAdapted           = "workerLearnedAndAdapted",
     wipLimitsVector                   = "WIP limit vector",
-    wipLimitsAndPerformance           = "system WIP limits and performance"
+    wipLimitsOptimization             = "system WIP limits and performance"
 }
 
 export abstract class LogEntry { // records state at end of time unit

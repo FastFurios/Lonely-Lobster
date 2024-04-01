@@ -100,6 +100,7 @@ function apiMode(): void {
         //console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         webSessions.set(req.sessionID, lonelyLobsterSystem!)
         lonelyLobsterSystem.clock.setTo(-1) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
+        lonelyLobsterSystem.initializeWipLimitOptimization()
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
         res.send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
 //                         .then((systemState:I_SystemState) => {console.log("_main: app.post /initialize: sending response with system-state "); res.send(systemState)})

@@ -8,6 +8,11 @@ import { WiExtInfoTuple, WiExtInfoElem } from './workitem.js'
 //  some array helpers
 // ------------------------------------------------------------
 
+// --- pick a random member of an array
+export function randomPick<T>(a: Array<T>): T {
+    return a[Math.floor(Math.random() * a.length)]
+}
+
 // --- create array of 2 element tuples from two arrays
 export type Tuple<T, U> = [T, U]
 
@@ -71,7 +76,7 @@ export function topElemAfterSort(arrArr: WiExtInfoTuple[], sest: SortVectorSeque
 }
 
 // ------------------------------------------------------------
-// funtions for an array of weighted elements
+// functions for an array of weighted elements
 // ------------------------------------------------------------
 
 export type WeightedElement<T> = {
@@ -125,3 +130,6 @@ function randomlyPickedElement<T>(arr: WeightDistributionElement<T>[]): T {
 export function randomlyPickedByWeigths<T>(arr: WeightedElement<T>[], polished: (w: number) => number): T {
     return randomlyPickedElement(arrayWithWeightDistribition<T>(arrayWithNormalizedWeights<T>(arr, polished)))
 }
+
+
+

@@ -98,6 +98,8 @@ export class ProcessStep extends WorkItemBasketHolder  {
     } 
 
     public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.stringifyBasketItems()
+
+    public toString = () => `\t${this.valueChain.id}.${this.id}` 
 }
 
 
