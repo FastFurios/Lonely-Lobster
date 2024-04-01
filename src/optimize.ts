@@ -167,7 +167,7 @@ export class SearchLogEntry<T extends Stringify> {
     }
 
     public toString(): string {
-        return `${this.timestamp} [${this.position.vec}]:\t perf= ${this.performance} \ttemp= ${this.temperature} \tdir= [${this.direction.vec}] \tjumpDist=${Math.round(this.jumpDistance)} \tdownSteps= ${Math.round(this.downhillStepCount)} \tbest past position= ${this.bestPerfLogEntry?.position.toString(StringifyMode.concise)} with perf= ${this.bestPerfLogEntry?.performance}`
+        return `${this.timestamp} [${this.position.vec}]:\t perf= ${this.performance} \ttemp= ${this.temperature} \tdir= [${this.direction.vec}] \tjumpDist=${Math.round(this.jumpDistance)} \tdownSteps= ${Math.round(this.downhillStepCount)}`
     }
 
     public stringified = (): string => this.toString()
@@ -246,8 +246,9 @@ export function nextSearchState<T extends Stringify> (
     const downhillTolerance = (temp: Temperature, dpdhst: DegreesPerDownhillStepTolerance): Tolerance =>  Math.floor(temp / dpdhst)
 
     const perf                  = performanceAt(curr.position)                                                                                                                          
-    const jumpDist              = jumpDistance(curr.temperature)                                                                                                    ; if (psp.verbose) console.log(`\n\ntime=${timestamp}\t${curr.position.toString(StringifyMode.concise)} with perf= ${perf}, tolerance= ${downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance)}, downhillStepCount= ${curr.downhillStepsCount}, jump distance= ${jumpDist}, dir= ${curr.direction.toString(StringifyMode.concise)}  -------------------------------------------------`)
-    const bestPerfLogEntry      = log.entryWithBestObservedPerformance                                                                                              ; if (psp.verbose) console.log(`\t\t\tlog entry with best perf had been so far=${bestPerfLogEntry?.toString()}`)
+    const jumpDist              = jumpDistance(curr.temperature)                                                                                                    ; if (psp.verbose) console.log(`\n\ntime=${timestamp}\t${curr.position.toString(StringifyMode.concise)} with perf= ${perf.toPrecision(4)}, tolerance= ${downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance)}, downhillStepCount= ${curr.downhillStepsCount}, jump distance= ${jumpDist}, dir= ${curr.direction.toString(StringifyMode.concise)}  -------------------------------------------------`)
+    const bestPerfLogEntry      = log.entryWithBestObservedPerformance                                                                                              ; if (psp.verbose) console.log(`\tnextSearchState: log entry with best perf had been so far=${bestPerfLogEntry?.toString()}`)
+                if (!bestPerfLogEntry) console.log("\tnextSearchState: bestPerfLogEntry == undefined")
     log.append(new SearchLogEntry<T>(timestamp, curr.position, curr.direction, jumpDist, perf, curr.temperature, curr.downhillStepsCount, bestPerfLogEntry))
 
     const newTemperature        = Math.max(0, curr.temperature - psp.temperatureCoolingGradient)
@@ -258,7 +259,7 @@ export function nextSearchState<T extends Stringify> (
     else                    // it is the first iteration so there is already a log entry 
         if (perf < bestPerfLogEntry.performance) { // current performance lower as highest point so far
             if (curr.downhillStepsCount > downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance)) { // too many steps with lower performance in a row
-                                                                                                                                                                    ; if (psp.verbose) console.log(`\t\ttoo many downhill steps. Withdraw from ${log.last?.position.toString(StringifyMode.concise)} with perf=${log.last?.performance} to ${bestPerfLogEntry.position.toString(StringifyMode.concise)} with perf=${bestPerfLogEntry.performance}. Setting new course`)
+                                                                                                                                                                    ; if (psp.verbose) console.log(`\t\ttoo many downhill steps. Withdraw from ${log.last?.position.toString(StringifyMode.concise)} with perf=${log.last?.performance.toPrecision(4)} to ${bestPerfLogEntry.position.toString(StringifyMode.concise)} with perf=${bestPerfLogEntry.performance.toPrecision(4)}. Setting new course`)
                 return {
                     position:           bestPerfLogEntry.position,                               // retreat to a position that showed best performance
                     direction:          curr.direction.newRandomDirection(),                                                                                                  

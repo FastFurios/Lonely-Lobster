@@ -106,13 +106,11 @@ export class LonelyLobsterSystem {
         // tick the clock to the next interval
         this.clock.tick()
 
-        if (this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
+        if (this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
             // measure system performance with current WIP limits and adjust them
-//          console.log(`system.doOneIteration: vdm = ${this.vdm.toString(StringifyMode.verbose)}`)
-//          console.log(`system.doOneIteration: position = ${this.vdm.vds.map(vd => vd.dimension.wipLimit)}`)
-            this.searchState.position = new Position<ProcessStep>(this.vdm, this.vdm.vds.map(vd => vd.dimension.wipLimit))
+            this.searchState.position = new Position<ProcessStep>(this.vdm, this.vdm.vds.map(vd => vd.dimension.wipLimit))  // read WIP limits from the process steps into position
             const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
-            this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf ? currPerf : -Infinity, searchParms, this.clock.time, this.searchState)
+            this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
             console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
             this.vdm.vds.forEach((vd, idx) => vd.dimension.wipLimit = this.searchState.position.vec[idx])
             console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
