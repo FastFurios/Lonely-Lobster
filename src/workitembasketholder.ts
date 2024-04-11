@@ -164,6 +164,10 @@ export class OutputBasket extends WorkItemBasketHolder {
         }
     }
 
+    public purgeWorkitemsUpto(t: Timestamp): void {
+        this.workItemBasket = this.workItemBasket.filter(wi => wi.log.length < 1 ? true : wi.log[wi.log.length - 1].timestamp > t)
+    }
+
     public revenues(fromTime: Timestamp, toTime: Timestamp): Value {
         return this.statsOfArrivedWorkitemsBetween(fromTime, toTime).discountedValueAdd
     }

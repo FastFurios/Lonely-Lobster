@@ -117,7 +117,7 @@ function apiMode(): void {
             res.send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
             return
         }
-        console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
+//      console.log("_main: app.post /iterate : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
         res.send(lonelyLobsterSystem.nextSystemState(req.body))
 //                         .then((systemState:I_SystemState) => {console.log("_main: app.post /iterate: sending response with system-state "); res.send(systemState)})

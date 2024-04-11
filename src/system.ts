@@ -40,13 +40,13 @@ function performanceAt(): number { return 0 }
 
 const searchParms:        PeakSearchParms     = {
     initTemperature:                 100,     // initial temperature; need to be > 0
-    temperatureCoolingGradient:      10,      // cooling with every search iteration
-    degreesPerDownhillStepTolerance: 20,      // downhill step sequences tolerance
+    temperatureCoolingGradient:      20,      // cooling with every search iteration
+    degreesPerDownhillStepTolerance: 30,      // downhill step sequences tolerance
     initJumpDistance:                2,       // jump distances [#steps] in choosen direction; reduces when temperature cools
     verbose:                         true     // outputs debug data if true
    }
 
-const wipLimitOptimizationObservationPeriod = 20
+const wipLimitOptimizationObservationPeriod = 100
 
 //----------------------------------------------------------------------
 //    LONELY LOBSTER SYSTEM
@@ -102,6 +102,7 @@ export class LonelyLobsterSystem {
                                                                     console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
             this.setWipLimitsFromSearchStatePosition()
                                                                     console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
+/* !! */    this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deep #####
         }
 
         // prepare workitem extended statistical infos before workers make their choice 
