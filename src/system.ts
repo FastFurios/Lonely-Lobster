@@ -39,10 +39,10 @@ interface WiElapTimeValAdd {
 function performanceAt(): number { return 0 }
 
 const searchParms:        PeakSearchParms     = {
-    initTemperature:                 100,     // initial temperature; need to be > 0
-    temperatureCoolingGradient:      20,      // cooling with every search iteration
-    degreesPerDownhillStepTolerance: 30,      // downhill step sequences tolerance
-    initJumpDistance:                2,       // jump distances [#steps] in choosen direction; reduces when temperature cools
+    initTemperature:                 10,     // initial temperature; need to be > 0
+    temperatureCoolingGradient:      10,      // cooling with every search iteration
+    degreesPerDownhillStepTolerance: 10,      // downhill step sequences tolerance
+    initJumpDistance:                1,       // jump distances [#steps] in choosen direction; reduces when temperature cools
     verbose:                         true     // outputs debug data if true
    }
 
@@ -79,10 +79,10 @@ export class LonelyLobsterSystem {
     public doIterations(iterRequests: I_IterationRequests): void {
         this.setWipLimits(iterRequests[0].wipLimits) // we take the first iterations wip-limits as they don't change over time anyway
         for (let req of iterRequests)
-            this.doOneIteration(this.workOrderList(req.vcsWorkOrders))
+            this.doOneIteration(this.workOrderList(req.vcsWorkOrders), req.optimizeWipLimits)
     }
 
-    public doOneIteration(wos: WorkOrder[]): void {
+    public doOneIteration(wos: WorkOrder[], optimizeWipLimits: boolean): void {
         //console.log("\t\t\t\tSystem: doOneIteration():  clock = " + this.clock.time)
         //if (this.clock.time < 1) this.showHeader()
 
@@ -94,7 +94,7 @@ export class LonelyLobsterSystem {
         // tick the clock to the next interval
         this.clock.tick()
 
-        if (this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
+        if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
             // measure system performance with current WIP limits and adjust them
             this.setSearchStatePositionFromWipLimits()
             const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
@@ -102,7 +102,7 @@ export class LonelyLobsterSystem {
                                                                     console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
             this.setWipLimitsFromSearchStatePosition()
                                                                     console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
-/* !! */    this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deep #####
+///* !! */    this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deep #####
         }
 
         // prepare workitem extended statistical infos before workers make their choice 
@@ -128,8 +128,9 @@ export class LonelyLobsterSystem {
 
     public emptyIterationRequest(): I_IterationRequests {
         return [{
-            vcsWorkOrders: this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
-            wipLimits:     []
+            vcsWorkOrders:      this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
+            wipLimits:          [],
+            optimizeWipLimits:  false
           }]
     }
 

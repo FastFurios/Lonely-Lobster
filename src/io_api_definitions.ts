@@ -36,6 +36,7 @@ export interface I_VcPsWipLimit {
 export interface I_IterationRequest {
     vcsWorkOrders:      I_VcWorkOrders[] 
     wipLimits:          I_VcPsWipLimit[]
+    optimizeWipLimits:  boolean
 }
 
 export type I_IterationRequests = I_IterationRequest[]

@@ -4,9 +4,6 @@
 
 import { randomPick } from './helpers.js'
 import { Timestamp } from './io_api_definitions.js'
-import { LogEntry, LogEntryType } from './logging.js'
-import { LonelyLobsterSystem } from './system.js'
-
 
 //----------------------------------------------------------------------------
 // MULTIDIMENSIONAL SEARCH FOR OPTIMUM 
