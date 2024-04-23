@@ -94,15 +94,10 @@ export class LonelyLobsterSystem {
         // tick the clock to the next interval
         this.clock.tick()
 
-        if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
-            // measure system performance with current WIP limits and adjust them
-            this.setSearchStatePositionFromWipLimits()
-            const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
-            this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
-                                                                    console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
-            this.setWipLimitsFromSearchStatePosition()
-                                                                    console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
-///* !! */    this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deep #####
+        // measure system performance with current WIP limits and adjust them
+            if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
+                this.optimizeWipLimits()
+///* !! */      this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deep #####
         }
 
         // prepare workitem extended statistical infos before workers make their choice 
@@ -247,7 +242,15 @@ export class LonelyLobsterSystem {
         //console.log("\tSystem: nextSystemState(): doIterations done; returning i_systemState")
         return this.i_systemState()        
     }
-    
+
+    private optimizeWipLimits() {
+        this.setSearchStatePositionFromWipLimits()
+        const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
+        this.searchState = nextSearchState<ProcessStep>(this.vdm, this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
+                                                                console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
+        this.setWipLimitsFromSearchStatePosition()
+                                                                console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
+    }
 //----------------------------------------------------------------------
 //    API mode - System Statistics
 //----------------------------------------------------------------------
