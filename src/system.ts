@@ -247,7 +247,7 @@ export class LonelyLobsterSystem {
         this.setSearchStatePositionFromWipLimits()
         const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
         this.searchState = nextSearchState<ProcessStep>(this.vdm, this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
-                                                                console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position}, direction= ${this.searchState.direction}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
+                                                                console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position.toString(StringifyMode.concise)}, direction= ${this.searchState.direction.toString(StringifyMode.concise)}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
         this.setWipLimitsFromSearchStatePosition()
                                                                 console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
     }
@@ -394,7 +394,7 @@ export class LonelyLobsterSystem {
 
 
     private setSearchStatePositionFromWipLimits(): void { 
-        this.searchState.position = new Position<ProcessStep>(this.vdm, this.vdm.vds.map(vd => vd.dimension.wipLimit))  // read WIP limits from the process steps into position
+        this.searchState.position = Position.new(this.vdm, this.vdm.vds.map(vd => vd.dimension.wipLimit))  // read WIP limits from the process steps into position
     }
 
     private setWipLimitsFromSearchStatePosition(): void { 
@@ -402,6 +402,7 @@ export class LonelyLobsterSystem {
     }
 
     public initializeWipLimitOptimization(): void {
+        Position.visitedPositions.clear()
         this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, undefined))))
         this.searchState        = {
                                     position:           new Position<ProcessStep>(this.vdm, this.vdm.vds.map(vd => vd.min ? vd.min : 1)), // initial position set to minimum of each dimension if defined; will be (partially) overwritten by potentially manually set WIP limits of the process steps at each iteration
