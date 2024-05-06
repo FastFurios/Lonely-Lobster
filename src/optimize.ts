@@ -156,9 +156,10 @@ export class Position<T extends Stringify> extends Vector<T> {
     }
 
     public toString(mode?: StringifyMode, visitHistory?: boolean): string {
-        const basics = (mode == StringifyMode.concise ? `[${this.vec}]` : this.vec.map((val, idx) => `${this.vdm.vectorDimension(idx).dimension.toString()}: ${val}`).reduce((a, b) => `${a}, ${b}`))
-        const viHist = ", visits=" + this.visitsOverTime.map(v => `(t=${v.timestamp}, perf=${v.performance.toPrecision(3)})`).reduce((a, b) => `${a} ${b}`, "")
-        return basics + viHist
+        const basics  = (mode == StringifyMode.concise ? `[${this.vec}]` : this.vec.map((val, idx) => `${this.vdm.vectorDimension(idx).dimension.toString()}: ${val}`).reduce((a, b) => `${a}, ${b}`))
+        const viHist  = ", visits=" + this.visitsOverTime.map(v => `(t=${v.timestamp}, perf=${v.performance.toPrecision(3)})`).reduce((a, b) => `${a} ${b}`, "")
+        const avgPerf = ": avg perf= " + (this.visitsOverTime.map(v => v.performance).reduce((a, b) => a + b, 0) / this.visitsOverTime.length).toPrecision(3)
+        return basics + viHist + avgPerf
     }
 }
 

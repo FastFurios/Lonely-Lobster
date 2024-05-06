@@ -97,6 +97,8 @@ function apiMode(): void {
             return 
         }
 
+        console.log("_main.app.post(initialize).lonelyLobsterSystem wiplimits= " + lonelyLobsterSystem.valueChains.flatMap(vc => vc.processSteps.map(ps => { return `[${vc.id}.${ps.id}: ${ps.wipLimit}]`})))
+
         //console.log("_main: app.post /initialize : sessionID = " +  req.sessionID + ", lonelyLobsterSystem.id = " + lonelyLobsterSystem.id)
         webSessions.set(req.sessionID, lonelyLobsterSystem!)
         lonelyLobsterSystem.clock.setTo(-1) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
