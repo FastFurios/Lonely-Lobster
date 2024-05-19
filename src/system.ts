@@ -29,9 +29,6 @@ interface WiElapTimeValAdd {
     elapsedTime:    Timestamp
 }
 
-
-
-
 //----------------------------------------------------------------------
 //    WIP LIMITS AND SYSTEM PERFORMANCE LOG
 //----------------------------------------------------------------------
@@ -39,10 +36,10 @@ interface WiElapTimeValAdd {
 function performanceAt(): number { return 0 }
 
 const searchParms:        PeakSearchParms     = {
-    initTemperature:                 10,     // initial temperature; need to be > 0
+    initTemperature:                 100,     // initial temperature; need to be > 0
     temperatureCoolingGradient:      10,      // cooling with every search iteration
     degreesPerDownhillStepTolerance: 10,      // downhill step sequences tolerance
-    initJumpDistance:                1,       // jump distances [#steps] in choosen direction; reduces when temperature cools
+    initJumpDistance:                5,       // jump distances [#steps] in choosen direction; reduces when temperature cools
     verbose:                         true     // outputs debug data if true
    }
 
@@ -67,9 +64,8 @@ export class LonelyLobsterSystem {
 
     // system's wip limit optimization:
     private vdm!:               VectorDimensionMapper<ProcessStep>
-    public  wipLimitSearchLog                       = new SearchLog<ProcessStep>()
     private searchState!:       SearchState<ProcessStep>   
-
+    public  wipLimitSearchLog                       = new SearchLog<ProcessStep>()
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
@@ -77,8 +73,13 @@ export class LonelyLobsterSystem {
     }
 
     public doIterations(iterRequests: I_IterationRequests): void {
-        console.log("doIteration: iterRequest=" +  iterRequests[0].wipLimits.map(wl => { return `${wl.vc}.${wl.ps} ${wl.wipLimit}`}))
         this.setWipLimits(iterRequests[0].wipLimits) // we take the first iterations wip-limits as they don't change over time anyway
+        //console.log("doIteration: searchState.temperature= " +  this.searchState?.temperature)
+        if (iterRequests[0].optimizeWipLimits) { // frontend asks for optimization 
+            if (!this.searchState || this.searchState.temperature < 0) this.initializeWipLimitOptimization()  // initialize wip limit optimization when frontend sends signal to optimize and no search parms yet or search parms but frozen
+        } else // frontend doen't want optimization
+            if (this.searchState) this.searchState.temperature = -1
+
         for (let req of iterRequests) {
             this.doOneIteration(this.workOrderList(req.vcsWorkOrders), req.optimizeWipLimits)
         }
@@ -97,9 +98,9 @@ export class LonelyLobsterSystem {
         this.clock.tick()
 
         // measure system performance with current WIP limits and adjust them
-            if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
-                this.optimizeWipLimits()
-///* !! */      this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deep #####
+        if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
+            this.optimizeWipLimits()
+///* !! */      this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deeply #####
         }
 
         // prepare workitem extended statistical infos before workers make their choice 
@@ -127,7 +128,7 @@ export class LonelyLobsterSystem {
         return [{
             vcsWorkOrders:      this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
             wipLimits:          this.valueChains.flatMap(vc => vc.processSteps.map(ps => { return {vc: vc.id, ps: ps.id, wipLimit: ps.wipLimit}})),
-            optimizeWipLimits:  false
+            optimizeWipLimits:  false  // default at start is "no optimization"
           }]
     }
 
@@ -213,29 +214,26 @@ export class LonelyLobsterSystem {
     }
 
     private i_systemState(): I_SystemState {
+        console.log(`system.i_systemState().isWipLimitOptimizationStillActive= ${this.isWipLimitOptimizationStillActive}`)
         return {
-            id:           this.id,
-            time:         this.clock.time,
-            valueChains:  this.valueChains.map(vc => this.i_valueChain(vc)),
-            outputBasket: { workItems: this.outputBasket.workItemBasket.map(wi => this.i_endProduct(wi)) },
-            workersState: this.workers.map(wo => this.i_workerState(wo)),
-            version:      environment.version
+            id:                                     this.id,
+            time:                                   this.clock.time,
+            valueChains:                            this.valueChains.map(vc => this.i_valueChain(vc)),
+            outputBasket:                           { workItems: this.outputBasket.workItemBasket.map(wi => this.i_endProduct(wi)) },
+            workersState:                           this.workers.map(wo => this.i_workerState(wo)),
+            version:                                environment.version,
+            isWipLimitOptimizationInBackendActive:  this.clock.time == 0 ? false : this.isWipLimitOptimizationStillActive  // default at start: optimization is off
         }
       }
 
-/*
-      private wipLimits(): I_VcPsWipLimit[] {          
-        return this.valueChains.flatMap(vc => vc.processSteps.map(ps => {return {vc: vc.id, ps: ps.id, wipLimit: ps.wipLimit}}))
-    }
-*/
-    private setWipLimits(wipLimits: I_VcPsWipLimit[]): void {  // I_VcPsWipLimit contains the current WIP limits sent in the frontend request
+    private setWipLimits(wipLimits: I_VcPsWipLimit[]): void {  // I_VcPsWipLimit contains the current WIP limits sent in the request from the frontend
         for (let wl of wipLimits) {
             const vc = this.valueChains.find(vc => vc.id == wl.vc.trim())
             if (!vc) throw Error(`System: setWipLimits(): value-chain ${vc} not found`)
             const ps: ProcessStep = vc.processSteps.find(ps => ps.id == wl.ps.trim())!
             if (!ps) throw Error(`System: setWipLimits(): process-step ${ps} not found`)
             ps.wipLimit = wl.wipLimit ? wl.wipLimit : 0
-            console.log("system.setWIPlimits() to " + wl.ps + "=" + wl.wipLimit)
+            //console.log("system.setWIPlimits() to " + wl.ps + "=" + wl.wipLimit)
         }
     }
 
@@ -249,10 +247,10 @@ export class LonelyLobsterSystem {
     private optimizeWipLimits() {
         this.searchState.position = this.searchStatePositionFromWipLimits()
         const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
-        this.searchState = nextSearchState<ProcessStep>(this.vdm, this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
-                                                                console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position.toString(StringifyMode.concise)}, direction= ${this.searchState.direction.toString(StringifyMode.concise)}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
+        this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
+                                                                //console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position.toString(StringifyMode.concise)}, direction= ${this.searchState.direction.toString(StringifyMode.concise)}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
         this.setWipLimitsFromSearchStatePosition()
-                                                                console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
+                                                                //console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
     }
 //----------------------------------------------------------------------
 //    API mode - System Statistics
@@ -407,16 +405,19 @@ export class LonelyLobsterSystem {
     public initializeWipLimitOptimization(): void {
         Position.visitedPositions.clear()
         this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, undefined))))
+        this.wipLimitSearchLog  = new SearchLog<ProcessStep>()
         this.searchState        = {
                                     position:           this.searchStatePositionFromWipLimits(), // inital values set as in process steps defined; if null there then set 1; will be (partially) overwritten by potentially manually set WIP limits of the process steps at each iteration
-                                    direction:          new Direction<ProcessStep>(this.vdm, this.vdm.vds.map(_ => 1)),  // initial direction is [1, 1, ..., 1]
+                                    direction:          new Direction<ProcessStep>(this.vdm, this.vdm.vds.map(_ => -1)),  // initial direction is [1, 1, ..., 1]
                                     temperature:        searchParms.initTemperature,
-                                    downhillStepsCount: 0
+                                    downhillStepsCount: 0 
                                 }
-        console.log(`system.initializeWipLimitOptimization(): this.searchState.direction = ${this.searchState.direction}; this.vdm.vds.length= ${this.vdm.vds.length}`)
         this.setWipLimitsFromSearchStatePosition()
     }
 
+    get isWipLimitOptimizationStillActive(): boolean { 
+        return this.searchState ? !(this.searchState.temperature < 0) : false  
+    }
 
 //----------------------------------------------------------------------
 //    BATCH mode - Output

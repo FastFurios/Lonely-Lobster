@@ -98,13 +98,13 @@ export class Position<T extends Stringify> extends Vector<T> {
         const vecAsStringConcise = `[${vec}]`
         const visitedPosition: Position<T> | undefined = this.visitedPositions.get(vecAsStringConcise)
         if (visitedPosition) {
-            console.log(`\tPosition.new(): ${visitedPosition.toString(StringifyMode.concise)}: have visited that place before`)
+            //console.log(`\tPosition.new(): ${visitedPosition.toString(StringifyMode.concise)}: have visited that place before`)
             return visitedPosition 
         }
         else {
             const newPos = new Position<T>(vdm, vec)
             Position.visitedPositions.set(vecAsStringConcise, newPos) 
-            console.log(`\tPosition.new(): ${newPos.toString(StringifyMode.concise)}: have not been to this place yet`)
+            //console.log(`\tPosition.new(): ${newPos.toString(StringifyMode.concise)}: have not been to this place yet`)
             return newPos
         }
     } 
@@ -119,10 +119,19 @@ export class Position<T extends Stringify> extends Vector<T> {
     constructor(vdm: VectorDimensionMapper<T>, vec: number[]) {
         super(vdm, vec)
     }
-
-    get avgPerformance(): number {
-        return this.visitsOverTime.map(sle => sle.performance).reduce((a, b) => a + b) / this.visitsOverTime.length
+    public avgPerformance(fromVisit?: number, toVisit?: number): number | undefined {
+        if (this.visitsOverTime.length < 1) return undefined
+        if (!fromVisit) fromVisit = 0
+        if (!toVisit)   toVisit   = this.visitsOverTime.length
+        return this.visitsOverTime.slice(fromVisit, toVisit).map(sle => sle.performance).reduce((a, b) => a + b) / this.visitsOverTime.length
     }
+
+    public avgPerformanceChangeSince(compareSplitAtVisit: number): number | undefined {  // returns the rate of change from avg perf before compareSplitAtVist and after
+        const avgPerfBeforeSplit = this.avgPerformance(0, compareSplitAtVisit)
+        const avgPerfAfterSplit  = this.avgPerformance(compareSplitAtVisit)
+        if (!avgPerfBeforeSplit || !avgPerfAfterSplit || avgPerfBeforeSplit == 0) return undefined
+        return (avgPerfAfterSplit - avgPerfBeforeSplit) / avgPerfBeforeSplit
+    } 
 
     public recordNewVisit(sle: SearchLogEntry<T>): void {
         this.visitsOverTime.push(sle)
@@ -159,7 +168,7 @@ export class Position<T extends Stringify> extends Vector<T> {
         const basics  = (mode == StringifyMode.concise ? `[${this.vec}]` : this.vec.map((val, idx) => `${this.vdm.vectorDimension(idx).dimension.toString()}: ${val}`).reduce((a, b) => `${a}, ${b}`))
         const viHist  = ", visits=" + this.visitsOverTime.map(v => `(t=${v.timestamp}, perf=${v.performance.toPrecision(3)})`).reduce((a, b) => `${a} ${b}`, "")
         const avgPerf = ": avg perf= " + (this.visitsOverTime.map(v => v.performance).reduce((a, b) => a + b, 0) / this.visitsOverTime.length).toPrecision(3)
-        return basics + viHist + avgPerf
+        return basics + (visitHistory ? viHist + avgPerf : "")
     }
 }
 
@@ -167,6 +176,11 @@ export class Position<T extends Stringify> extends Vector<T> {
 const randomizeDirectionRetries = 5
 
 export class Direction<T extends Stringify> extends Vector<T> {
+
+    static noDirection<T extends Stringify>(vdm: VectorDimensionMapper<T>): Direction<T> {
+        return new Direction<T>(vdm, vdm.vds.map(_ => 0))  // Direction = [0, 0, ...0]
+    }
+
     constructor(vdm: VectorDimensionMapper<T>, vec: number[]) { 
         super(vdm, vec) 
     }
@@ -187,6 +201,7 @@ export class Direction<T extends Stringify> extends Vector<T> {
         }
         return newDirVec
     }
+
 }
 
 // --- SEARCH LOG --------------------------------------------------------------------
@@ -232,12 +247,14 @@ export class SearchLog<T extends Stringify> {
         return this.log.length < 2 ? undefined : this.log[this.log.length - 2]
     }
 
-    public positionWithBestAvgPerformance(vdm: VectorDimensionMapper<T>): PositionPerformance<T> | undefined { // checks all log entries and calculates the avg performance of each position an returns the position and the avg. performance
-        let bestPosPerf: PositionPerformance<T> | undefined = undefined
-        for (let le of this.log)
-            if (!bestPosPerf || le.performance > bestPosPerf.performance) 
-                bestPosPerf = { position: le.position, performance: le.performance }
-        return bestPosPerf
+    get positionWithBestAvgPerformance(): PositionPerformance<T> | undefined { // checks all log entries and calculates the avg performance of each position and returns the position with the best avg. performance
+        let bestPosAvgPerf: PositionPerformance<T> | undefined = undefined
+        for (let le of this.log) {
+            const lePosAvgPerf = le.position.avgPerformance()
+            if (!bestPosAvgPerf || lePosAvgPerf! > bestPosAvgPerf.performance) 
+                bestPosAvgPerf = { position: le.position, performance: lePosAvgPerf! }
+        }
+        return bestPosAvgPerf
     }
 
     public toString(): string {
@@ -271,7 +288,6 @@ export type SearchState<T extends Stringify> = {
 // --- SEARCH ALGORITHM --------------------------------------------------------------------
 
 export function nextSearchState<T extends Stringify> (
-    	    vdm:                VectorDimensionMapper<T>,
             log:                SearchLog<T>,
             performanceAt:      (p: Position<T>) => number, 
             psp:                PeakSearchParms,
@@ -282,17 +298,25 @@ export function nextSearchState<T extends Stringify> (
     const downhillTolerance = (temp: Temperature, dpdhst: DegreesPerDownhillStepTolerance): Tolerance =>  Math.floor(temp / dpdhst)
 
     const perf                  = performanceAt(curr.position)                                                                                                                          
-    const jumpDist              = jumpDistance(curr.temperature)                                                                                                    ; if (psp.verbose) console.log(`\n\ntime=${timestamp}\t${curr.position.toString(StringifyMode.concise)} with perf= ${perf.toPrecision(3)}, tolerance= ${downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance).toPrecision(3)}, downhillStepCount= ${curr.downhillStepsCount}, jump distance= ${jumpDist}, dir= ${curr.direction.toString(StringifyMode.concise)}  -------------------------------------------------`)
-    const bestAvgPerfPosition   = log.positionWithBestAvgPerformance(vdm)                                                                                              ; if (psp.verbose) console.log(`\tnextSearchState: position with best avg perf seen had been so far=${bestAvgPerfPosition?.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition?.performance.toPrecision(3)}`)
+    const jumpDist              = jumpDistance(curr.temperature)                                                                                                    ; if (psp.verbose) console.log(`\n\n****** time=${timestamp}\t${curr.position.toString(StringifyMode.concise)} with perf= ${perf.toPrecision(3)}, tolerance= ${downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance).toPrecision(3)}, temperature=${curr.temperature}, downhillStepCount= ${curr.downhillStepsCount}, jump distance= ${jumpDist}, dir= ${curr.direction.toString(StringifyMode.concise)}  ----------------------`)
+    const bestAvgPerfPosition   = log.positionWithBestAvgPerformance                                                                                                ; if (psp.verbose) console.log(`\tnextSearchState: position with best avg perf seen had been so far=${bestAvgPerfPosition?.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition?.performance.toPrecision(3)}`)
     if (!bestAvgPerfPosition) console.log("\t** WARNING: nextSearchState: bestAvgPerfPosition == undefined")
-//  curr.position.recordNewVisit(log.appended(new SearchLogEntry<T>(timestamp, curr.position, curr.direction, jumpDist, perf, curr.temperature, curr.downhillStepsCount, bestAvgPerfPosition))) 
     const le = log.appended(new SearchLogEntry<T>(timestamp, curr.position, curr.direction, jumpDist, perf, curr.temperature, curr.downhillStepsCount, bestAvgPerfPosition))
     if (!le) console.log("*** no reference to log entry from search log.appended()")
     curr.position.recordNewVisit(le)
-    console.log("\t\tPosition.visitedPositions: " + Position.visitedPositionsToString())
 
-    const newTemperature        = Math.max(0, curr.temperature - psp.temperatureCoolingGradient)
-    let   newDownhillStepsCount: number 
+    // if cooled down to below 0 degree, i.e. it's "frozen", go to position that has performed best on average and stay there
+    if (curr.temperature <= 0 && bestAvgPerfPosition) {                                                                                                             ; if (psp.verbose) console.log(`\tnow frozen at best performing position observed so far: ${bestAvgPerfPosition?.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition?.performance.toPrecision(3)}`)
+        return {
+            position:           bestAvgPerfPosition!.position,
+            direction:          Direction.noDirection(curr.direction.vdm),                                                                                                  
+            temperature:        curr.temperature - psp.temperatureCoolingGradient,
+            downhillStepsCount: 0
+        }
+    }
+
+    // if it is yet warm continue exploring
+    let newDownhillStepsCount: number = 0
 
     if (!bestAvgPerfPosition)  // it is the first iteration so there is no log entry yet
         newDownhillStepsCount = 0
@@ -303,12 +327,12 @@ export function nextSearchState<T extends Stringify> (
                 return {
                     position:           bestAvgPerfPosition.position,                               // retreat to a position that showed best performance
                     direction:          curr.direction.newRandomDirection(),                                                                                                  
-                    temperature:        newTemperature,
+                    temperature:        curr.temperature - psp.temperatureCoolingGradient, 
                     downhillStepsCount: 0
                 }
             }
             // continue going forward even if current performance is still under the best observed so far
-            newDownhillStepsCount = curr.downhillStepsCount + 1                                                                                                     ; if (psp.verbose) console.log(`\t\tGoing downhill: ${newDownhillStepsCount} steps gone`)
+            newDownhillStepsCount = curr.downhillStepsCount + 1                                                                                                      ; if (psp.verbose) console.log(`\t\tGoing downhill: ${newDownhillStepsCount} steps gone`)
         } else // performance >= best performance observed so far
             newDownhillStepsCount = 0
     
@@ -318,7 +342,7 @@ export function nextSearchState<T extends Stringify> (
     return {
         position:           vor.position,
         direction:          vor.rebound ? curr.direction.newRandomDirection() : curr.direction,
-        temperature:        newTemperature,
+        temperature:        curr.temperature - psp.temperatureCoolingGradient, 
         downhillStepsCount: newDownhillStepsCount
     }
 }

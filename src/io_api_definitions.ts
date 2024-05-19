@@ -101,6 +101,7 @@ export interface I_SystemState {
     outputBasket:                   I_OutputBasket
     workersState:                   I_WorkerState[]
     version:                        string  // code version of this Lonely Lobster backend service 
+    isWipLimitOptimizationInBackendActive:   boolean // true if still optimizing, false if optimization finished in the backend
 }
 
 //-----------------------------------------
