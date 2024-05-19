@@ -1,4 +1,4 @@
 export const environment = {
-    version: "5.1.0 alpha",
-    notes: "system-wide optimization of WIP limits"
+    version: "5.1.1",
+    notes: "optimization of WIP limits: degressive cooling"
   }

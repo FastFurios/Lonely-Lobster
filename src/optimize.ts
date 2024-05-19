@@ -272,7 +272,7 @@ type DegreesPerDownhillStepTolerance    = number // e.g. 20 = for every 20 degre
 
 export type PeakSearchParms = {    // parameter set for the search algorithm 
     initTemperature:                 Temperature                        // initial temperature; need to be > 0
-    temperatureCoolingGradient:      Temperature                        // cooling with every search iteration
+    temperatureCoolingParm:          number                             // cooling down parameter for cooling function 
     degreesPerDownhillStepTolerance: DegreesPerDownhillStepTolerance    // downhill step sequences tolerance
     initJumpDistance:                number                             // jump distances in choosen direction; reduces when temperature cools
     verbose:                         boolean                            // outputs debug data if true
@@ -292,10 +292,11 @@ export function nextSearchState<T extends Stringify> (
             performanceAt:      (p: Position<T>) => number, 
             psp:                PeakSearchParms,
             timestamp:          Timestamp,
-            curr:               SearchState<T>       ): SearchState<T> {
+            curr:               SearchState<T>): SearchState<T> {
 
-    const jumpDistance      = (temp: Temperature): number => Math.max(1, (psp.initJumpDistance * temp / psp.initTemperature))
+    const jumpDistance      = (temp: Temperature): number => Math.max(1, Math.round(psp.initJumpDistance * temp / psp.initTemperature))
     const downhillTolerance = (temp: Temperature, dpdhst: DegreesPerDownhillStepTolerance): Tolerance =>  Math.floor(temp / dpdhst)
+    const newTemperature    = (temp: Temperature, coolingParm: number) => Math.round(coolingParm * temp) - 1
 
     const perf                  = performanceAt(curr.position)                                                                                                                          
     const jumpDist              = jumpDistance(curr.temperature)                                                                                                    ; if (psp.verbose) console.log(`\n\n****** time=${timestamp}\t${curr.position.toString(StringifyMode.concise)} with perf= ${perf.toPrecision(3)}, tolerance= ${downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance).toPrecision(3)}, temperature=${curr.temperature}, downhillStepCount= ${curr.downhillStepsCount}, jump distance= ${jumpDist}, dir= ${curr.direction.toString(StringifyMode.concise)}  ----------------------`)
@@ -310,7 +311,7 @@ export function nextSearchState<T extends Stringify> (
         return {
             position:           bestAvgPerfPosition!.position,
             direction:          Direction.noDirection(curr.direction.vdm),                                                                                                  
-            temperature:        curr.temperature - psp.temperatureCoolingGradient,
+            temperature:        newTemperature(curr.temperature, psp.temperatureCoolingParm),
             downhillStepsCount: 0
         }
     }
@@ -323,11 +324,11 @@ export function nextSearchState<T extends Stringify> (
     else                    // it is the first iteration so there is already a log entry 
         if (perf < bestAvgPerfPosition.performance) { // current performance lower as highest point so far
             if (curr.downhillStepsCount > downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance)) { // too many steps with lower performance in a row
-                                                                                                                                                                    ; if (psp.verbose) console.log(`\t\ttoo many downhill steps. Retreat from ${log.last?.position.toString(StringifyMode.concise)} with avg. perf=${log.last?.performance.toPrecision(3)} to ${bestAvgPerfPosition.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition.performance.toPrecision(3)}. Setting new course`)
+                                                                                                                                                                    ; if (psp.verbose) console.log(`\t\t${curr.downhillStepsCount} are too many steps downhill. Retreat from ${log.last?.position.toString(StringifyMode.concise)} with avg. perf=${log.last?.performance.toPrecision(3)} to ${bestAvgPerfPosition.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition.performance.toPrecision(3)}. Setting new course`)
                 return {
                     position:           bestAvgPerfPosition.position,                               // retreat to a position that showed best performance
                     direction:          curr.direction.newRandomDirection(),                                                                                                  
-                    temperature:        curr.temperature - psp.temperatureCoolingGradient, 
+                    temperature:        newTemperature(curr.temperature, psp.temperatureCoolingParm), 
                     downhillStepsCount: 0
                 }
             }
@@ -342,7 +343,7 @@ export function nextSearchState<T extends Stringify> (
     return {
         position:           vor.position,
         direction:          vor.rebound ? curr.direction.newRandomDirection() : curr.direction,
-        temperature:        curr.temperature - psp.temperatureCoolingGradient, 
+        temperature:        newTemperature(curr.temperature, psp.temperatureCoolingParm), 
         downhillStepsCount: newDownhillStepsCount
     }
 }

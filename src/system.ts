@@ -37,8 +37,8 @@ function performanceAt(): number { return 0 }
 
 const searchParms:        PeakSearchParms     = {
     initTemperature:                 100,     // initial temperature; need to be > 0
-    temperatureCoolingGradient:      10,      // cooling with every search iteration
-    degreesPerDownhillStepTolerance: 10,      // downhill step sequences tolerance
+    temperatureCoolingParm:          0.9,     // cooling parameter 
+    degreesPerDownhillStepTolerance: 30,      // downhill step sequences tolerance
     initJumpDistance:                5,       // jump distances [#steps] in choosen direction; reduces when temperature cools
     verbose:                         true     // outputs debug data if true
    }
