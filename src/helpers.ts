@@ -131,5 +131,11 @@ export function randomlyPickedByWeigths<T>(arr: WeightedElement<T>[], polished: 
     return randomlyPickedElement(arrayWithWeightDistribition<T>(arrayWithNormalizedWeights<T>(arr, polished)))
 }
 
-
+// filter the x% array elements with the highest value (by ChatGPT 3.5)
+export function topPercentileValues(arr: number[], x: number): number[] {
+    if (x <= 0 || x > 100) throw new Error("helpers.getTopPercentileValues(): Percentage must be between 0 and 100.")
+    const sortedArr = [...arr].sort((a, b) => b - a)        // Sort the array in descending order
+    const count = Math.ceil((x / 100) * sortedArr.length);  // Calculate the number of elements to return    
+    return sortedArr.slice(0, count)                        // Return the top x% values
+}
 

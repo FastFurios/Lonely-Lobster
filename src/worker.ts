@@ -117,6 +117,10 @@ export class AssignmentSet {
     public addAssignment(as: Assignment) {
         this.assignments.push(as)
     }
+
+    public assignedWorkersToProcessStep(ps: ProcessStep): Worker[] | undefined {
+        return this.assignments.filter(assignment => assignment.valueChainProcessStep.processStep == ps).map(assignment => assignment.worker)
+    }
 }
 
 //----------------------------------------------------------------------

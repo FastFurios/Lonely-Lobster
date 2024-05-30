@@ -235,7 +235,8 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             degreesPerDownhillStepTolerance:    paj.wip_limit_search_parms?.degrees_per_downhill_step_tolerance ? paj.wip_limit_search_parms.degrees_per_downhill_step_tolerance    : 50,
             initJumpDistance:                   paj.wip_limit_search_parms?.initial_jump_distance               ? paj.wip_limit_search_parms.initial_jump_distance                  : 1,
             measurementPeriod:                  paj.wip_limit_search_parms?.measurement_period                  ? paj.wip_limit_search_parms.measurement_period                     : 100,
-            searchOnAtStart:                    paj.wip_limit_search_parms?.searchOnAtStart                     ? paj.wip_limit_search_parms.searchOnAtStart                        : false,
+            wipLimitUpperBoundaryFactor:        paj.wip_limit_search_parms?.wip_limit_upper_boundary_factor     ? paj.wip_limit_search_parms?.wip_limit_upper_boundary_factor       : 2,
+            searchOnAtStart:                    paj.wip_limit_search_parms?.search_on_at_start                  ? paj.wip_limit_search_parms.search_on_at_start                     : false,
             verbose:                            paj.wip_limit_search_parms?.verbose                             ? paj.wip_limit_search_parms.verbose                                : true 
         }
     sys.addWipLimitSearchParameters(searchParms)

@@ -12,7 +12,7 @@ import cors     from "cors"
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
-import { I_SystemState } from './io_api_definitions.js'
+import { I_VcWorkOrders } from './io_api_definitions.js'
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -119,7 +119,7 @@ function apiMode(): void {
             return
         }
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
-        
+
         // return next system state to frontend
         res.send(lonelyLobsterSystem.nextSystemState(req.body))
     })

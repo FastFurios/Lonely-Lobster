@@ -4,6 +4,7 @@
 
 import { randomPick } from './helpers.js'
 import { Timestamp } from './io_api_definitions.js'
+import { topPercentileValues } from './helpers.js'
 
 //----------------------------------------------------------------------------
 // MULTIDIMENSIONAL SEARCH FOR OPTIMUM 
@@ -119,11 +120,18 @@ export class Position<T extends Stringify> extends Vector<T> {
     constructor(vdm: VectorDimensionMapper<T>, vec: number[]) {
         super(vdm, vec)
     }
-    public avgPerformance(fromVisit?: number, toVisit?: number): number | undefined {
+
+    public avgPerformanceOfTopPercentile(topPercentile: number): number | undefined {
         if (this.visitsOverTime.length < 1) return undefined
-        if (!fromVisit) fromVisit = 0
-        if (!toVisit)   toVisit   = this.visitsOverTime.length
-        return this.visitsOverTime.slice(fromVisit, toVisit).map(sle => sle.performance).reduce((a, b) => a + b) / this.visitsOverTime.length
+        const tpv = topPercentileValues(this.visitsOverTime.map(sle => sle.performance), topPercentile) 
+        return tpv.reduce((a, b) => a + b) / tpv.length
+    }
+
+    /**
+    //public avgPerformance(ignoreWorstPerformingPortion: number): number | undefined {
+    public avgPerformance(): number | undefined {
+        if (this.visitsOverTime.length < 1) return undefined
+        return this.visitsOverTime.map(sle => sle.performance).reduce((a, b) => a + b) / this.visitsOverTime.length
     }
 
     public avgPerformanceChangeSince(compareSplitAtVisit: number): number | undefined {  // returns the rate of change from avg perf before compareSplitAtVist and after
@@ -132,7 +140,7 @@ export class Position<T extends Stringify> extends Vector<T> {
         if (!avgPerfBeforeSplit || !avgPerfAfterSplit || avgPerfBeforeSplit == 0) return undefined
         return (avgPerfAfterSplit - avgPerfBeforeSplit) / avgPerfBeforeSplit
     } 
-
+    */
     public recordNewVisit(sle: SearchLogEntry<T>): void {
         this.visitsOverTime.push(sle)
     }
@@ -250,7 +258,7 @@ export class SearchLog<T extends Stringify> {
     get positionWithBestAvgPerformance(): PositionPerformance<T> | undefined { // checks all log entries and calculates the avg performance of each position and returns the position with the best avg. performance
         let bestPosAvgPerf: PositionPerformance<T> | undefined = undefined
         for (let le of this.log) {
-            const lePosAvgPerf = le.position.avgPerformance()
+            const lePosAvgPerf = le.position.avgPerformanceOfTopPercentile(50)
             if (!bestPosAvgPerf || lePosAvgPerf! > bestPosAvgPerf.performance) 
                 bestPosAvgPerf = { position: le.position, performance: lePosAvgPerf! }
         }
@@ -276,6 +284,7 @@ export type PeakSearchParms = {    // parameter set for the search algorithm
     degreesPerDownhillStepTolerance: DegreesPerDownhillStepTolerance    // downhill step sequences tolerance
     initJumpDistance:                number                             // jump distances in choosen direction; reduces when temperature cools
     measurementPeriod:               number                             // number of iterations after which the performance is measured
+    wipLimitUpperBoundaryFactor:     number                             // will be multiplied with the lower boundary which is (#assigned-workers / norm-effort)  
     searchOnAtStart:                 boolean                            // search is on from first iteration if true
     verbose:                         boolean                            // outputs debug data if true
 }
