@@ -275,6 +275,8 @@ export type PeakSearchParms = {    // parameter set for the search algorithm
     temperatureCoolingParm:          number                             // cooling down parameter for cooling function 
     degreesPerDownhillStepTolerance: DegreesPerDownhillStepTolerance    // downhill step sequences tolerance
     initJumpDistance:                number                             // jump distances in choosen direction; reduces when temperature cools
+    measurementPeriod:               number                             // number of iterations after which the performance is measured
+    searchOnAtStart:                 boolean                            // search is on from first iteration if true
     verbose:                         boolean                            // outputs debug data if true
 }
 

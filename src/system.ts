@@ -33,17 +33,17 @@ interface WiElapTimeValAdd {
 //    WIP LIMITS AND SYSTEM PERFORMANCE LOG
 //----------------------------------------------------------------------
 
-function performanceAt(): number { return 0 }
+//function performanceAt(): number { return 0 }
 
 const searchParms:        PeakSearchParms     = {
     initTemperature:                 100,     // initial temperature; need to be > 0
-    temperatureCoolingParm:          0.9,     // cooling parameter 
-    degreesPerDownhillStepTolerance: 30,      // downhill step sequences tolerance
-    initJumpDistance:                5,       // jump distances [#steps] in choosen direction; reduces when temperature cools
+    temperatureCoolingParm:          0.95,     // cooling parameter 
+    degreesPerDownhillStepTolerance: 50,      // downhill step sequences tolerance
+    initJumpDistance:                1,       // jump distances [#steps] in choosen direction; reduces when temperature cools
+    measurementPeriod:               20,
+    searchOnAtStart:                 true,
     verbose:                         true     // outputs debug data if true
    }
-
-const wipLimitOptimizationObservationPeriod = 100
 
 //----------------------------------------------------------------------
 //    LONELY LOBSTER SYSTEM
@@ -63,6 +63,7 @@ export class LonelyLobsterSystem {
     public  learnAndAdaptParms!: LearnAndAdaptParms
 
     // system's wip limit optimization:
+    private searchParms!:       PeakSearchParms
     private vdm!:               VectorDimensionMapper<ProcessStep>
     private searchState!:       SearchState<ProcessStep>   
     public  wipLimitSearchLog                       = new SearchLog<ProcessStep>()
@@ -98,7 +99,7 @@ export class LonelyLobsterSystem {
         this.clock.tick()
 
         // measure system performance with current WIP limits and adjust them
-        if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % wipLimitOptimizationObservationPeriod == 0) {
+        if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % searchParms.measurementPeriod == 0) {
             this.optimizeWipLimits()
 ///* !! */      this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deeply #####
         }
@@ -137,6 +138,11 @@ export class LonelyLobsterSystem {
     public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
 
     public addLearningParameters(laps: LearnAndAdaptParms) { this.learnAndAdaptParms = laps; Worker.sysStats = <any>undefined } // clear system 
+
+    public addWipLimitSearchParameters(sp: PeakSearchParms) { this.searchParms = sp 
+        console.log("system.addWipLimitSearchParameters(): this.searchParms=")
+        console.log(this.searchParms)
+    }
 
 //----------------------------------------------------------------------
 //    API mode - Iteration
@@ -214,7 +220,7 @@ export class LonelyLobsterSystem {
     }
 
     private i_systemState(): I_SystemState {
-        console.log(`system.i_systemState().isWipLimitOptimizationStillActive= ${this.isWipLimitOptimizationStillActive}`)
+        //console.log(`system.i_systemState().isWipLimitOptimizationStillActive= ${this.isWipLimitOptimizationStillActive}`)
         return {
             id:                                     this.id,
             time:                                   this.clock.time,
@@ -246,7 +252,7 @@ export class LonelyLobsterSystem {
 
     private optimizeWipLimits() {
         this.searchState.position = this.searchStatePositionFromWipLimits()
-        const currPerf = this.systemStatistics(this.clock.time - wipLimitOptimizationObservationPeriod < 1 ? 1 : this.clock.time - wipLimitOptimizationObservationPeriod, this.clock.time).outputBasket.economics.roceFix
+        const currPerf = this.systemStatistics(this.clock.time - searchParms.measurementPeriod < 1 ? 1 : this.clock.time - searchParms.measurementPeriod, this.clock.time).outputBasket.economics.roceFix
         this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, searchParms, this.clock.time, this.searchState)
                                                                 //console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position.toString(StringifyMode.concise)}, direction= ${this.searchState.direction.toString(StringifyMode.concise)}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
         this.setWipLimitsFromSearchStatePosition()
@@ -404,7 +410,7 @@ export class LonelyLobsterSystem {
 
     public initializeWipLimitOptimization(): void {
         Position.visitedPositions.clear()
-        this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, undefined))))
+        this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, 10))))
         this.wipLimitSearchLog  = new SearchLog<ProcessStep>()
         this.searchState        = {
                                     position:           this.searchStatePositionFromWipLimits(), // inital values set as in process steps defined; if null there then set 1; will be (partially) overwritten by potentially manually set WIP limits of the process steps at each iteration

@@ -10,6 +10,7 @@ import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndA
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
+import { PeakSearchParms } from "./optimize.js"
 
 export interface DebugShowOptions  {
     clock:          boolean,
@@ -226,6 +227,18 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     console.log("io_config: learn&adapt: successMeasureFct = " + learnAndAdaptParms.successMeasureFct)
 
     sys.addLearningParameters(learnAndAdaptParms)
+
+
+    const searchParms: PeakSearchParms = {
+            initTemperature:                    paj.wip_limit_search_parms?.initial_temperature                 ? paj.wip_limit_search_parms.initial_temperature                    : 100,
+            temperatureCoolingParm:             paj.wip_limit_search_parms?.cooling_parm                        ? paj.wip_limit_search_parms.cooling_parm                           : 0.95,
+            degreesPerDownhillStepTolerance:    paj.wip_limit_search_parms?.degrees_per_downhill_step_tolerance ? paj.wip_limit_search_parms.degrees_per_downhill_step_tolerance    : 50,
+            initJumpDistance:                   paj.wip_limit_search_parms?.initial_jump_distance               ? paj.wip_limit_search_parms.initial_jump_distance                  : 1,
+            measurementPeriod:                  paj.wip_limit_search_parms?.measurement_period                  ? paj.wip_limit_search_parms.measurement_period                     : 100,
+            searchOnAtStart:                    paj.wip_limit_search_parms?.searchOnAtStart                     ? paj.wip_limit_search_parms.searchOnAtStart                        : false,
+            verbose:                            paj.wip_limit_search_parms?.verbose                             ? paj.wip_limit_search_parms.verbose                                : true 
+        }
+    sys.addWipLimitSearchParameters(searchParms)
 
     // return the configured system
     return sys
