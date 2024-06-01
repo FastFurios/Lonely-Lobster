@@ -31,6 +31,8 @@ type VectorOperationResult<T extends Stringify> = {
     rebound:    boolean
 }
 
+const c_AvgPerformanceOfTopPercentile = 50
+
 // --- VECTOR DIMENSION MAPPER --------------------------------------------------------------------
 
 export class VectorDimension<T extends Stringify> {
@@ -111,7 +113,7 @@ export class Position<T extends Stringify> extends Vector<T> {
     } 
 
     static visitedPositionsToString(): string {
-        return [...this.visitedPositions.values()].map(vp => `\n\t\t\t${vp.toString(StringifyMode.concise, true)}`).reduce((a, b) => `${a} ${b}`, "")
+        return [...this.visitedPositions.values()].map((vp: Position<any>) => `\n\t\t\t${vp.toString(StringifyMode.concise, true)}; top${c_AvgPerformanceOfTopPercentile}%-avg=${vp.avgPerformanceOfTopPercentile(c_AvgPerformanceOfTopPercentile)?.toPrecision(3)}`).reduce((a, b) => `${a} ${b}`, "")
     }
 
     // -- object properties ---- 
@@ -124,6 +126,7 @@ export class Position<T extends Stringify> extends Vector<T> {
     public avgPerformanceOfTopPercentile(topPercentile: number): number | undefined {
         if (this.visitsOverTime.length < 1) return undefined
         const tpv = topPercentileValues(this.visitsOverTime.map(sle => sle.performance), topPercentile) 
+        //console.log(`position: ${this.toString(StringifyMode.concise)}: optimize.Position.avgPerformanceOfTopPercentile(${topPercentile}): #visits=${tpv.length}, topAvg=${tpv.map(pv => pv.toPrecision(3))}`)
         return tpv.reduce((a, b) => a + b) / tpv.length
     }
 
@@ -237,7 +240,6 @@ type PositionPerformance<T extends Stringify> = {
     position: Position<T>
     performance: number
 }
-
 export class SearchLog<T extends Stringify> {
     log: SearchLogEntry<T>[] = []
     constructor() { }
@@ -258,7 +260,7 @@ export class SearchLog<T extends Stringify> {
     get positionWithBestAvgPerformance(): PositionPerformance<T> | undefined { // checks all log entries and calculates the avg performance of each position and returns the position with the best avg. performance
         let bestPosAvgPerf: PositionPerformance<T> | undefined = undefined
         for (let le of this.log) {
-            const lePosAvgPerf = le.position.avgPerformanceOfTopPercentile(50)
+            const lePosAvgPerf = le.position.avgPerformanceOfTopPercentile(c_AvgPerformanceOfTopPercentile)
             if (!bestPosAvgPerf || lePosAvgPerf! > bestPosAvgPerf.performance) 
                 bestPosAvgPerf = { position: le.position, performance: lePosAvgPerf! }
         }
@@ -316,6 +318,8 @@ export function nextSearchState<T extends Stringify> (
     const le = log.appended(new SearchLogEntry<T>(timestamp, curr.position, curr.direction, jumpDist, perf, curr.temperature, curr.downhillStepsCount, bestAvgPerfPosition))
     if (!le) console.log("*** no reference to log entry from search log.appended()")
     curr.position.recordNewVisit(le)
+    
+    console.log(`${Position.visitedPositionsToString()}`)
 
     // if cooled down to below 0 degree, i.e. it's "frozen", go to position that has performed best on average and stay there
     if (curr.temperature <= 0 && bestAvgPerfPosition) {                                                                                                             ; if (psp.verbose) console.log(`\tnow frozen at best performing position observed so far: ${bestAvgPerfPosition?.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition?.performance.toPrecision(3)}`)

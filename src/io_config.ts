@@ -4,7 +4,7 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
-import { I_Injection, Injection, TimeUnit } from "./io_api_definitions"
+import { I_Injection, Injection, TimeUnit, I_FrontendPresets } from "./io_api_definitions"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
 import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
@@ -240,6 +240,14 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             verbose:                            paj.wip_limit_search_parms?.verbose                             ? paj.wip_limit_search_parms.verbose                                : true 
         }
     sys.addWipLimitSearchParameters(searchParms)
+
+
+    const feps: I_FrontendPresets = {
+        numIterationPerBatch:                   paj.frontend_preset_parameters?.num_iterations_per_batch ? paj.frontend_preset_parameters.num_iterations_per_batch : 1,
+        economicsStatsInterval:                 paj.frontend_preset_parameters?.economics_stats_interval ? paj.frontend_preset_parameters.economics_stats_interval : 0
+    }
+    console.log("io_config: frontend presets: #itertions = " + feps.numIterationPerBatch + "; econ stats interval = " + feps.economicsStatsInterval)
+    sys.addFrontendPresets(feps)
 
     // return the configured system
     return sys

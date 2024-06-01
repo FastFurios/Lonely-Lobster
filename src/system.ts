@@ -12,7 +12,8 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
-         I_VcPsWipLimit, I_IterationRequest } from './io_api_definitions.js'
+         I_VcPsWipLimit, I_IterationRequest, 
+         I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
 
@@ -60,6 +61,8 @@ export class LonelyLobsterSystem {
     public  clock:               Clock              = new Clock(this, -1)
     public  idGen                                   = wiIdGenerator()
     public  tagGen                                  = wiTagGenerator(wiTags)
+
+    private frontendPresets!:    I_FrontendPresets	
 
     // workers' work selection strategy learning:
     public  learnAndAdaptParms!: LearnAndAdaptParms
@@ -141,9 +144,15 @@ export class LonelyLobsterSystem {
 
     public addLearningParameters(laps: LearnAndAdaptParms) { this.learnAndAdaptParms = laps; Worker.sysStats = <any>undefined } // clear system 
 
-    public addWipLimitSearchParameters(sp: PeakSearchParms) { this.searchParms = sp 
+    public addWipLimitSearchParameters(sp: PeakSearchParms) { 
+        this.searchParms = sp 
         console.log("system.addWipLimitSearchParameters(): this.searchParms=")
         console.log(this.searchParms)
+    }
+    public addFrontendPresets(feps: I_FrontendPresets) { 
+        this.frontendPresets = feps
+        console.log("system.addFrontendPresets(): frontendPresets=")
+        console.log(this.frontendPresets)
     }
 
 //----------------------------------------------------------------------
@@ -222,7 +231,10 @@ export class LonelyLobsterSystem {
     }
 
     private i_systemState(): I_SystemState {
-        //console.log(`t=${this.clock.time}: system.i_systemState().isWipLimitOptimizationInBackendActive= ${this.clock.time <= 0 ? this.searchParms.searchOnAtStart : this.isWipLimitOptimizationStillActive}`)
+        if (this.clock.time <= 0) {
+            console.log(`t=${this.clock.time}: system.i_systemState().frontendPresets= `)
+            console.log(this.frontendPresets)
+        }
         return {
             id:                                     this.id,
             time:                                   this.clock.time,
@@ -231,7 +243,8 @@ export class LonelyLobsterSystem {
             workersState:                           this.workers.map(wo => this.i_workerState(wo)),
             version:                                environment.version,
             turnWipLimitOptimizationOnInFrontend:   this.clock.time == 0 ? this.searchParms.searchOnAtStart : undefined,   // when initializating, set the UI toggle to start WIP limit optimization or not
-            isWipLimitOptimizationInBackendActive:  this.clock.time == 0 ? false : this.isWipLimitOptimizationStillActive  // default at start: optimization is off
+            isWipLimitOptimizationInBackendActive:  this.clock.time == 0 ? false : this.isWipLimitOptimizationStillActive, // default at start: optimization is off
+            frontendPresets:                        this.frontendPresets
         }
       }
 
@@ -248,7 +261,7 @@ export class LonelyLobsterSystem {
 
     public nextSystemState(iterReqs: I_IterationRequests) { 
         //console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReqs.length)
-        console.log("_main: app.post(): wos= " + iterReqs.flatMap((ir: I_IterationRequest) => ir.vcsWorkOrders.map(wo => `${wo.valueChainId}: ${wo.numWorkOrders}; `)))
+        //console.log("system.nextSystemState(): wos= " + iterReqs.flatMap((ir: I_IterationRequest) => ir.vcsWorkOrders.map(wo => `${wo.valueChainId}: ${wo.numWorkOrders}; `)))
 
         this.doIterations(iterReqs)
         //console.log("\tSystem: nextSystemState(): doIterations done; returning i_systemState")
@@ -415,13 +428,15 @@ export class LonelyLobsterSystem {
         this.vdm.vds.forEach((vd, idx) => vd.dimension.wipLimit = this.searchState.position.vec[idx])
     }
 
-    private wipLimitLowerBoundary(ps: ProcessStep): number {
+    /**    private wipLimitLowerBoundary(ps: ProcessStep): number {
         const assignedWorkers = this.assignmentSet.assignedWorkersToProcessStep(ps)
-        const aux = Math.max(1, Math.min(ps.wipLimit, Math.floor(assignedWorkers ? assignedWorkers.length / ps.normEffort : 1)))
+        //const aux = Math.max(1, Math.min(ps.wipLimit, Math.floor(assignedWorkers ? assignedWorkers.length / ps.normEffort : 1)))
         //console.log(`system.wipLimitLowerBoundary(${ps.id}): assigned workers are: ${assignedWorkers?.map(aw => aw.id)}`)
+        const aux = 1
         console.log(`system.wipLimitLowerBoundary(${ps.id})= ${aux}`)
         return aux
     } 
+ */
 
     private wipLimitUpperBoundary(ps: ProcessStep): number {
         const assignedWorkers = this.assignmentSet.assignedWorkersToProcessStep(ps)
@@ -433,9 +448,8 @@ export class LonelyLobsterSystem {
 
     public initializeWipLimitOptimization(): void {
         Position.visitedPositions.clear()
-        this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, this.wipLimitLowerBoundary(ps), this.wipLimitUpperBoundary(ps)))))
-        //this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, 10))))
-        this.wipLimitSearchLog  = new SearchLog<ProcessStep>()
+        this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, this.wipLimitUpperBoundary(ps)))))
+        this.wipLimitSearchLog  = this.wipLimitSearchLog ? this.wipLimitSearchLog : new SearchLog<ProcessStep>()
         this.searchState        = {
                                     position:           this.searchStatePositionFromWipLimits(), // inital values set as in process steps defined; if null there then set 1; will be (partially) overwritten by potentially manually set WIP limits of the process steps at each iteration
                                     direction:          new Direction<ProcessStep>(this.vdm, this.vdm.vds.map(_ => -1)),  // initial direction is [1, 1, ..., 1]

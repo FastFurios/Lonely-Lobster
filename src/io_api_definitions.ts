@@ -94,6 +94,11 @@ export interface I_WorkerState {
     weightedSelectionStrategies:    I_WeightedSelectionStrategy[]
 }
 
+export interface I_FrontendPresets {
+    numIterationPerBatch:           number
+    economicsStatsInterval:         number
+}
+
 export interface I_SystemState {
     id:                             string,
     time:                           Timestamp,
@@ -103,7 +108,7 @@ export interface I_SystemState {
     version:                        string  // code version of this Lonely Lobster backend service 
     turnWipLimitOptimizationOnInFrontend:    boolean | undefined // if true then the frontend should turn on WIP limits optimization; if undefined or false, ignored
     isWipLimitOptimizationInBackendActive:   boolean // true if still optimizing, false if optimization finished in the backend
-
+    frontendPresets:                I_FrontendPresets // just used at initialization to preset the iteration batch size and the statistics interval in the frontend 
 }
 
 //-----------------------------------------
