@@ -1,4 +1,4 @@
 export const environment = {
-    version: "5.2.0",
-    notes: "batchsize and econ stats intervall presets from config-file; optimization of WIP limits: automatic setting of upper boundary; top percentile avg performance of position visits"
+    version: "6.0.0",
+    notes: "prepared io_config.ts to changes in config file regarding workitem selection strategies "
   }

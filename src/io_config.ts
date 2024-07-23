@@ -4,9 +4,9 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
-import { I_Injection, Injection, TimeUnit, I_FrontendPresets } from "./io_api_definitions"
+import { I_Injection, Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames } from "./io_api_definitions.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
+import { Worker, AssignmentSet, Assignment, SelectionStrategy, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
@@ -73,9 +73,12 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     }
 
     function valueDegradationFct(timeValueFctAndArg: I_TimeValueFctAndArg): TimeValuationFct {
-        switch (timeValueFctAndArg?.function) {
-            case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
-            case "expired"   : return expired.bind(null, timeValueFctAndArg.argument)
+            console.log("io_config: valueDegradationFct(): argument timeValueFctAndArg = " + timeValueFctAndArg.function)
+            switch (timeValueFctAndArg?.function) {
+            case valueDegradationFunctionNames[0]: { console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[0]); return discounted.bind(null, timeValueFctAndArg.argument) }
+            case valueDegradationFunctionNames[1]: { console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[1]); return expired.bind(null, timeValueFctAndArg.argument)    }
+//          case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
+//          case "expired":    return expired.bind(null, timeValueFctAndArg.argument)
             default: { 
                 console.log(`WARNING: Reading system parameters: value degration function \"${timeValueFctAndArg?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
                 return net
@@ -86,9 +89,9 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     function successMeasureFct(smf: I_SuccessMeasureFct): SuccessMeasureFunction  {
         console.log("io_config: successMeasureFct(\"" + smf + "\")")
         switch (smf) {
-            case "ivc":     return successMeasureIvc   // ivc = individual value contribution (how much realized value is attributed to my effort?)
-            case "roce":    return successMeasureRoce  // roce = system's return on capital employed 
-            case "none":    return successMeasureNone  // no measurement 
+            case successMeasureFunctionNames[0]: { console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[0]); return successMeasureIvc }  // ivc = individual value contribution (how much realized value is attributed to my effort?)
+            case successMeasureFunctionNames[1]: { console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[1]); return successMeasureRoce } // roce = system's return on capital employed 
+            case successMeasureFunctionNames[2]: { console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[2]); return successMeasureNone } // no measurement 
             default: { 
                 console.log(`WARNING: Reading system parameters: learn & adapt success function \"${smf}\" not known to Lonely Lobster; resorting to \"successMeasureNone()\"`)
                 return successMeasureNone
@@ -120,27 +123,34 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     const valueChains: ValueChain[] = paj.value_chains.map((vcj: I_value_chain) => filledValueChain(vcj))
     sys.addValueChains(valueChains)
 
+    // extract globally defined workitem selection strategies
+
+    interface I_sortVector {
+        measure:             string
+        selection_criterion: string
+    }
+    interface I_selectionStrategy {
+        id:         string
+        strategy:   I_sortVector[]
+    }
+
+// paj.globally_defined_workitem_selection_strategies
+
     // extract workers and assignments
     interface I_process_step_assignment {
         value_chain_id:     string
         process_steps_id:   string
     }
-    interface I_sortVector {
-        measure:             WiExtInfoElem
-        selection_criterion: SelectionCriterion
-    }
-    interface I_availableSelectionStrategy {
-        id:         string
-        strategy:   I_sortVector[]
-    }
     interface I_worker {
         worker_id:                                              string
-        select_next_work_item_sort_vector_sequence:             I_sortVector[] // deprecated, replaced by ... see next line 
-        workitem_selection_strategies:                          I_availableSelectionStrategy[]
+//      select_next_work_item_sort_vector_sequence:             I_sortVector[] // deprecated, replaced by ... see next line 
+        workitem_selection_strategies:                          string[]
         process_step_assignments:                               I_process_step_assignment[]
     }
     
-    const createdNewWorker = (woj: I_worker): Worker => { 
+    const createdNewWorker = (woj: I_worker): Worker => {
+        console.log("createdNewWorker() param="); console.log(woj)
+
         function sortVectorFromJson(svj: I_sortVector): SortVector {
             if (Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure) == undefined) { 
                 console.log(`Reading system parameters: selecting next workitem by \"${svj.measure}\" is an unknown measure`)
@@ -155,30 +165,28 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                 selCrit:  Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion)!.value
             } 
         }
-
-        let weightedSelStrategies: WeightedSelectionStrategy[]
-        if (woj.workitem_selection_strategies) {  // the new property, introduced in Rel.3, is used
-            weightedSelStrategies = woj.workitem_selection_strategies == undefined 
+    
+        function globallyDefinedStrategy(sId: string): I_selectionStrategy | undefined {
+            return (<I_selectionStrategy[]>paj.globally_defined_workitem_selection_strategies).find(s => s.id == sId)
+        } 
+        let weightedSelStrategies: WeightedSelectionStrategy[] = woj.workitem_selection_strategies == undefined || woj.workitem_selection_strategies.length == 0
                                         ? [ { element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy 
-                                        : arrayWithNormalizedWeights(woj.workitem_selection_strategies.map(strat => { 
-                                            return { 
-                                                element: { 
-                                                    id:         strat.id,
-                                                    strategy:   strat.strategy.map(svj => sortVectorFromJson(svj)) 
-                                                },
-                                                weight: 1
-                                            }}), (x => x) /* take numbers as is */)      
-        } else if (woj.select_next_work_item_sort_vector_sequence) {
-            // in case we did not find the new property "workitem_selection_strategies" try to find the deprecated old
-            // property "select_next_work_item_sort_vector_sequence"
-            const svs: SortVectorSequence = woj.select_next_work_item_sort_vector_sequence == undefined 
-                                          ? [] // random ("[]") is the only available selection strategy
-                                          : woj.select_next_work_item_sort_vector_sequence?.map(svj => sortVectorFromJson(svj))
-            weightedSelStrategies = [{ element: {id: "#unnamed#", strategy: svs}, weight: 1 }]
-        } else 
-            weightedSelStrategies = [{ element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy
+                                        : arrayWithNormalizedWeights(woj.workitem_selection_strategies
+                                                .map(sId => globallyDefinedStrategy(sId))
+                                                .filter(strat => strat != undefined)
+                                                .map(strat => { return { 
+                                                                    element: { 
+                                                                        id:         strat!.id,
+                                                                        strategy:   strat!.strategy.map(svj => sortVectorFromJson(svj)) 
+                                                                    },
+                                                                    weight: 1
+                                                                }}), (x => x) /* take numbers as is */)       
+/*          console.log(`Reading system parameters: paj.globally_defined_workitem_selection_strategies: 
+            ${paj.globally_defined_workitem_selection_strategies.map((ss:any) => `${ss.id} ${ss.strategy.map((sv:any) => `[${sv.measure}/${sv.selection_criterion}]`)}`)}`)
+*/          console.log(`Reading system parameters: weightedSelStrategies: 
+            ${weightedSelStrategies.map(wss => `${wss.element.id} (weight=${wss.weight}): ${wss.element.strategy.map(sv => `[${sv.colIndex}/${sv.selCrit}]`)}`)}`)
 
-        return new Worker(sys, woj.worker_id, weightedSelStrategies) 
+            return new Worker(sys, woj.worker_id, /* [ { element: { id: "random", strategy: [] }, weight: 1 }] */ weightedSelStrategies) 
     }
 
     const addWorkerAssignment = (psaj: I_process_step_assignment, newWorker: Worker, vcs: ValueChain[], asSet: AssignmentSet): void  => {

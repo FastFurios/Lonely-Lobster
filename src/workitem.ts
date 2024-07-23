@@ -8,7 +8,7 @@ import { LogEntry, LogEntryType } from './logging.js'
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
 import { Worker } from './worker.js'
-import { WorkItemBasketHolder, ProcessStep, OutputBasket } from './workitembasketholder.js'
+import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
 
 //----------------------------------------------------------------------
 //    definitions and helpers

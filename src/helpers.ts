@@ -68,7 +68,7 @@ export function topElemAfterSort(arrArr: WiExtInfoTuple[], sest: SortVectorSeque
     if (sest.length == 0) return arrArr[Math.floor(Math.random() * arrArr.length)]   // arrArr[0]
 
     const f = sest[0].selCrit == SelectionCriterion.maximum ? (a: number, b: number) => a > b ? a : b
-                                                           : (a: number, b: number) => a < b ? a : b
+                                                            : (a: number, b: number) => a < b ? a : b
     const v          = (<number[]>arrArr.map(arr => arr[sest[0].colIndex])).reduce(f)
     const arrArrTops = arrArr.filter(arr => arr[sest[0].colIndex] == v)
 

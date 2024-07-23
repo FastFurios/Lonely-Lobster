@@ -93,7 +93,7 @@ function apiMode(): void {
         let lonelyLobsterSystem: LonelyLobsterSystem 
         try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
         catch(error: any) {
-            console.log("_main: app.post /initialize: ERROR interpreting system configuration")
+            console.log("_main: app.post /initialize: ERROR interpreting system configuration: error= " + error)
             res.status(400).json({ message: error.message })
             return 
         }

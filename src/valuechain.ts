@@ -33,7 +33,7 @@ export class ValueChain {
                 public id:              ValueChainId,
                 public totalValueAdd:   Value,
                 public injection:       Injection,
-                public valueDegration:  TimeValuationFct = net) {   // call signatutre is valueDegration(totalValueAdd: Value, excessTime: Timeunit) where excessTime is the additional time above the minimal cycle time it took to reach the output basket
+                public valueDegration:  TimeValuationFct = net) {   // call signature is valueDegration(totalValueAdd: Value, excessTime: Timeunit) where excessTime is the additional time above the minimal cycle time it took to reach the output basket
     }   
 
     public createAndInjectNewWorkItem(): void { 
