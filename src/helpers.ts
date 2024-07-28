@@ -52,15 +52,17 @@ export function reshuffle<T>(a: T[]): T[] {
 //  if no sortVector provided, choose a row by random
 // ------------------------------------------------------------
 
-export enum SelectionCriterion {
-    minimum = 0,
-    maximum = 1
-}
+export type SortVectorSequence = SortVector[]  // export deprecated since V3.0.0
+
 export interface SortVector {
     colIndex:  WiExtInfoElem,
     selCrit:   SelectionCriterion
 }
-export type SortVectorSequence = SortVector[]  // export deprecated since V3.0.0
+
+export enum SelectionCriterion {
+    minimum = 0,
+    maximum = 1
+}
 
 export function topElemAfterSort(arrArr: WiExtInfoTuple[], sest: SortVectorSequence): WiExtInfoTuple {
     if (arrArr.length     <  1) throw Error("topElemAfterSort(): received array w/o element") 

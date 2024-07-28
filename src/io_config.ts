@@ -4,12 +4,12 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
-import { I_Injection, Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames } from "./io_api_definitions.js"
+import { I_Injection, Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames, I_sortVector, I_selectionStrategy } from "./io_api_definitions.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
 import { Worker, AssignmentSet, Assignment, SelectionStrategy, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
-import { SortVector, SelectionCriterion, SortVectorSequence, arrayWithNormalizedWeights} from "./helpers.js"
+import { SortVector, SelectionCriterion, arrayWithNormalizedWeights} from "./helpers.js"
 import { PeakSearchParms } from "./optimize.js"
 
 export interface DebugShowOptions  {
@@ -125,6 +125,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 
     // extract globally defined workitem selection strategies
 
+/*
     interface I_sortVector {
         measure:             string
         selection_criterion: string
@@ -133,7 +134,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         id:         string
         strategy:   I_sortVector[]
     }
-
+*/
 // paj.globally_defined_workitem_selection_strategies
 
     // extract workers and assignments
@@ -184,7 +185,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 /*          console.log(`Reading system parameters: paj.globally_defined_workitem_selection_strategies: 
             ${paj.globally_defined_workitem_selection_strategies.map((ss:any) => `${ss.id} ${ss.strategy.map((sv:any) => `[${sv.measure}/${sv.selection_criterion}]`)}`)}`)
 */          console.log(`Reading system parameters: weightedSelStrategies: 
-            ${weightedSelStrategies.map(wss => `${wss.element.id} (weight=${wss.weight}): ${wss.element.strategy.map(sv => `[${sv.colIndex}/${sv.selCrit}]`)}`)}`)
+                ${weightedSelStrategies.map(wss => `${wss.element.id} (weight=${wss.weight}): ${wss.element.strategy.map(sv => `[${sv.colIndex}/${sv.selCrit}]`)}`)}`)
 
             return new Worker(sys, woj.worker_id, /* [ { element: { id: "random", strategy: [] }, weight: 1 }] */ weightedSelStrategies) 
     }

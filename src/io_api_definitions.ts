@@ -221,8 +221,17 @@ export type I_LearningStatsWorker = {
 export type I_LearningStatsWorkers = I_LearningStatsWorker[]
 
 //-----------------------------------------
-// value lists for the editor 
+// types and value lists for the editor 
 //-----------------------------------------
+
+export interface I_sortVector {
+    measure:             string
+    selection_criterion: string
+}
+export interface I_selectionStrategy {
+    id:         string
+    strategy:   I_sortVector[]
+}
 
 export const valueDegradationFunctionNames = [
     "discounted",  // wired with discounted()
@@ -236,7 +245,7 @@ export const successMeasureFunctionNames = [
     "none"         // wired with successMeasureNone()
 ]
 
-export const enum  workItemSelectionStrategyMeasureNames {
+export enum workItemSelectionStrategyMeasureNames {
     accumulatedEffortInProcessStep  = "accumulated effort in process step",
     remainingEffortInProcessStep    = "remaining effort in process step",
     accumulatedEffortInValueChain   = "accumulated effort in value chain",
