@@ -19,6 +19,87 @@ export type Injection      = { throughput: number, probability: number }
 export type WipLimit       = number
 
 //-------------------------
+// system config JSON file 
+//-------------------------
+
+export interface I_LearnAndAdaptParamsAsJson {
+    observation_period: number,
+    success_measure_function: string,
+    adjustment_factor: number
+}
+
+export interface I_ValueDegradationAsJson {
+    function: string,
+    argument: number
+}
+
+export interface I_InjectionAsJson {
+    throughput: number,
+    probability?: number
+}
+
+export interface I_ProcessStepAsJson {
+    process_step_id: string,
+    norm_effort: number,
+    bar_length?: number // for backend stand-alone batch mode only 
+}
+
+export interface I_ValueChainAsJson {
+    value_chain_id: string,
+    value_add: number,
+    value_degradation?: I_ValueDegradationAsJson,
+    injection?: I_InjectionAsJson,
+    processSteps: I_ProcessStepAsJson[]
+}
+
+export interface I_SortVectorAsJson {
+    measure: string,
+    selection_criterion: string
+}
+
+export interface I_GloballyDefinedWorkitemSelectionStrategyAsJson {
+    id: string,
+    strategy: I_SortVectorAsJson[]
+}
+
+export interface I_ValueChainAndProcessStepAsJson {
+    value_chain_id: string,
+    process_steps_id: string
+}
+
+export interface I_WorkerAsJson {
+    worker_id: string,
+    workitem_selection_strategies?: string[],
+    process_step_assignments: I_ValueChainAndProcessStepAsJson[]
+}
+
+export interface I_FrontendPresetParametersAsJson {
+    num_iterations_per_batch?: number,
+    economics_stats_interval?: number
+}
+
+export interface I_WipLimitSearchParmsAsJson {
+    initial_temperature: number,
+    cooling_parm: number,
+    degrees_per_downhill_step_tolerance: number,
+    initial_jump_distance: number,
+    measurement_period: number,
+    wip_limit_upper_boundary_factor: number,
+    search_on_at_start: boolean,
+    verbose: boolean           
+}
+
+export interface I_ConfigAsJson {
+    system_id: string,
+    frontend_preset_parameters?: I_FrontendPresetParametersAsJson,
+    learn_and_adapt_parms?: I_LearnAndAdaptParamsAsJson,
+    wip_limit_search_parms?: I_WipLimitSearchParmsAsJson,
+    value_chains: I_ValueChainAsJson[],
+	globally_defined_workitem_selection_strategies?: I_GloballyDefinedWorkitemSelectionStrategyAsJson[]
+    workers: I_WorkerAsJson[]
+}
+
+//-------------------------
 // request to iterate
 //-------------------------
 
@@ -265,6 +346,6 @@ export enum workItemSelectionStrategyMeasureNames {
 }
 
 export const selectionCriterionNames = [ // for workItemSelectionStrategyMeasureNames
-    "max",
-    "min"
+    "maximum",
+    "minimum"
 ]
