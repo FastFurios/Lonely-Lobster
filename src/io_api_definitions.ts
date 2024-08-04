@@ -89,7 +89,7 @@ export interface I_WipLimitSearchParmsAsJson {
     verbose: boolean           
 }
 
-export interface I_ConfigAsJson {
+export type I_ConfigAsJson = {
     system_id: string,
     frontend_preset_parameters?: I_FrontendPresetParametersAsJson,
     learn_and_adapt_parms?: I_LearnAndAdaptParamsAsJson,
@@ -97,7 +97,7 @@ export interface I_ConfigAsJson {
     value_chains: I_ValueChainAsJson[],
 	globally_defined_workitem_selection_strategies?: I_GloballyDefinedWorkitemSelectionStrategyAsJson[]
     workers: I_WorkerAsJson[]
-}
+} | undefined
 
 //-------------------------
 // request to iterate
