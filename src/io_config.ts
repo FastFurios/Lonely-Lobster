@@ -73,10 +73,10 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     }
 
     function valueDegradationFct(timeValueFctAndArg: I_TimeValueFctAndArg): TimeValuationFct {
-            console.log("io_config: valueDegradationFct(): argument timeValueFctAndArg = " + timeValueFctAndArg.function)
+            // console.log("io_config: valueDegradationFct(): argument timeValueFctAndArg = " + timeValueFctAndArg.function)
             switch (timeValueFctAndArg?.function) {
-            case valueDegradationFunctionNames[0]: { console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[0]); return discounted.bind(null, timeValueFctAndArg.argument) }
-            case valueDegradationFunctionNames[1]: { console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[1]); return expired.bind(null, timeValueFctAndArg.argument)    }
+            case valueDegradationFunctionNames[0]: { /*console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[0]);*/ return discounted.bind(null, timeValueFctAndArg.argument) }
+            case valueDegradationFunctionNames[1]: { /*console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[1]);*/ return expired.bind(null, timeValueFctAndArg.argument)    }
 //          case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
 //          case "expired":    return expired.bind(null, timeValueFctAndArg.argument)
             default: { 
@@ -87,11 +87,11 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     }
 
     function successMeasureFct(smf: I_SuccessMeasureFct): SuccessMeasureFunction  {
-        console.log("io_config: successMeasureFct(\"" + smf + "\")")
+        // console.log("io_config: successMeasureFct(\"" + smf + "\")")
         switch (smf) {
-            case successMeasureFunctionNames[0]: { console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[0]); return successMeasureIvc }  // ivc = individual value contribution (how much realized value is attributed to my effort?)
-            case successMeasureFunctionNames[1]: { console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[1]); return successMeasureRoce } // roce = system's return on capital employed 
-            case successMeasureFunctionNames[2]: { console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[2]); return successMeasureNone } // no measurement 
+            case successMeasureFunctionNames[0]: { /*console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[0]);*/ return successMeasureIvc }  // ivc = individual value contribution (how much realized value is attributed to my effort?)
+            case successMeasureFunctionNames[1]: { /*console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[1]);*/ return successMeasureRoce } // roce = system's return on capital employed 
+            case successMeasureFunctionNames[2]: { /*console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[2]);*/ return successMeasureNone } // no measurement 
             default: { 
                 console.log(`WARNING: Reading system parameters: learn & adapt success function \"${smf}\" not known to Lonely Lobster; resorting to \"successMeasureNone()\"`)
                 return successMeasureNone
@@ -123,20 +123,6 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     const valueChains: ValueChain[] = paj.value_chains.map((vcj: I_value_chain) => filledValueChain(vcj))
     sys.addValueChains(valueChains)
 
-    // extract globally defined workitem selection strategies
-
-/*
-    interface I_sortVector {
-        measure:             string
-        selection_criterion: string
-    }
-    interface I_selectionStrategy {
-        id:         string
-        strategy:   I_sortVector[]
-    }
-*/
-// paj.globally_defined_workitem_selection_strategies
-
     // extract workers and assignments
     interface I_process_step_assignment {
         value_chain_id:     string
@@ -150,7 +136,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     }
     
     const createdNewWorker = (woj: I_worker): Worker => {
-        console.log("createdNewWorker() param="); console.log(woj)
+        // console.log("createdNewWorker() param="); console.log(woj)
 
         function sortVectorFromJson(svj: I_sortVector): SortVector {
             if (Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure) == undefined) { 
@@ -182,10 +168,8 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
                                                                     },
                                                                     weight: 1
                                                                 }}), (x => x) /* take numbers as is */)       
-/*          console.log(`Reading system parameters: paj.globally_defined_workitem_selection_strategies: 
-            ${paj.globally_defined_workitem_selection_strategies.map((ss:any) => `${ss.id} ${ss.strategy.map((sv:any) => `[${sv.measure}/${sv.selection_criterion}]`)}`)}`)
-*/          console.log(`Reading system parameters: weightedSelStrategies: 
-                ${weightedSelStrategies.map(wss => `${wss.element.id} (weight=${wss.weight}): ${wss.element.strategy.map(sv => `[${sv.colIndex}/${sv.selCrit}]`)}`)}`)
+        // console.log(`Reading system parameters: weightedSelStrategies: 
+                // ${weightedSelStrategies.map(wss => `${wss.element.id} (weight=${wss.weight}): ${wss.element.strategy.map(sv => `[${sv.colIndex}/${sv.selCrit}]`)}`)}`)
 
             return new Worker(sys, woj.worker_id, /* [ { element: { id: "random", strategy: [] }, weight: 1 }] */ weightedSelStrategies) 
     }
@@ -233,7 +217,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             successMeasureFct: successMeasureFct(paj.learn_and_adapt_parms.success_measure_function ? paj.learn_and_adapt_parms.success_measure_function : "none"),
             adjustmentFactor:  0.3 
         }
-    console.log("io_config: learn&adapt: successMeasureFct = " + learnAndAdaptParms.successMeasureFct)
+    // console.log("io_config: learn&adapt: successMeasureFct = " + learnAndAdaptParms.successMeasureFct)
 
     sys.addLearningParameters(learnAndAdaptParms)
 
@@ -250,12 +234,12 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         }
     sys.addWipLimitSearchParameters(searchParms)
 
-
+4
     const feps: I_FrontendPresets = {
         numIterationPerBatch:                   paj.frontend_preset_parameters?.num_iterations_per_batch ? paj.frontend_preset_parameters.num_iterations_per_batch : 1,
         economicsStatsInterval:                 paj.frontend_preset_parameters?.economics_stats_interval ? paj.frontend_preset_parameters.economics_stats_interval : 0
     }
-    console.log("io_config: frontend presets: #itertions = " + feps.numIterationPerBatch + "; econ stats interval = " + feps.economicsStatsInterval)
+    // console.log("io_config: frontend presets: #itertions = " + feps.numIterationPerBatch + "; econ stats interval = " + feps.economicsStatsInterval)
     sys.addFrontendPresets(feps)
 
     // return the configured system

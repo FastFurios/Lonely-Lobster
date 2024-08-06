@@ -146,13 +146,13 @@ export class LonelyLobsterSystem {
 
     public addWipLimitSearchParameters(sp: PeakSearchParms) { 
         this.searchParms = sp 
-        console.log("system.addWipLimitSearchParameters(): this.searchParms=")
-        console.log(this.searchParms)
+        // console.log("system.addWipLimitSearchParameters(): this.searchParms=")
+        // console.log(this.searchParms)
     }
     public addFrontendPresets(feps: I_FrontendPresets) { 
         this.frontendPresets = feps
-        console.log("system.addFrontendPresets(): frontendPresets=")
-        console.log(this.frontendPresets)
+        // console.log("system.addFrontendPresets(): frontendPresets=")
+        // console.log(this.frontendPresets)
     }
 
 //----------------------------------------------------------------------
@@ -232,8 +232,8 @@ export class LonelyLobsterSystem {
 
     private i_systemState(): I_SystemState {
         if (this.clock.time <= 0) {
-            console.log(`t=${this.clock.time}: system.i_systemState().frontendPresets= `)
-            console.log(this.frontendPresets)
+            // console.log(`t=${this.clock.time}: system.i_systemState().frontendPresets= `)
+            // console.log(this.frontendPresets)
         }
         return {
             id:                                     this.id,
@@ -271,7 +271,7 @@ export class LonelyLobsterSystem {
     private optimizeWipLimits() {
         this.searchState.position = this.searchStatePositionFromWipLimits()
         const currPerf = this.systemStatistics(this.clock.time - this.searchParms.measurementPeriod < 1 ? 1 : this.clock.time - this.searchParms.measurementPeriod, this.clock.time).outputBasket.economics.roceFix
-            console.log(`system.optimizeWipLimits().currPerf = ${currPerf}`)
+            // console.log(`system.optimizeWipLimits().currPerf = ${currPerf}`)
  
         this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, this.searchParms, this.clock.time, this.searchState)
                                                                 //console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position.toString(StringifyMode.concise)}, direction= ${this.searchState.direction.toString(StringifyMode.concise)}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
@@ -442,7 +442,7 @@ export class LonelyLobsterSystem {
         const assignedWorkers = this.assignmentSet.assignedWorkersToProcessStep(ps)
         const aux = Math.ceil(Math.max(ps.wipLimit, Math.ceil(assignedWorkers ? assignedWorkers.length / ps.normEffort : 1)) * this.searchParms.wipLimitUpperBoundaryFactor)
         //console.log(`system.wipLimitUpperBoundary(${ps.id}): assigned workers are: ${assignedWorkers?.map(aw => aw.id)}`)
-        console.log(`system.wipLimitUpperBoundary(${ps.id})= ${aux}`)
+        // console.log(`system.wipLimitUpperBoundary(${ps.id})= ${aux}`)
         return aux
     } 
 

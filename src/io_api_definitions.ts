@@ -41,6 +41,7 @@ export interface I_InjectionAsJson {
 export interface I_ProcessStepAsJson {
     process_step_id: string,
     norm_effort: number,
+    wip_limit: number,
     bar_length?: number // for backend stand-alone batch mode only 
 }
 
@@ -49,7 +50,7 @@ export interface I_ValueChainAsJson {
     value_add: number,
     value_degradation?: I_ValueDegradationAsJson,
     injection?: I_InjectionAsJson,
-    processSteps: I_ProcessStepAsJson[]
+    process_steps: I_ProcessStepAsJson[]
 }
 
 export interface I_SortVectorAsJson {
