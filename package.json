@@ -7,14 +7,15 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./target/_main.js --api"
-  },  
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/express": "^4.17.17",
-    "@types/node": "^18.16.3",
-    "typescript": "^4.9.5"
+    "@types/express-session": "^1.18.0",
+    "@types/node": "^22.04.0"
   },
   "dependencies": {
     "cors": "^2.8.5",

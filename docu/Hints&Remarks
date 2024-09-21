@@ -10,6 +10,9 @@ git push https://github.com/FastFurios/Angular-Book-Monkey.git
 git push https://github.com/FastFurios/Typescript-Playground.git
 
 
+gerold@Coruscant:~/sw-projects/Lonely-Lobster$  nvm use v16.17.0
+gerold@Coruscant:~/sw-projects/Angular-Testbed$ nvm use v18.13.0
+
 http://localhost:4200/
 $ ng serve &
 
@@ -48,3 +51,16 @@ in VSCode:
 - right mouse-click on webapp: deploy to Web App...
 - takes a while. Might end with an error ("...map is not a function"). Just wait and repeat, it will eventually work.
 - open browser with url = https://lonelylobster.azurewebsites.net/
+
+Setup new PC: 
+~$ mkdir sw-projects
+$ cd sw-projects/
+$ git clone https://github.com/FastFurios/Lonely-Lobster.git
+$ git clone https://github.com/FastFurios/Angular-Testbed
+$ sudo apt-get update
+$ sudo apt-get upgrade
+$ sudo apt-get install npm
+$ npm -v
+$ node -v
+$ sudo apt install node-typescript$ 
+$ npm install @types/node --save-dev
