@@ -9,36 +9,42 @@ git push https://github.com/FastFurios/Lonely-Lobster.git
 git push https://github.com/FastFurios/Angular-Book-Monkey.git
 git push https://github.com/FastFurios/Typescript-Playground.git
 
+# Startup sequence:
 
+## Backend:
 gerold@Coruscant:~/sw-projects/Lonely-Lobster$  nvm use v16.17.0
-gerold@Coruscant:~/sw-projects/Angular-Testbed$ nvm use v18.13.0
-
-http://localhost:4200/
-$ ng serve &
-
 $ node target/_main.js --api &
+
 $ node target/_main.js --batch config/LonelyLobster_00.json data/workorders_000.csv
 
 $ PORT=3000    // create and set shell variable PORT
 $ export PORT  // export to environment
 
-Sometimes also:
-git push origin main
-git push origin master
+## Frontend Serving:
+gerold@Coruscant:~/sw-projects/Angular-Testbed$ nvm use v18.13.0
+in development environment: $ ng serve &
+in production mode: the _main.js serves the Angular frontend from the folder ~/sw-projects/Lonely-Lobster/frontend to which you have to copy the files of the Angular production build first
 
-Sharing API definitions:
+## Browser:
+in development environment:http://localhost:4200/
+in production mode: lonely-lobster.azurewebsites.net
+
+
+Sharing API definitions btw. frontend and backend:
 ~/sw_projects/Angular-Testbed$ sh getApiDefsFromBackend.sh
 
 
 Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net
 - frontend:
--- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonelylobster.azurewebsites.net/initialize/" (check environment.prod.ts file)
+-- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonely-lobster.azurewebsites.net/initialize/" (check environment.prod.ts file)
 -- check if enviroment.prod.ts contains the new frontend version number 
 -- $ ng build --configuration production // creates a new distribution package
 
 - backend:
--- tsc
 -- check if enviroment.ts contains the new backend version number 
+-- tsc
+
+- copy files to deplyment stage i.e. ~/sw-projects/azure/Lonely-Lobster/
 ~/sw_projects/Lonely-Lobster$ sh buildForAzure.sh
 
 in VSCode:
@@ -47,10 +53,25 @@ in VSCode:
 - log in to Azure
 - select subscription
 - select "App Services"
-- select webapp, e.g. "LonelyLobster"
+- select webapp, e.g. "lonely-lobster"
 - right mouse-click on webapp: deploy to Web App...
 - takes a while. Might end with an error ("...map is not a function"). Just wait and repeat, it will eventually work.
-- open browser with url = https://lonelylobster.azurewebsites.net/
+- login to Azure portal; navigate to the web app: settings:
+    -- configuration: Startup command: node target/_main.js --api
+    -- environment variables: PORT=3000
+- open browser with url = https://lonely-lobster.azurewebsites.net/
+
+in portal.azure.com you might 
+- navigate to the webapps settings:
+-- environment: add environment variable PORT=3000 (verified to be not necessary!)
+-- configuration: 
+--- Stack=Node, Major version=Node 16, Minor version=Node 16 LTS
+--- Startup command: node ./target/_main.js --api (is not necessary as attribute "start" in package.json specifies this already!)
+
+in case of problems:
+- consider to "clean" your browser from cookies etc. or use an InPrivate browser tab 
+
+
 
 Setup new PC: 
 ~$ mkdir sw-projects

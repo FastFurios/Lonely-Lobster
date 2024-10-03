@@ -100,6 +100,7 @@ function apiMode(): void {
 
         // handle web session
         webSessions.set(req.sessionID, lonelyLobsterSystem!)
+        console.log("_main(): app.post /initialize: webSession = " + req.sessionID +  "; Lonely-Lobster System ist defined= " + lonelyLobsterSystem + "; name= " + lonelyLobsterSystem.id)
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
 
         // initialize system
@@ -111,6 +112,7 @@ function apiMode(): void {
     // API call - ITERATE
     //------------------------------
     app.post('/iterate', (req, res) => {
+        //console.log("\n_main: app.post /iterate ------------------------------------")
         // handle web session
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
