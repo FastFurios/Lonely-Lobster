@@ -12,8 +12,7 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
-         I_VcPsWipLimit, I_IterationRequest, 
-         I_FrontendPresets} from './io_api_definitions.js'
+         I_VcPsWipLimit, I_WorkItemEvent, I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
 
@@ -30,24 +29,6 @@ interface WiElapTimeValAdd {
     elapsedTime:    Timestamp
 }
 
-//----------------------------------------------------------------------
-//    WIP LIMITS AND SYSTEM PERFORMANCE LOG
-//----------------------------------------------------------------------
-
-//function performanceAt(): number { return 0 }
-
-/** 
-const searchParms:        PeakSearchParms     = {
-    initTemperature:                 100,     // initial temperature; need to be > 0
-    temperatureCoolingParm:          0.95,     // cooling parameter 
-    degreesPerDownhillStepTolerance: 50,      // downhill step sequences tolerance
-    initJumpDistance:                1,       // jump distances [#steps] in choosen direction; reduces when temperature cools
-    measurementPeriod:               20,
-    wipLimitUpperBoundaryFactor:    
-    searchOnAtStart:                 true,
-    verbose:                         true     // outputs debug data if true
-   }
-*/
 //----------------------------------------------------------------------
 //    LONELY LOBSTER SYSTEM
 //----------------------------------------------------------------------
@@ -122,6 +103,8 @@ export class LonelyLobsterSystem {
         // update workers stats after having worked
         this.workers.forEach(wo => wo.utilization(this))
 
+        console.log("Workitem Events: -----------------------")
+        console.log(this.workitemEvents)
         // show valuechains line for current timestamp on console
         //this.showLine()
     }
@@ -408,6 +391,14 @@ export class LonelyLobsterSystem {
     }
 
 //----------------------------------------------------------------------
+//    API mode - retrieve all workitem events (for export for external statistical analysis)
+//----------------------------------------------------------------------
+
+public get workitemEvents(): I_WorkItemEvent[] {
+    return this.outputBasket.workItemBasket.flatMap(wi => wi.log.map(le => le.workItemEvent))
+}
+
+//----------------------------------------------------------------------
 //    API mode - Learning Statistics (= workers' weighted workitem selection strategies over time)
 //----------------------------------------------------------------------
 
@@ -427,16 +418,6 @@ export class LonelyLobsterSystem {
     private setWipLimitsFromSearchStatePosition(): void { 
         this.vdm.vds.forEach((vd, idx) => vd.dimension.wipLimit = this.searchState.position.vec[idx])
     }
-
-    /**    private wipLimitLowerBoundary(ps: ProcessStep): number {
-        const assignedWorkers = this.assignmentSet.assignedWorkersToProcessStep(ps)
-        //const aux = Math.max(1, Math.min(ps.wipLimit, Math.floor(assignedWorkers ? assignedWorkers.length / ps.normEffort : 1)))
-        //console.log(`system.wipLimitLowerBoundary(${ps.id}): assigned workers are: ${assignedWorkers?.map(aw => aw.id)}`)
-        const aux = 1
-        console.log(`system.wipLimitLowerBoundary(${ps.id})= ${aux}`)
-        return aux
-    } 
- */
 
     private wipLimitUpperBoundary(ps: ProcessStep): number {
         const assignedWorkers = this.assignmentSet.assignedWorkersToProcessStep(ps)

@@ -56,17 +56,16 @@ in VSCode:
 - select webapp, e.g. "lonely-lobster"
 - right mouse-click on webapp: deploy to Web App...
 - takes a while. Might end with an error ("...map is not a function"). Just wait and repeat, it will eventually work.
-- login to Azure portal; navigate to the web app: settings:
-    -- configuration: Startup command: node target/_main.js --api
-    -- environment variables: PORT=3000
+
 - open browser with url = https://lonely-lobster.azurewebsites.net/
 
-in portal.azure.com you might 
+(in portal.azure.com you might 
 - navigate to the webapps settings:
 -- environment: add environment variable PORT=3000 (verified to be not necessary!)
 -- configuration: 
 --- Stack=Node, Major version=Node 16, Minor version=Node 16 LTS
 --- Startup command: node ./target/_main.js --api (is not necessary as attribute "start" in package.json specifies this already!)
+)
 
 in case of problems:
 - consider to "clean" your browser from cookies etc. or use an InPrivate browser tab 

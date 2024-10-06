@@ -256,6 +256,20 @@ export interface I_SystemStatistics {
 }
 
 //-------------------------------
+// workitem event retrieval (for export for external statistical analysis)
+//-------------------------------
+
+export interface I_WorkItemEvent {
+    system:         string
+    timestamp:      Timestamp
+    workitem:       WorkItemId
+    eventType:      string
+    valueChain:     ValueChainId
+    processStep:    ProcessStepId  // if eventType == movedTo then this is the target process-step
+    worker?:        WorkerName     // if eventType == workedOn then this is filled
+}
+
+//-------------------------------
 // worker utilization
 //-------------------------------
 

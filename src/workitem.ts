@@ -3,7 +3,7 @@
 //----------------------------------------------------------------------
 //-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service 
 
-import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag } from './io_api_definitions'
+import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag, I_WorkItemEvent} from './io_api_definitions'
 import { LogEntry, LogEntryType } from './logging.js'
 import { LonelyLobsterSystem } from './system.js'
 import { ValueChain } from './valuechain.js'
@@ -72,6 +72,7 @@ abstract class LogEntryWorkItem extends LogEntry {
         super(sys, logEntryType)
     }
     public stringifyLeWi = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.workItemBasketHolder == this.sys.outputBasket ? "OutputBasket" : (<ProcessStep>this.workItemBasketHolder).id}, wi = ${this.workItem.id}`
+    abstract get workItemEvent(): I_WorkItemEvent 
 } 
 
 //      -- moved -- used also for "workitem created and injected" ---
@@ -81,6 +82,16 @@ export class LogEntryWorkItemMoved extends LogEntryWorkItem {
                        valueChain:                 ValueChain, 
                        toWorkItemBasketHolder:     WorkItemBasketHolder) { 
         super(sys, workItem, valueChain, toWorkItemBasketHolder, LogEntryType.workItemMovedTo)
+    }
+    get workItemEvent(): I_WorkItemEvent {
+        return {
+            system:         this.sys.id,
+            timestamp:      this.timestamp,
+            workitem:       this.workItem.id,
+            eventType:      LogEntryType.workItemMovedTo,
+            valueChain:     this.valueChain.id,
+            processStep:    this.workItemBasketHolder.id
+        }
     }
     public stringified = () => `${this.stringifyLeWi()}`
 }
@@ -93,6 +104,17 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
                             processStep:                ProcessStep,
                      public worker:                     Worker) {
         super(sys, workItem, valueChain, processStep, LogEntryType.workItemWorkedOn)
+    }
+    get workItemEvent(): I_WorkItemEvent {
+        return {
+            system:         this.sys.id,
+            timestamp:      this.timestamp,
+            workitem:       this.workItem.id,
+            eventType:      LogEntryType.workItemWorkedOn,
+            valueChain:     this.valueChain.id,
+            processStep:    this.workItemBasketHolder.id,
+            worker:         this.worker.id
+        }
     }
     public stringified = () => `${this.stringifyLeWi()}, worker = ${this.worker.id}`
 }
