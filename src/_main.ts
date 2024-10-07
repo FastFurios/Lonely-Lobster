@@ -133,7 +133,7 @@ function apiMode(): void {
         // handle web session
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
-            console.log("_main(): app.post /system statistics: +could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+            console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
             res.send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
@@ -144,6 +144,22 @@ function apiMode(): void {
                                 interval <= 0 ? 0 // stats from the very beginning on
                                                 : lonelyLobsterSystem.clock.time <= interval ? 0 : lonelyLobsterSystem.clock.time - interval, // stats of the trailing time window of length "interval"
                                 lonelyLobsterSystem.clock.time))
+    })
+
+    //-------------------------------------
+    // API call - provide WORKITEM EVENTS 
+    //-------------------------------------
+    app.get('/workitem-events', (req, res) => {
+        console.log("\n_main: app.get /workitem-events ------------------------------------")
+        // handle web session
+        const lonelyLobsterSystem = webSessions.get(req.sessionID) // webSessions.values().next().value
+        if (!lonelyLobsterSystem) { 
+            console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+            res.send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
+            return
+        }            
+        // return workitem events to frontend
+        res.send(lonelyLobsterSystem.workitemEvents)
     })
 
     //-------------------------------------

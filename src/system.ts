@@ -15,6 +15,7 @@ import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_VcPsWipLimit, I_WorkItemEvent, I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
+import { exit } from 'process'
 
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
@@ -103,8 +104,13 @@ export class LonelyLobsterSystem {
         // update workers stats after having worked
         this.workers.forEach(wo => wo.utilization(this))
 
-        console.log("Workitem Events: -----------------------")
-        console.log(this.workitemEvents)
+
+        // tbd ##############################
+        if (this.clock.time < -1 && this.clock.time % 100 == 0) {
+            console.log("Workitem Events: -----------------------")
+            console.log(this.workitemEvents)
+            process.exit(0)
+        }
         // show valuechains line for current timestamp on console
         //this.showLine()
     }

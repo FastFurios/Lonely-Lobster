@@ -269,6 +269,8 @@ export interface I_WorkItemEvent {
     worker?:        WorkerName     // if eventType == workedOn then this is filled
 }
 
+export type I_WorkItemEvents = I_WorkItemEvent[] 
+
 //-------------------------------
 // worker utilization
 //-------------------------------
