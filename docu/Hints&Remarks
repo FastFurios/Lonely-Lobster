@@ -21,8 +21,8 @@ $ PORT=3000    // create and set shell variable PORT
 $ export PORT  // export to environment
 
 ## Frontend Serving:
-gerold@Coruscant:~/sw-projects/Angular-Testbed$ nvm use v18.13.0
-in development environment: $ ng serve &
+gerold@Coruscant:~/sw-projects/Angular-Testbed$ nvm use v18.20.4        // Typescript $tsc -v => 4.8.4  // Angular $ng version => 14.2.13
+in development environment: $ ng serve & // --poll=2000 &
 in production mode: the _main.js serves the Angular frontend from the folder ~/sw-projects/Lonely-Lobster/frontend to which you have to copy the files of the Angular production build first
 
 ## Browser:
@@ -72,7 +72,22 @@ in case of problems:
 
 
 
-Setup new PC: 
+# Microsoft Entra
+Directory (tenant) ID   = 49bf30a4-54b2-47ae-b9b1-ffa71ed3d475
+Application (client) ID = 42d4bbad-3871-4c66-910a-a101395cdc96
+
+# Microsoft Azure AD B2C
+Usefull links:
+- node express API: 
+-- https://learn.microsoft.com/en-us/azure/active-directory-b2c/enable-authentication-web-api?tabs=nodejsgeneric
+-- https://learn.microsoft.com/en-us/azure/active-directory-b2c/configure-authentication-in-sample-node-web-app-with-api
+- Angular app:
+-- https://learn.microsoft.com/en-us/azure/active-directory-b2c/enable-authentication-angular-spa-app
+
+
+
+
+# Setup new PC: 
 ~$ mkdir sw-projects
 $ cd sw-projects/
 $ git clone https://github.com/FastFurios/Lonely-Lobster.git
@@ -84,3 +99,15 @@ $ npm -v
 $ node -v
 $ sudo apt install node-typescript$ 
 $ npm install @types/node --save-dev
+
+# Other useful commands:
+Powershell$ wsl -e bash -norc   // starts super basic shell that does not read .bash* files on startup
+https://jwt.io/    // decoding bearer tokens
+
+# VSCode shortcuts
+- CTRL+K CTRL+C: comment out single line
+- CTRL+K CTRL+U: uncomment single line
+- SHIFT+ALT+A: comments out marked lines block
+- https://jwt.io/
+- https://jwt.ms/
+

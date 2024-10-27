@@ -178,6 +178,15 @@ function apiMode(): void {
         // return workers' selection strategies learning statistics to frontend
         res.send(lonelyLobsterSystem.learningStatistics)
     })
+/* 
+    //-------------------------------------
+    // API call - test api  
+    //-------------------------------------
+    app.get('/apiTest', (req, res) => {
+        console.log("\n_main: app.get /apiTest ------------------------------------")
+        console.log("received header: authorization = " + req.headers.authorization)
+        res.send({ message: "Hi there, I am the API test endpoint with best regards! The bearer tokem is: " + req.headers.authorization })
+    }) */
 
     //---------------------------------
     // listening for incoming API calls
