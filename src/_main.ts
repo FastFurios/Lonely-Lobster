@@ -9,6 +9,12 @@ import express  from 'express'
 import session  from "express-session" // Explanation of express-session: https://www.youtube.com/watch?v=isURb7HQkn8
 import cors     from "cors"
 
+import passport from 'passport'
+import { BearerStrategy, IBearerStrategyOption, ITokenPayload } from 'passport-azure-ad';
+import { VerifyCallback } from 'jsonwebtoken';
+import pkg from 'jsonwebtoken';
+const { JsonWebTokenError } = pkg;
+
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
@@ -57,17 +63,45 @@ function apiMode(): void {
 
     const app  = express()
     const port = process.env.PORT || 3000
-    if (!port) { 
-        console.log("_main: port is undefined. Stopping...")
-        process.exit()
+
+    app.use(cors({  origin: ["http://localhost:4200" /* Anglar Frontend */, "http://localhost:3000" /* Lonely Lobster Backend */], // allow request from specific origin domains (* would do it for all origin, hoiwever credentials require explicit origins here): https://www.section.io/engineering-education/how-to-use-cors-in-nodejs-with-express/
+        credentials: true })) // allow credentials, in this case the session cookie to be send to the Angular client  
+
+    // ---- Passport --------------------------------------
+    const options: IBearerStrategyOption = {
+        identityMetadata:   "https://login.microsoftonline.com/49bf30a4-54b2-47ae-b9b1-ffa71ed3d475/v2.0/.well-known/openid-configuration",  // == Azure AD: directory (tenant) ID 
+        clientID:           "api://5797aa9c-0703-46d9-9fba-934498b8e5d6", // == Azure AD: for the backend: manage / expose an API: Application ID URI  
+        issuer:             "https://sts.windows.net/49bf30a4-54b2-47ae-b9b1-ffa71ed3d475/",   // use tenant ID
+        audience:           "api://5797aa9c-0703-46d9-9fba-934498b8e5d6", // == Azure AD: for the backend: manage / expose an API: Application ID URI
+        validateIssuer:     true,       // Validate the issuer of the token
+        loggingLevel:       "error",    // optional: logging level for passport-azure-ad
+        loggingNoPII:       true        // optional: hide sensitive data in log; if false log shows more details
     }
+
+    function verifyToken(token: ITokenPayload, done: VerifyCallback) {
+        if (token.scp != "system.run")
+            return done(new JsonWebTokenError("not authorized: wrong scope requested"), token)
+        return done(null, token) // If everything is OK, return the user object
+    }
+
+    passport.use(
+        new BearerStrategy( options, 
+                            (token: ITokenPayload, done: VerifyCallback): void  => { verifyToken(token, done) } )
+    )
+
+    app.use(passport.initialize())
+
+    // Middleware to authenticate requests using the Bearer strategy
+    const authenticateAzureAD = passport.authenticate('oauth-bearer', { session: false });  // "oauth-bearer" is a defined string by passport; do not confuse with the "Bearer" prefix to the token sent by the frontend  
+//  const authenticateAzureAD = passport.authenticate('oauth-bearer', { session: true });  // "oauth-bearer" is a defined string by passport; do not confuse with the "Bearer" prefix to the token sent by the frontend  
+
+    // ---- end Passport --------------------------------------
+
     app.use(express.json()) // for parsing application/json
     app.use(express.urlencoded({ extended: true })) // for parsing application/x-www-form-urlencoded
     // setup cors for development environment only:
-    app.use(cors({  origin: ["http://localhost:4200" /* Anglar Frontend */, "http://localhost:3000" /* Lonely Lobster Backend */], // allow request from specific origin domains (* would do it for all origin, hoiwever credentials require explicit origins here): https://www.section.io/engineering-education/how-to-use-cors-in-nodejs-with-express/
-                    credentials: true })) // allow credentials, in this case the session cookie to be send to the Angular client  
-
     // configure session-express
+
     app.use(session({
         secret: 'my-secret',        // a secret string used to sign the session ID cookie
         resave: false,              // don't save session if unmodified
@@ -86,8 +120,9 @@ function apiMode(): void {
     //------------------------------
     // API call - INITIALIZE 
     //------------------------------
-    app.post('/initialize', (req, res) => {
+    app.post('/initialize', authenticateAzureAD, (req, res) => {
         console.log("\n_main: app.post /initialize ------------------------------------")
+        console.log("\n_main: app.post /initialize: req.headers.authorization= " + req.headers.authorization)
 
         // build the system
         let lonelyLobsterSystem: LonelyLobsterSystem 
@@ -111,7 +146,7 @@ function apiMode(): void {
     //------------------------------
     // API call - ITERATE
     //------------------------------
-    app.post('/iterate', (req, res) => {
+    app.post('/iterate', authenticateAzureAD, (req, res) => {
         //console.log("\n_main: app.post /iterate ------------------------------------")
         // handle web session
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
@@ -129,7 +164,7 @@ function apiMode(): void {
     //-------------------------------------
     // API call - provide SYSTEM STATISTICS 
     //-------------------------------------
-    app.get('/statistics', (req, res) => {
+    app.get('/statistics', authenticateAzureAD, (req, res) => {
         // handle web session
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystem) { 
@@ -149,7 +184,7 @@ function apiMode(): void {
     //-------------------------------------
     // API call - provide WORKITEM EVENTS 
     //-------------------------------------
-    app.get('/workitem-events', (req, res) => {
+    app.get('/workitem-events', authenticateAzureAD, (req, res) => {
         console.log("\n_main: app.get /workitem-events ------------------------------------")
         // handle web session
         const lonelyLobsterSystem = webSessions.get(req.sessionID) // webSessions.values().next().value
@@ -165,7 +200,7 @@ function apiMode(): void {
     //-------------------------------------
     // API call - provide LEARNING STATISTICS - workitem selection strategies weights of workers over time
     //-------------------------------------
-    app.get('/learn-stats', (req, res) => {
+    app.get('/learn-stats', authenticateAzureAD, (req, res) => {
         console.log("\n_main: app.get /learning statistics ------------------------------------")
         // handle web session
         const lonelyLobsterSystem = webSessions.get(req.sessionID)
