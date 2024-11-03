@@ -12,13 +12,11 @@ import cors     from "cors"
 import passport from 'passport'
 import { BearerStrategy, IBearerStrategyOption, ITokenPayload } from 'passport-azure-ad';
 import { VerifyCallback } from 'jsonwebtoken';
-import pkg from 'jsonwebtoken';
-const { JsonWebTokenError } = pkg;
+import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg;
 
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
-import { I_VcWorkOrders } from './io_api_definitions.js'
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -109,7 +107,14 @@ function apiMode(): void {
     }))
     // set up API sessions store               
     type CookieSessionId = string
-    const webSessions = new Map<CookieSessionId, LonelyLobsterSystem>()  
+    type SystemLifecycle = {
+        system?:    LonelyLobsterSystem
+        created:    Date
+        lastUsed?:  Date
+        dropped?:   Date
+    }
+    //const webSessions = new Map<CookieSessionId, LonelyLobsterSystem>()  
+    const webSessions = new Map<CookieSessionId, SystemLifecycle>()  
 
     //------------------------------
     // SERVE ANGULAR FRONTEND 
@@ -129,18 +134,22 @@ function apiMode(): void {
         try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
         catch(error: any) {
             console.log("_main: app.post /initialize: ERROR interpreting system configuration: error= " + error)
-            res.status(400).json({ message: error.message })
-            return 
+            res.status(404).json({ message: error.message })
+            return
         }
 
         // handle web session
-        webSessions.set(req.sessionID, lonelyLobsterSystem!)
-        console.log("_main(): app.post /initialize: webSession = " + req.sessionID +  "; Lonely-Lobster System ist defined= " + lonelyLobsterSystem + "; name= " + lonelyLobsterSystem.id)
+        webSessions.set(req.sessionID, { 
+            system:     lonelyLobsterSystem!,
+            created:    new Date() 
+        })
+        console.log("_main(): app.post /initialize: webSession = " + req.sessionID +  "; Lonely-Lobster System ist defined= " + lonelyLobsterSystem != undefined + "; name= " + lonelyLobsterSystem.id)
+        const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
 
-        // initialize system
+        // initialize ssystem
         lonelyLobsterSystem.clock.setTo(-1) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
-        res.send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
+        res.status(201).send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
     })
 
     //------------------------------
@@ -149,16 +158,20 @@ function apiMode(): void {
     app.post('/iterate', authenticateAzureAD, (req, res) => {
         //console.log("\n_main: app.post /iterate ------------------------------------")
         // handle web session
-        const lonelyLobsterSystem = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystem) { 
+        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+        if (!lonelyLobsterSystemLifecycle?.system) { 
             console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
+            res.status(404).send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
             return
         }
+        webSessions.set(req.sessionID, {
+            ...lonelyLobsterSystemLifecycle, 
+            lastUsed:    new Date() 
+        })
+        const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
-
         // return next system state to frontend
-        res.send(lonelyLobsterSystem.nextSystemState(req.body))
+        res.status(200).send(lonelyLobsterSystemLifecycle.system.nextSystemState(req.body))
     })
 
     //-------------------------------------
@@ -166,19 +179,23 @@ function apiMode(): void {
     //-------------------------------------
     app.get('/statistics', authenticateAzureAD, (req, res) => {
         // handle web session
-        const lonelyLobsterSystem = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystem) { 
+        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+        if (!lonelyLobsterSystemLifecycle?.system) { 
             console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
+            res.status(404).send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        
+        webSessions.set(req.sessionID, {
+            ...lonelyLobsterSystemLifecycle, 
+            lastUsed:    new Date() 
+        })
+        const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return system statistics to frontend
         const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
-        res.send(lonelyLobsterSystem.systemStatistics( 
+        res.status(200).send(lonelyLobsterSystemLifecycle.system.systemStatistics( 
                                 interval <= 0 ? 0 // stats from the very beginning on
-                                                : lonelyLobsterSystem.clock.time <= interval ? 0 : lonelyLobsterSystem.clock.time - interval, // stats of the trailing time window of length "interval"
-                                lonelyLobsterSystem.clock.time))
+                                                : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
+                                lonelyLobsterSystemLifecycle.system.clock.time))
     })
 
     //-------------------------------------
@@ -187,14 +204,19 @@ function apiMode(): void {
     app.get('/workitem-events', authenticateAzureAD, (req, res) => {
         console.log("\n_main: app.get /workitem-events ------------------------------------")
         // handle web session
-        const lonelyLobsterSystem = webSessions.get(req.sessionID) // webSessions.values().next().value
-        if (!lonelyLobsterSystem) { 
+        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID) // webSessions.values().next().value
+        if (!lonelyLobsterSystemLifecycle?.system) { 
             console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
+            res.status(404).send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
             return
         }            
+        webSessions.set(req.sessionID, {
+            ...lonelyLobsterSystemLifecycle, 
+            lastUsed:    new Date() 
+        })
+        const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return workitem events to frontend
-        res.send(lonelyLobsterSystem.workitemEvents)
+        res.status(200).send(lonelyLobsterSystemLifecycle.system.workitemEvents)
     })
 
     //-------------------------------------
@@ -203,15 +225,41 @@ function apiMode(): void {
     app.get('/learn-stats', authenticateAzureAD, (req, res) => {
         console.log("\n_main: app.get /learning statistics ------------------------------------")
         // handle web session
-        const lonelyLobsterSystem = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystem) { 
+        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+        if (!lonelyLobsterSystemLifecycle?.system) { 
             console.log("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
+            res.status(404).send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-
+        webSessions.set(req.sessionID, {
+            ...lonelyLobsterSystemLifecycle, 
+            lastUsed:    new Date() 
+        })
+        const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return workers' selection strategies learning statistics to frontend
-        res.send(lonelyLobsterSystem.learningStatistics)
+        res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
+    })
+
+    //-------------------------------------
+    // API call - DROP system
+    //-------------------------------------
+    app.get('/drop', authenticateAzureAD, (req, res) => {
+        console.log("\n_main: app.get /drop system ------------------------------------")
+        // handle web session
+        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+        if (!lonelyLobsterSystemLifecycle?.system) { 
+            console.log("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+            res.status(404).send("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession")
+            return
+        }            
+        webSessions.set(req.sessionID, {
+            ...lonelyLobsterSystemLifecycle, 
+            system:     undefined,
+            dropped:    new Date() 
+        })
+        const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
+        // return workers' selection strategies learning statistics to frontend
+        res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
     })
 /* 
     //-------------------------------------
