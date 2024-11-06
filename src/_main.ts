@@ -277,6 +277,46 @@ function apiMode(): void {
     app.listen(port, () => {0
         return console.log(`Express is listening at http://localhost:${port}`)
     })
+
+
+    //---------------------------------
+    // clean-up apparently abandoned Lonely-Lobster system instances (allow node.js garbage collection free the memory for unused system instances) 
+    //---------------------------------
+
+    type MilliSeconds               = number
+    type Minutes                    = number
+    const autoDropCheckInterval: Minutes  = 1
+    const autoDropWhenOlderThanThis: MilliSeconds = 60000
+    let autoDroppingIsInAction      = false
+
+
+    function autoDropApparentlyAbandonedSystems(webSessions: Map<CookieSessionId, SystemLifecycle>): void {
+        autoDroppingIsInAction  = true
+        let haveDroppedASystem  = false
+        for (let [sessionID, sysLifecycle] of webSessions.entries()) {
+            const refTime: MilliSeconds = Math.max(sysLifecycle.created  ? sysLifecycle.created.getTime()  : 0, 
+                                                   sysLifecycle.lastUsed ? sysLifecycle.lastUsed.getTime() : 0)
+            if (refTime == 0) {
+                console.log("_main: autoDropAbandonSystems(): found entry in webSessions Map that had neither a created nor a lastUsed timestamp!?!")
+                continue
+            }
+            if (refTime - sysLifecycle.lastUsed!.getTime() > autoDropWhenOlderThanThis) {
+                webSessions.set(sessionID, {
+                    ...sysLifecycle, 
+                    system:     undefined,
+                    dropped:    new Date() 
+                })
+                haveDroppedASystem = true
+            }
+        }
+        // ### test Map for existing and not outdated system instances
+        if (!haveDroppedASystem) {
+            autoDroppingIsInAction  = false
+            return
+        }
+        setTimeout(autoDropApparentlyAbandonedSystems, autoDropCheckInterval * 60000, webSessions)
+    }
+
 }
 
 // -------------------------------------------------------------------
