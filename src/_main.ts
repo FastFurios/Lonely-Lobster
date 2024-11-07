@@ -10,8 +10,8 @@ import session  from "express-session" // Explanation of express-session: https:
 import cors     from "cors"
 
 import passport from 'passport'
-import { BearerStrategy, IBearerStrategyOption, ITokenPayload } from 'passport-azure-ad';
-import { VerifyCallback } from 'jsonwebtoken';
+import { BearerStrategy, IBearerStrategyOption, ITokenPayload } from 'passport-azure-ad'
+import { VerifyCallback } from 'jsonwebtoken'
 import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg;
 
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
@@ -137,12 +137,12 @@ function apiMode(): void {
             res.status(404).json({ message: error.message })
             return
         }
-
+        updateSystemLifecycle(req.sessionID, "created")
+        // webSessions.set(req.sessionID, { 
+        //     system:     lonelyLobsterSystem!,
+        //     created:    new Date() 
+        // })
         // handle web session
-        webSessions.set(req.sessionID, { 
-            system:     lonelyLobsterSystem!,
-            created:    new Date() 
-        })
         console.log("_main(): app.post /initialize: webSession = " + req.sessionID +  "; Lonely-Lobster System ist defined= " + lonelyLobsterSystem != undefined + "; name= " + lonelyLobsterSystem.id)
         const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
@@ -164,10 +164,7 @@ function apiMode(): void {
             res.status(404).send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
             return
         }
-        webSessions.set(req.sessionID, {
-            ...lonelyLobsterSystemLifecycle, 
-            lastUsed:    new Date() 
-        })
+        updateSystemLifecycle(req.sessionID, "lastUsed")
         const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
         // return next system state to frontend
@@ -185,10 +182,7 @@ function apiMode(): void {
             res.status(404).send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        webSessions.set(req.sessionID, {
-            ...lonelyLobsterSystemLifecycle, 
-            lastUsed:    new Date() 
-        })
+        updateSystemLifecycle(req.sessionID, "lastUsed")
         const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return system statistics to frontend
         const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
@@ -210,10 +204,7 @@ function apiMode(): void {
             res.status(404).send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        webSessions.set(req.sessionID, {
-            ...lonelyLobsterSystemLifecycle, 
-            lastUsed:    new Date() 
-        })
+        updateSystemLifecycle(req.sessionID, "lastUsed")
         const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return workitem events to frontend
         res.status(200).send(lonelyLobsterSystemLifecycle.system.workitemEvents)
@@ -231,10 +222,7 @@ function apiMode(): void {
             res.status(404).send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        webSessions.set(req.sessionID, {
-            ...lonelyLobsterSystemLifecycle, 
-            lastUsed:    new Date() 
-        })
+        updateSystemLifecycle(req.sessionID, "lastUsed")
         const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return workers' selection strategies learning statistics to frontend
         res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
@@ -252,11 +240,12 @@ function apiMode(): void {
             res.status(404).send("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession")
             return
         }            
-        webSessions.set(req.sessionID, {
-            ...lonelyLobsterSystemLifecycle, 
-            system:     undefined,
-            dropped:    new Date() 
-        })
+        updateSystemLifecycle(req.sessionID, "dropped")
+        // webSessions.set(req.sessionID, {
+        //     ...lonelyLobsterSystemLifecycle, 
+        //     system:     undefined,
+        //     dropped:    new Date() 
+        // })
         const lc = webSessions.get(req.sessionID); console.log(`system= ${lc!.system ? lc!.system.id : "no system"}, created= ${lc!.created}, last used= ${lc!.lastUsed}, dropped= ${lc!.dropped}`)
         // return workers' selection strategies learning statistics to frontend
         res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
@@ -283,40 +272,73 @@ function apiMode(): void {
     // clean-up apparently abandoned Lonely-Lobster system instances (allow node.js garbage collection free the memory for unused system instances) 
     //---------------------------------
 
-    type MilliSeconds               = number
-    type Minutes                    = number
-    const autoDropCheckInterval: Minutes  = 1
-    const autoDropWhenOlderThanThis: MilliSeconds = 60000
-    let autoDroppingIsInAction      = false
+    type Minutes                                = number
+    const autoDropCheckInterval: Minutes        = 1
+    const autoDropWhenOlderThanThis: Minutes    = 60
+    let autoDroppingIsInAction                  = false  // global "semaphore"
+    enum DateAttributeNames {
+        created,
+        lastUsed,
+        dropped
+    }
 
+
+    function updateSystemLifecycle(sessionID: string, action: string, sys?: LonelyLobsterSystem) {
+        switch (action) {
+            case "created": { 
+                webSessions.set(sessionID, {
+                    created: new Date(),
+                    system:  sys
+                })
+                autoDroppingIsInAction = true
+                break 
+            }
+            case "lastUsed": { 
+                const slc: SystemLifecycle | undefined = webSessions.get(sessionID)
+                if (!slc) {
+                    console.log("_main.updateSystemLifecycle(): switsch case lastUsed: no system lifecycle for sessionID =" + sessionID)
+                    return
+                }
+                slc.lastUsed = new Date()
+                autoDroppingIsInAction = true
+                break 
+            }
+            case "dropped": {
+                const slc: SystemLifecycle | undefined = webSessions.get(sessionID)
+                if (!slc) {
+                    console.log("_main.updateSystemLifecycle(): switsch case lastUsed: no system lifecycle for sessionID =" + sessionID)
+                    return
+                }
+                slc.system  = undefined    
+                slc.dropped = new Date()
+                break }
+            default: {
+                console.log("_main.updateSystemLifecycle(): switsch case lastUsed: no system lifecycle for sessionID =" + sessionID)
+            }
+        } 
+    }
 
     function autoDropApparentlyAbandonedSystems(webSessions: Map<CookieSessionId, SystemLifecycle>): void {
-        autoDroppingIsInAction  = true
-        let haveDroppedASystem  = false
+        autoDroppingIsInAction = true
         for (let [sessionID, sysLifecycle] of webSessions.entries()) {
-            const refTime: MilliSeconds = Math.max(sysLifecycle.created  ? sysLifecycle.created.getTime()  : 0, 
-                                                   sysLifecycle.lastUsed ? sysLifecycle.lastUsed.getTime() : 0)
-            if (refTime == 0) {
+            const lastActionTime: Minutes = (Math.round (Math.max(sysLifecycle.created  ? sysLifecycle.created.getTime()  : -1, 
+                                                                  sysLifecycle.lastUsed ? sysLifecycle.lastUsed.getTime() : -1)) / 60000)
+            if (lastActionTime <= 0) {
                 console.log("_main: autoDropAbandonSystems(): found entry in webSessions Map that had neither a created nor a lastUsed timestamp!?!")
                 continue
             }
-            if (refTime - sysLifecycle.lastUsed!.getTime() > autoDropWhenOlderThanThis) {
-                webSessions.set(sessionID, {
-                    ...sysLifecycle, 
-                    system:     undefined,
-                    dropped:    new Date() 
-                })
-                haveDroppedASystem = true
+            if ((Date.now() / 60000) - lastActionTime > autoDropWhenOlderThanThis) {
+                updateSystemLifecycle(sessionID, "dropped")            }
+        }
+        for (let sysLifecycle of webSessions.values()) {
+            if (sysLifecycle.system) { // if at least one still active system instance found  
+                setTimeout(autoDropApparentlyAbandonedSystems, autoDropCheckInterval * 60000, webSessions) // continue checking the map in intervals ...
+                autoDroppingIsInAction = true    
+                return
             }
         }
-        // ### test Map for existing and not outdated system instances
-        if (!haveDroppedASystem) {
-            autoDroppingIsInAction  = false
-            return
-        }
-        setTimeout(autoDropApparentlyAbandonedSystems, autoDropCheckInterval * 60000, webSessions)
+        autoDroppingIsInAction  = false  // no longer any active system instance; turn auto dropping of 
     }
-
 }
 
 // -------------------------------------------------------------------
