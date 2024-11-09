@@ -111,3 +111,6 @@ https://jwt.io/    // decoding bearer tokens
 - https://jwt.io/
 - https://jwt.ms/
 
+# How to run 2 parallel sessions on PC:
+- use 1 normal Edge Session and 1 InPrivate-Session, then each session will have its own sessions-IDs.
+- use another Browser in addition and more parallel sessions are likely possible.
