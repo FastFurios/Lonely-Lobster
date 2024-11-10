@@ -17,6 +17,7 @@ import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg;
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
+import { symlinkSync } from 'fs'
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -307,8 +308,8 @@ function apiMode(): void {
                     return
                 }
                 webSessions.delete(sessionID)
-                //slc.system  = undefined    
-                // slc.dropped = new Date()
+                slc.system  = undefined    
+                slc.dropped = new Date()
                 if (debugAutoDrop) console.log("_main.updateSystemLifecycle(): system dropped. SessionID= " + sessionID)
                 break }
             default: {
@@ -320,7 +321,24 @@ function apiMode(): void {
     type WebSessions = Map<CookieSessionId, SystemLifecycle>
 
     function autoDropApparentlyAbandonedSystems(webSessions: WebSessions): void {
-        if (debugAutoDrop) console.log(`${debugTime()} _main: autoDropApparentlyAbandonedSystems(): autoDroppingIsInAction = ${autoDroppingIsInAction}; #sessions=${webSessions.size}`)
+        type NumSessionsByLifecycleState = {
+            initializedOnly:            number
+            inititalizedAndIterated:   number
+            dropped:                    number
+        }
+        function numSessionsByLifecycleState(webSessions: WebSessions): NumSessionsByLifecycleState {
+            const mapAsArrayofKeyValueTuples = Array.from(webSessions)
+            return {
+                initializedOnly:            mapAsArrayofKeyValueTuples.filter(([_, sysLc]) => sysLc.created && !sysLc.lastUsed).length,
+                inititalizedAndIterated:    mapAsArrayofKeyValueTuples.filter(([_, sysLc]) => sysLc.lastUsed).length,
+                dropped:                    mapAsArrayofKeyValueTuples.filter(([_, sysLc]) => sysLc.dropped).length
+            }
+        } 
+
+        if (debugAutoDrop) {
+            const _numSessionsByLifecycleState = numSessionsByLifecycleState(webSessions)         
+            console.log(`${debugTime()} _main: autoDropApparentlyAbandonedSystems(): autoDroppingIsInAction = ${autoDroppingIsInAction}; #sessions=${webSessions.size}: only initialized=${_numSessionsByLifecycleState.initializedOnly}, iterated=${_numSessionsByLifecycleState.inititalizedAndIterated}, dropped=${_numSessionsByLifecycleState.dropped}`)
+        } 
         autoDroppingIsInAction  = true 
         // check and sweep apparently abandoned sessions
         for (let [sessionID, sysLifecycle] of webSessions.entries()) {
