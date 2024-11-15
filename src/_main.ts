@@ -5,7 +5,7 @@
 //                          Gerold Lindorfer, Dec 2022 ff.
 // ########################################################################################################
 
-import express  from 'express'
+import express, { Request, Response, NextFunction } from 'express';
 import session  from "express-session" // Explanation of express-session: https://www.youtube.com/watch?v=isURb7HQkn8
 import cors     from "cors"
 
@@ -18,6 +18,7 @@ import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_c
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
 import { symlinkSync } from 'fs'
+import { nextSearchState } from './optimize.js';
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -127,6 +128,15 @@ function apiMode(): void {
     //const webSessions = new Map<CookieSessionId, LonelyLobsterSystem>()  
     const webSessions = new Map<CookieSessionId, SystemLifecycle>()  
 
+    // --- Error-handling middleware ------------------------
+    class LonelyLobsterError extends Error {
+        constructor(       message:     string,
+                    public statusCode:  number, 
+                    public description: string) { 
+            super(message) 
+        }
+    } 
+
     //------------------------------
     // SERVE ANGULAR FRONTEND 
     //------------------------------
@@ -136,18 +146,29 @@ function apiMode(): void {
     //------------------------------
     // API call - INITIALIZE 
     //------------------------------
-    app.post('/initialize', authenticateAzureAD, (req, res) => {
+    app.post('/initialize', authenticateAzureAD, (req, res, next) => {
         console.log(`\n${debugTime()} _main: app.post /initialize -------- webSession = ${req.sessionID} ----------------------------`)
         if (debugAuthentication) console.log("\n_main: app.post /initialize: req.headers.authorization= " + req.headers.authorization)
 
         // build the system
         let lonelyLobsterSystem: LonelyLobsterSystem 
-        try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
-        catch(error: any) {
-            console.log("_main: app.post /initialize: ERROR interpreting system configuration: error= " + error)
-            res.status(404).json({ message: error.message })
-            return
-        }
+        // try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
+        // catch(err) {
+        //     console.log("_main: app.post /initialize: ERROR interpreting system configuration: LonelyLobsterError err= " + err)
+        //     throw new LonelyLobsterError("hi", 404, "hallo: Description")  
+        //}
+        // try {
+        console.log("_main: app.post /initialize: throwing error...")
+        next(new Error("hallo, ich bin ein 403 Fehler :-("))  // 11.11.24: löst die error handler middleware nicht aus ?! ... muss recherchieren, was die error handling middleware zur Ausführung bringt
+        // } catch(err) {
+        //     console.log("_main: app.post /initialize: catch-block err= " + err)
+        //     next(err)
+        // }
+        return
+
+        lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
+
+
         updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.created, lonelyLobsterSystem)
         if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
         // handle web session
@@ -267,7 +288,18 @@ function apiMode(): void {
         res.send({ message: "Hi there, I am the API test endpoint with best regards! The bearer tokem is: " + req.headers.authorization })
     }) */
 
-    //---------------------------------
+    app.use((err: any, req: any, res: any, next: NextFunction) => {
+        console.error("Gerolds error handling middleware: "); // Log the error for debugging purposes
+        console.error(err)
+        // Set the status code and send a generic error message to the client
+        res.status(403).json({
+            LoLoMessage: 'Express Error Handling Middleware:LoLo reports an error!',
+            LoLoError: err.message, // Optionally send error details in development
+        });
+    });
+          
+    
+        //---------------------------------
     // listening for incoming API calls
     //---------------------------------
     app.listen(port, () => {0
@@ -280,7 +312,7 @@ function apiMode(): void {
 
     type Minutes                                = number
     const autoDropCheckInterval: Minutes        = 1
-    const autoDropThreshold: Minutes            = 5
+    const autoDropThreshold: Minutes            = 2
     enum LifeCycleActions { created, used, dropped }
     let autoDroppingIsInAction                  = false  // global "semaphore"
 

@@ -38,8 +38,8 @@ export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSy
     try { paramsAsString  = readFileSync(filename, "utf8") } 
     catch (e: any) {
         switch (e.code) {
-            case "ENOENT" : { throw new Error("System config file not found: " + e) }
-            default       : { throw new Error("System config file: other error: " + e.message) }
+            case "ENOENT" : { throw new Error("io_config: System config file not found: " + e) }
+            default       : { throw new Error("io_config: System config file: other error: " + e.message) }
         }   
     } 
     finally {}
@@ -80,7 +80,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 //          case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
 //          case "expired":    return expired.bind(null, timeValueFctAndArg.argument)
             default: { 
-                console.log(`WARNING: Reading system parameters: value degration function \"${timeValueFctAndArg?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
+                console.log(`WARNING: io_config: Reading system parameters: value degration function \"${timeValueFctAndArg?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
                 return net
             }
         }
@@ -93,7 +93,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             case successMeasureFunctionNames[1]: { /*console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[1]);*/ return successMeasureRoce } // roce = system's return on capital employed 
             case successMeasureFunctionNames[2]: { /*console.log("io_config: successMeasureFct(): " + successMeasureFunctionNames[2]);*/ return successMeasureNone } // no measurement 
             default: { 
-                console.log(`WARNING: Reading system parameters: learn & adapt success function \"${smf}\" not known to Lonely Lobster; resorting to \"successMeasureNone()\"`)
+                console.log(`WARNING: io_config: Reading system parameters: learn & adapt success function \"${smf}\" not known to Lonely Lobster; resorting to \"successMeasureNone()\"`)
                 return successMeasureNone
             }
         }
@@ -140,11 +140,11 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
 
         function sortVectorFromJson(svj: I_sortVector): SortVector {
             if (Object.getOwnPropertyDescriptor(WiExtInfoElem, svj.measure) == undefined) { 
-                console.log(`Reading system parameters: selecting next workitem by \"${svj.measure}\" is an unknown measure`)
+                console.log(`io_config: Reading system parameters: selecting next workitem by \"${svj.measure}\" is an unknown measure`)
                 throw new Error(`Reading system parameters: selecting next workitem by \"${svj.measure}\" is an unknown measure`)
             }
             if (Object.getOwnPropertyDescriptor(SelectionCriterion, svj.selection_criterion) == undefined) { 
-                console.log(`Reading system parameters: selecting next workitem by \"${svj.measure}\" has unknown sort order \"${svj.selection_criterion}\"`)
+                console.log(`io_config: Reading system parameters: selecting next workitem by \"${svj.measure}\" has unknown sort order \"${svj.selection_criterion}\"`)
                 throw new Error(`Reading system parameters: selecting next workitem by \"${svj.measure}\" has unknown sort order \"${svj.selection_criterion}\"`)
             }
             return {
@@ -177,14 +177,14 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
     const addWorkerAssignment = (psaj: I_process_step_assignment, newWorker: Worker, vcs: ValueChain[], asSet: AssignmentSet): void  => {
         const mayBeVc = vcs.find(vc => vc.id == psaj.value_chain_id)
         if (mayBeVc == undefined) { 
-            console.log(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to value chain \"${psaj.value_chain_id}\": could not find value chain`)
+            console.log(`io_config: Reading system parameters: tried to assign worker \"${newWorker.id}\" to value chain \"${psaj.value_chain_id}\": could not find value chain`)
             throw new Error(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to value chain \"${psaj.value_chain_id}\": could not find value chain`)
         }
         const vc: ValueChain  = mayBeVc
 
         const mayBePs = vc.processSteps.find(ps => ps.id == psaj.process_steps_id)
         if (mayBePs == undefined) { 
-            console.log(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to process step "\${psaj.process_steps_id}"\ in value chain=${psaj.value_chain_id}: could not find process step`)
+            console.log(`io_config: Reading system parameters: tried to assign worker \"${newWorker.id}\" to process step "\${psaj.process_steps_id}"\ in value chain=${psaj.value_chain_id}: could not find process step`)
             throw new Error(`Reading system parameters: tried to assign worker \"${newWorker.id}\" to process step "\${psaj.process_steps_id}"\ in value chain=${psaj.value_chain_id}: could not find process step`) 
         }
         const ps: ProcessStep = mayBePs
