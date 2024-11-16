@@ -137,6 +137,12 @@ function apiMode(): void {
         }
     } 
 
+    interface LoLoError {
+        runtimeError:           string
+        loloErrorCode:          number
+        loloErrorDescription:   string        
+    }
+
     //------------------------------
     // SERVE ANGULAR FRONTEND 
     //------------------------------
@@ -151,24 +157,21 @@ function apiMode(): void {
         if (debugAuthentication) console.log("\n_main: app.post /initialize: req.headers.authorization= " + req.headers.authorization)
 
         // build the system
-        let lonelyLobsterSystem: LonelyLobsterSystem 
-        // try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
-        // catch(err) {
-        //     console.log("_main: app.post /initialize: ERROR interpreting system configuration: LonelyLobsterError err= " + err)
-        //     throw new LonelyLobsterError("hi", 404, "hallo: Description")  
-        //}
-        // try {
-        console.log("_main: app.post /initialize: throwing error...")
-        next(new Error("hallo, ich bin ein 403 Fehler :-("))  // 11.11.24: löst die error handler middleware nicht aus ?! ... muss recherchieren, was die error handling middleware zur Ausführung bringt
-        // } catch(err) {
-        //     console.log("_main: app.post /initialize: catch-block err= " + err)
-        //     next(err)
-        // }
-        return
-
-        lonelyLobsterSystem = systemCreatedFromConfigJson(req.body)
-
-
+        let lonelyLobsterSystem: LonelyLobsterSystem
+        try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
+        catch(exception) {
+            console.error("_main: app.post(initialize): exception = ")
+            console.error(exception)
+            const loloError: LoLoError = {
+                runtimeError:           (<Error>exception).message,
+                loloErrorCode:          666,
+                loloErrorDescription:   "Number of the beast!"
+            }
+            console.error("_main: app.post(initialize): error caught = ")
+            console.error(loloError)
+            next(loloError)
+            return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
+        }
         updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.created, lonelyLobsterSystem)
         if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
         // handle web session
@@ -288,18 +291,18 @@ function apiMode(): void {
         res.send({ message: "Hi there, I am the API test endpoint with best regards! The bearer tokem is: " + req.headers.authorization })
     }) */
 
+    //-------------------------------------
+    // ERROR HANDLING middleware
+    //-------------------------------------
     app.use((err: any, req: any, res: any, next: NextFunction) => {
         console.error("Gerolds error handling middleware: "); // Log the error for debugging purposes
         console.error(err)
         // Set the status code and send a generic error message to the client
-        res.status(403).json({
-            LoLoMessage: 'Express Error Handling Middleware:LoLo reports an error!',
-            LoLoError: err.message, // Optionally send error details in development
-        });
-    });
+        res.status(403).json(err)
+    })
           
     
-        //---------------------------------
+    //---------------------------------
     // listening for incoming API calls
     //---------------------------------
     app.listen(port, () => {0
