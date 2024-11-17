@@ -17,8 +17,10 @@ import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg;
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
-import { symlinkSync } from 'fs'
-import { nextSearchState } from './optimize.js';
+import { ApplicationEvent, EventSeverity } from './io_api_definitions.js'
+import { environment } from './environment.js'
+
+
 
 // define where to find the comand line arguments (e.g. $ node target/_main.js test/LonelyLobster_Testcase0037.json test/workload_50_blue_burst_15_green_burst_10.csv)
 enum InputArgs {
@@ -39,8 +41,8 @@ declare module "express-session" { // expand the type of the session data by my 
 // DEBUG 
 // -------------------------------------------------------------------
 
-const debugApiCalls         = false
-const debugAuthentication   = false
+const debugApiCalls         = true
+const debugAuthentication   = true
 const debugAutoDrop         = true
 
 const debugTime = (): string => new Date().toTimeString().split(" ")[0]
@@ -137,12 +139,12 @@ function apiMode(): void {
         }
     } 
 
-    interface LoLoError {
+/*     interface LoLoError {
         runtimeError:           string
         loloErrorCode:          number
         loloErrorDescription:   string        
     }
-
+ */
     //------------------------------
     // SERVE ANGULAR FRONTEND 
     //------------------------------
@@ -160,16 +162,20 @@ function apiMode(): void {
         let lonelyLobsterSystem: LonelyLobsterSystem
         try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
         catch(exception) {
-            console.error("_main: app.post(initialize): exception = ")
-            console.error(exception)
-            const loloError: LoLoError = {
-                runtimeError:           (<Error>exception).message,
-                loloErrorCode:          666,
-                loloErrorDescription:   "Number of the beast!"
+            // console.error("_main: app.post(initialize): exception = ")
+            // console.error(exception)
+            const appEvent: ApplicationEvent = {
+                dateAndtime:    new Date(),
+                source:         "backend",
+                sourceVersion:  environment.version,
+                severity:       EventSeverity.critical,
+                typeId:         100,
+                description:    (<Error>exception).message,
+                context:        req.sessionID
             }
-            console.error("_main: app.post(initialize): error caught = ")
-            console.error(loloError)
-            next(loloError)
+            // console.error("_main: app.post(initialize): exception caught: new app event = ")
+            // console.error(appEvent)
+            next(appEvent)
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
         updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.created, lonelyLobsterSystem)
@@ -188,6 +194,7 @@ function apiMode(): void {
     //------------------------------
     app.post('/iterate', authenticateAzureAD, (req, res) => {
         if (debugApiCalls) console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
+        
         // handle web session
         const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
         if (!lonelyLobsterSystemLifecycle?.system) { 

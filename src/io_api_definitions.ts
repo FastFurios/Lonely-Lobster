@@ -2,6 +2,8 @@
 // Lonely Lobster API and general type definitions 
 //----------------------------------------------------------------------
 
+import { SourceMap } from "module"
+
 // the master of this file is located in the project "Lonely Lobster".
 // Do not forget to copy the latest version over to the Angular frontend project (use the "$ sh getApiDefsFromBackend.sh") 
 
@@ -366,3 +368,34 @@ export const selectionCriterionNames = [ // for workItemSelectionStrategyMeasure
     "maximum",
     "minimum"
 ]
+
+//-----------------------------------------
+// event messages for user and/or application logging purposes
+//-----------------------------------------
+
+export type EventTypeId = number 
+export enum EventSeverity {
+    info,
+    warning,
+    critical,
+    fatal
+}
+// export enum EventTypeId {
+//     configFileNotFound,
+//     corruptConfig,
+//     valueOutOfBoundsOrUndefined
+// }
+export interface ApplicationEvent {
+    dateAndtime:    Date
+    source:         string
+    sourceVersion:  string
+    severity:       EventSeverity
+    typeId:         EventTypeId
+    description:    string  // explain to user what happened and what to do
+    context:        string  // any additional data e.g. username or session token or ...
+}
+
+
+
+
+
