@@ -194,6 +194,7 @@ function apiMode(): void {
                 next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }
+   /* if(req.sessionID) throw Error("Gerold provoked an Exception") */
             updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
             if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
@@ -209,80 +210,104 @@ function apiMode(): void {
     //-------------------------------------
     // API call - provide SYSTEM STATISTICS 
     //-------------------------------------
-    app.get('/statistics', authenticateAzureAD, (req, res) => {
+    app.get('/statistics', authenticateAzureAD, (req, res, next) => {
         if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
-        // handle web session
-        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystemLifecycle?.system) { 
-            console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.status(404).send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
-            return
-        }            
-        updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
-        if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
+        try {       
+            // handle web session
+            const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+            if (!lonelyLobsterSystemLifecycle?.system) { 
+                console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+//              res.status(404).send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
+                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                return
+            }            
+            updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
+            if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
-        // return system statistics to frontend
-        const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
-        res.status(200).send(lonelyLobsterSystemLifecycle.system.systemStatistics( 
-                                interval <= 0 ? 0 // stats from the very beginning on
-                                                : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
-                                lonelyLobsterSystemLifecycle.system.clock.time))
+            // return system statistics to frontend
+            const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
+            res.status(200).send(lonelyLobsterSystemLifecycle.system.systemStatistics( 
+                                    interval <= 0 ? 0 // stats from the very beginning on
+                                                    : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
+                                    lonelyLobsterSystemLifecycle.system.clock.time))
+        } catch(exception) {
+            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
+        }
     })
 
     //-------------------------------------
     // API call - provide WORKITEM EVENTS 
     //-------------------------------------
-    app.get('/workitem-events', authenticateAzureAD, (req, res) => {
+    app.get('/workitem-events', authenticateAzureAD, (req, res, next) => {
         if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /workitem-events -------- webSession = ${req.sessionID} ----------------------------`)
-        // handle web session
-        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID) // webSessions.values().next().value
-        if (!lonelyLobsterSystemLifecycle?.system) { 
-            console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.status(404).send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
-            return
-        }            
-        updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
-        if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
+        try {
+            // handle web session
+            const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID) // webSessions.values().next().value
+            if (!lonelyLobsterSystemLifecycle?.system) { 
+                console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+//              res.status(404).send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
+                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                return
+            }            
+            updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
+            if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
-        // return workitem events to frontend
-        res.status(200).send(lonelyLobsterSystemLifecycle.system.workitemEvents)
+            // return workitem events to frontend
+            res.status(200).send(lonelyLobsterSystemLifecycle.system.workitemEvents)
+        } catch(exception) {
+            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
+        }
     })
 
     //-------------------------------------
     // API call - provide LEARNING STATISTICS - workitem selection strategies weights of workers over time
     //-------------------------------------
-    app.get('/learn-stats', authenticateAzureAD, (req, res) => {
+    app.get('/learn-stats', authenticateAzureAD, (req, res, next) => {
         if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /learning statistics -------- webSession = ${req.sessionID} ----------------------------`)
-        // handle web session
-        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystemLifecycle?.system) { 
-            console.log("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.status(404).send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
-            return
-        }            
-        updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
-        if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
+        try {
+            // handle web session
+            const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+            if (!lonelyLobsterSystemLifecycle?.system) { 
+                console.log("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+//              res.status(404).send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
+                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                return
+            }            
+            updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
+            if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
-        // return workers' selection strategies learning statistics to frontend
-        res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
+            // return workers' selection strategies learning statistics to frontend
+            res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
+        } catch(exception) {
+            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
+        }
     })
 
     //-------------------------------------
     // API call - DROP system
     //-------------------------------------
-    app.get('/drop', authenticateAzureAD, (req, res) => {
+    app.get('/drop', authenticateAzureAD, (req, res, next) => {
         console.log(`\n${debugTime()} _main: app.get /drop system -------- webSession = ${req.sessionID} ----------------------------`)
         // handle web session
-        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystemLifecycle?.system) { 
-            console.log("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.status(404).send("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession")
-            return
-        }            
-        updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.dropped)
+        try {
+            const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+            if (!lonelyLobsterSystemLifecycle?.system) { 
+                console.log("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+//              res.status(404).send("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession")
+                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                return
+            }            
+            updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.dropped)
 
-        // return workers' selection strategies learning statistics to frontend
-        res.status(200).send()
+            // return workers' selection strategies learning statistics to frontend
+            res.status(200).send()
+        } catch(exception) {
+            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.warning, (<Error>exception).message))
+            return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
+        }
     })
 /* 
     //-------------------------------------
