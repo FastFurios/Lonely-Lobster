@@ -166,7 +166,7 @@ function apiMode(): void {
             // console.error(exception)
             // console.error("_main: app.post(initialize): exception caught: new app event = ")
             // console.error(appEvent)
-            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            next(applicationEventFrom("_main/initialize", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
         updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.created, lonelyLobsterSystem)
@@ -191,7 +191,7 @@ function apiMode(): void {
             if (!lonelyLobsterSystemLifecycle?.system) { 
                 console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
 //              res.status(404).send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
-                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                next(applicationEventFrom("_main/iterate", mask(req.sessionID), EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }
    /* if(req.sessionID) throw Error("Gerold provoked an Exception") */
@@ -202,7 +202,7 @@ function apiMode(): void {
             // return next system state to frontend
             res.status(200).send(lonelyLobsterSystemLifecycle.system.nextSystemState(req.body))
         } catch(exception) {
-            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            next(applicationEventFrom("_main/iterate", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
     })
@@ -218,7 +218,7 @@ function apiMode(): void {
             if (!lonelyLobsterSystemLifecycle?.system) { 
                 console.log("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
 //              res.status(404).send("_main(): app.post /system statistics: could not find a LonelyLobsterSystem for webSession")
-                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                next(applicationEventFrom("_main/statistics", mask(req.sessionID), EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }            
             updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
@@ -231,7 +231,7 @@ function apiMode(): void {
                                                     : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
                                     lonelyLobsterSystemLifecycle.system.clock.time))
         } catch(exception) {
-            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            next(applicationEventFrom("_main/statitsics", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
     })
@@ -247,7 +247,7 @@ function apiMode(): void {
             if (!lonelyLobsterSystemLifecycle?.system) { 
                 console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
 //              res.status(404).send("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession")
-                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                next(applicationEventFrom("_main/workitem-events", mask(req.sessionID), EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }            
             updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
@@ -256,7 +256,7 @@ function apiMode(): void {
             // return workitem events to frontend
             res.status(200).send(lonelyLobsterSystemLifecycle.system.workitemEvents)
         } catch(exception) {
-            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            next(applicationEventFrom("_main/workitem-events", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
     })
@@ -272,7 +272,7 @@ function apiMode(): void {
             if (!lonelyLobsterSystemLifecycle?.system) { 
                 console.log("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
 //              res.status(404).send("_main(): app.post /learning statistics: could not find a LonelyLobsterSystem for webSession")
-                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                next(applicationEventFrom("_main/learn-stats", mask(req.sessionID), EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }            
             updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
@@ -281,7 +281,7 @@ function apiMode(): void {
             // return workers' selection strategies learning statistics to frontend
             res.status(200).send(lonelyLobsterSystemLifecycle.system.learningStatistics)
         } catch(exception) {
-            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            next(applicationEventFrom("_main/learn-stats", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
     })
@@ -297,7 +297,7 @@ function apiMode(): void {
             if (!lonelyLobsterSystemLifecycle?.system) { 
                 console.log("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
 //              res.status(404).send("_main(): app.post /drop system: could not find a LonelyLobsterSystem for webSession")
-                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                next(applicationEventFrom("_main/drop", mask(req.sessionID), EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }            
             updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.dropped)
@@ -305,7 +305,7 @@ function apiMode(): void {
             // return workers' selection strategies learning statistics to frontend
             res.status(200).send()
         } catch(exception) {
-            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.warning, (<Error>exception).message))
+            next(applicationEventFrom("_main/drop", mask(mask(req.sessionID)), EventTypeId.configCorrupt, EventSeverity.warning, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
     })
@@ -323,7 +323,11 @@ function apiMode(): void {
     // ERROR HANDLING middleware
     //-------------------------------------
 
-    function applicationEventFrom(context: string, typeId: EventTypeId, sev: EventSeverity, desc?: string): ApplicationEvent {
+    function mask(s: string): string {
+        return "****" + s.slice(-4)
+    }
+
+    function applicationEventFrom(at: string, moreContext: string, typeId: EventTypeId, sev: EventSeverity, desc?: string): ApplicationEvent {
         return {
             dateAndtime:    new Date(),
             source:         "backend",
@@ -331,7 +335,7 @@ function apiMode(): void {
             severity:       sev,
             typeId:         typeId,
             description:    desc ? desc : typeId,  // use detail description or if not available then standard text of event type
-            context:        context
+            context:        `${at}: ${moreContext}`
         }
     }
 
