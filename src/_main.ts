@@ -17,7 +17,7 @@ import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg;
 import { systemCreatedFromConfigJson, systemCreatedFromConfigFile } from './io_config.js'
 import { processWorkOrderFile } from './io_workload.js'
 import { LonelyLobsterSystem } from './system.js'
-import { ApplicationEvent, EventSeverity } from './io_api_definitions.js'
+import { ApplicationEvent, EventSeverity, EventTypeId } from './io_api_definitions.js'
 import { environment } from './environment.js'
 
 
@@ -42,7 +42,7 @@ declare module "express-session" { // expand the type of the session data by my 
 // -------------------------------------------------------------------
 
 const debugApiCalls         = true
-const debugAuthentication   = true
+const debugAuthentication   = false
 const debugAutoDrop         = true
 
 const debugTime = (): string => new Date().toTimeString().split(" ")[0]
@@ -164,18 +164,9 @@ function apiMode(): void {
         catch(exception) {
             // console.error("_main: app.post(initialize): exception = ")
             // console.error(exception)
-            const appEvent: ApplicationEvent = {
-                dateAndtime:    new Date(),
-                source:         "backend",
-                sourceVersion:  environment.version,
-                severity:       EventSeverity.critical,
-                typeId:         100,
-                description:    (<Error>exception).message,
-                context:        req.sessionID
-            }
             // console.error("_main: app.post(initialize): exception caught: new app event = ")
             // console.error(appEvent)
-            next(appEvent)
+            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
         updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.created, lonelyLobsterSystem)
@@ -192,22 +183,27 @@ function apiMode(): void {
     //------------------------------
     // API call - ITERATE
     //------------------------------
-    app.post('/iterate', authenticateAzureAD, (req, res) => {
+    app.post('/iterate', authenticateAzureAD, (req, res, next) => {
         if (debugApiCalls) console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
-        
-        // handle web session
-        const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
-        if (!lonelyLobsterSystemLifecycle?.system) { 
-            console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
-            res.status(404).send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
-            return
-        }
-        updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
-        if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
+        try {       
+            // handle web session
+            const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
+            if (!lonelyLobsterSystemLifecycle?.system) { 
+                console.log("_main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+//              res.status(404).send("error: _main(): app.post /iterate: could not find a LonelyLobsterSystem for webSession")
+                next(applicationEventFrom(req.sessionID, EventTypeId.sessionNotFound, EventSeverity.critical))
+                return
+            }
+            updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
+            if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
-        req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
-        // return next system state to frontend
-        res.status(200).send(lonelyLobsterSystemLifecycle.system.nextSystemState(req.body))
+            req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
+            // return next system state to frontend
+            res.status(200).send(lonelyLobsterSystemLifecycle.system.nextSystemState(req.body))
+        } catch(exception) {
+            next(applicationEventFrom(req.sessionID, EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
+        }
     })
 
     //-------------------------------------
@@ -301,14 +297,41 @@ function apiMode(): void {
     //-------------------------------------
     // ERROR HANDLING middleware
     //-------------------------------------
+
+    function applicationEventFrom(context: string, typeId: EventTypeId, sev: EventSeverity, desc?: string): ApplicationEvent {
+        return {
+            dateAndtime:    new Date(),
+            source:         "backend",
+            sourceVersion:  environment.version,
+            severity:       sev,
+            typeId:         typeId,
+            description:    desc ? desc : typeId,  // use detail description or if not available then standard text of event type
+            context:        context
+        }
+    }
+
+    type HttpStatusCode = number
+    const eventTypeIdToHttpStatusCodes = new Map<EventTypeId, HttpStatusCode>([
+        [EventTypeId.authorizationError,    403],
+        [EventTypeId.configFileNotFound,    404],
+        [EventTypeId.configCorrupt,         500],
+        [EventTypeId.valueOutOfRange,       500],
+        [EventTypeId.sessionNotFound,       500]
+    ])
+    function httpStatusCodeFrom(eti: EventTypeId): HttpStatusCode {
+        return eventTypeIdToHttpStatusCodes.get(eti) || 500
+    }
+
+
     app.use((err: any, req: any, res: any, next: NextFunction) => {
         console.error("Gerolds error handling middleware: "); // Log the error for debugging purposes
         console.error(err)
         // Set the status code and send a generic error message to the client
-        res.status(403).json(err)
+        res.status(httpStatusCodeFrom(err.typeId)).json(err)
     })
           
     
+
     //---------------------------------
     // listening for incoming API calls
     //---------------------------------
