@@ -130,21 +130,6 @@ function apiMode(): void {
     //const webSessions = new Map<CookieSessionId, LonelyLobsterSystem>()  
     const webSessions = new Map<CookieSessionId, SystemLifecycle>()  
 
-    // --- Error-handling middleware ------------------------
-    class LonelyLobsterError extends Error {
-        constructor(       message:     string,
-                    public statusCode:  number, 
-                    public description: string) { 
-            super(message) 
-        }
-    } 
-
-/*     interface LoLoError {
-        runtimeError:           string
-        loloErrorCode:          number
-        loloErrorDescription:   string        
-    }
- */
     //------------------------------
     // SERVE ANGULAR FRONTEND 
     //------------------------------

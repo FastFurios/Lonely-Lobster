@@ -378,19 +378,18 @@ export enum EventTypeId {
     configCorrupt       = "Configuration is corrupt",
     valueOutOfRange     = "Some system internal value is out of range",    
     authorizationError  = "Request not authorized",
-    sessionNotFound     = "Session not found (possibly expired)"
+    sessionNotFound     = "Session not found (possibly expired)",
+    networkProblems     = "Cannot reach resource due to network problems (probably on frontend-side).",
+    configJsonError     = "JSON of configuration file is corrupt."
 } 
+
 export enum EventSeverity {
     info,
     warning,
     critical,
     fatal
 }
-// export enum EventTypeId {
-//     configFileNotFound,
-//     corruptConfig,
-//     valueOutOfBoundsOrUndefined
-// }
+
 export interface ApplicationEvent {
     dateAndtime:    Date
     source:         string
