@@ -374,6 +374,7 @@ export const selectionCriterionNames = [ // for workItemSelectionStrategyMeasure
 //-----------------------------------------
 
 export enum EventTypeId {
+    configFileLoaded    = "Configuration File loaded",
     configFileNotFound  = "Configuration File not found",
     configCorrupt       = "Configuration is corrupt",
     valueOutOfRange     = "Some system internal value is out of range",    
