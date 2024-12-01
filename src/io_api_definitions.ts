@@ -374,14 +374,31 @@ export const selectionCriterionNames = [ // for workItemSelectionStrategyMeasure
 //-----------------------------------------
 
 export enum EventTypeId {
-    configFileLoaded    = "Configuration File loaded",
-    configFileNotFound  = "Configuration File not found",
-    configCorrupt       = "Configuration is corrupt",
+
     valueOutOfRange     = "Some system internal value is out of range",    
     authorizationError  = "Request not authorized",
     sessionNotFound     = "Session not found (possibly expired)",
     networkProblems     = "Cannot reach resource due to network problems (probably on frontend-side).",
-    configJsonError     = "JSON of configuration file is corrupt."
+    
+    loggedIn            = "logged in.",
+    loggedOut           = "logged out.",
+
+    configFileLoaded    = "Configuration File loaded",
+    configFileNotFound  = "Configuration File not found",
+    configJsonError     = "JSON of configuration file is corrupt.",
+    configCorrupt       = "Configuration is corrupt",
+    
+    configEdited        = "Configuration edited.",
+    configSaved         = "Configuration changes saved.",
+
+    systemInOperation   = "System in operation.",
+    systemFailed        = "System failed.",
+
+    configDownloaded    = "Configuration downloaded.",
+    statsEventsDownloaded= "Statistic events downloaded.",
+    configDropped       = "Configuration discarded.",
+    systemDropped       = "Backend system discarded."
+
 } 
 
 export enum EventSeverity {
