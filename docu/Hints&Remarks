@@ -114,3 +114,23 @@ https://jwt.io/    // decoding bearer tokens
 # How to run 2 parallel sessions on PC:
 - use 1 normal Edge Session and 1 InPrivate-Session, then each session will have its own sessions-IDs.
 - use another Browser in addition and more parallel sessions are likely possible.
+
+
+# typedoc and jsdoc annotations
+https://typedoc.org/index.html
+https://jsdoc.app/#block-tags
+@module
+@private - e.g. surpress constructor decomentation only used for dependency injection 
+@default
+@example
+@interface
+@param
+@returns
+@todo
+@generator
+@yields
+@summary
+@endpoint
+
+../frontend$ npm run build-docs
+npx http-server docs &  =>  Browser: localhost:8080
