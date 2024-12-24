@@ -20,18 +20,19 @@ export type Timestamp      = number
 /** Number of discrete time units */
        type TimeUnits      = number
 /** The discrete duration between 2 timestamps */
+export type TimeInterval   = number // frontend
 /** Accumulated effort that has gone into a workitem; measured as count of all timestamps any worker has worked the workitem */
 export type Effort         = TimeUnits // measured in Worker Time Units
 /** Value the workitem generates once reached the output basket i.e. it is an endproduct; measured in Worker Time Units */
 export type Value          = TimeUnits
 
 export type ValueChainId   = string
-export type ProcessStepId  = string
+export type ProcessStepId  = string // frontend
 export type WorkItemId     = number
 /** Workitem display tag (used for console display in batch mode only) */
 export type WorkItemTag    = [string, string]
 export type WorkerName     = string
-export type RgbColor       = [number, number, number]
+export type RgbColor       = [number, number, number] // frontend
 /**
  * The rate and distribution by which new work orders are injected into a value chain on average.
  * Throughput is the average number of new workorders over time, probability controls how often the virtually accumulated number of workorders are injected as bulk.
@@ -219,7 +220,7 @@ export interface I_ValueChain {
 }
 
 /** output basket */
-export interface I_OutputBasket {
+interface I_OutputBasket {
     workItems:                      I_WorkItem[]
 }
 
@@ -235,6 +236,11 @@ export interface I_WeightedSelectionStrategy {
     weight: number
 }
 
+/** weighted strategy with its display color; used in frontend only */
+export type ColoredWeightedSelectionStrategy = I_WeightedSelectionStrategy & {
+    backgroundColor: string // string with css color codes 
+}
+  
 /** statistics of a worker */
 export interface I_WorkerState {
     worker:                         WorkerName
@@ -304,6 +310,13 @@ export interface I_ValueChainStatistics {
     }
 } 
 
+/** used in frontend only */
+export interface I_FlowStats { // frontend
+    tpv: number,  // throughput measured in value
+    tpi: number,  // throughput measured in #items
+    ct:  number   // cycle time
+}
+
 /** work item based statistics for the output basket, i.e. for the entire system */
 export interface I_EndProductStatistics {
     numWis:             number,
@@ -353,6 +366,44 @@ export interface I_WorkItemEvent {
     processStep:    ProcessStepId  // if eventType == movedTo then this is the target process-step
     worker?:        WorkerName     // if eventType == workedOn then this is filled
 }
+
+export type I_WorkItemEvents = I_WorkItemEvent[]  // frontend 
+
+// -----------------------------------------------------------
+/** worker utilization */
+// -----------------------------------------------------------
+
+/** worker and its utilization as percentage */
+export type WorkerWithUtilization = {  // frontend
+    worker:                         WorkerName,
+    utilization:                    number
+}
+
+/** worker utilization and the process steps he/she works on */
+export type PsWorkerUtilization = WorkerWithUtilization & {  // frontend
+    assignedProcessSteps:           ProcessStepId[]
+}
+      
+/** all values for displaying a value chain in the frontend */
+export interface VcExtended {
+    vc:         I_ValueChain
+    wosUtil:    PsWorkerUtilization[]
+    flowStats?: I_ValueChainStatistics
+}  
+
+/** all values for displaying the output basket in the frontend */
+export interface ObExtended {
+    ob: I_OutputBasket
+    flowStats?: I_WorkItemStatistics
+}
+
+/** all values for displaying a process step in the frontend */
+export interface PsExtended {
+    ps:         I_ProcessStep
+    vcId:       ValueChainId
+    wosUtil:    WorkerWithUtilization[]
+    flowStats?: I_ProcessStepStatistics
+}  
 
 // -----------------------------------------------------------
 /** response to Learning statistics request */
@@ -407,6 +458,31 @@ export const successMeasureFunctionNames = [
     "roce",        // wired with successMeasureRoce()
     /** none */ 
     "none"         // wired with successMeasureNone()
+]
+
+/** work item measurement kpis */ 
+export enum workItemSelectionStrategyMeasureNames { // frontend
+    accumulatedEffortInProcessStep  = "accumulated effort in process step",
+    remainingEffortInProcessStep    = "remaining effort in process step",
+    accumulatedEffortInValueChain   = "accumulated effort in value chain",
+    remainingEffortInValueChain     = "remaining effort in value chain",
+
+    visitedProcessSteps             = "visited process steps",
+    remainingProcessSteps           = "remaining process steps",
+
+    valueOfValueChain               = "value-add of value chain",
+    totalEffortInValueChain         = "total effort in value chain",
+    contributionOfValueChain        = "contribution of value chain",
+
+    sizeOfInventoryInProcessStep    = "size of inventory in process step",
+
+    elapsedTimeInProcessStep        = "elapsed time in process step",
+    elapsedTimeInValueChain         = "elapsed time in value chain"
+}
+
+export const selectionCriterionNames = [ // for workItemSelectionStrategyMeasureNames in the frontend
+    "maximum",
+    "minimum"
 ]
 
 // -----------------------------------------------------------

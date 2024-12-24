@@ -15,7 +15,6 @@ import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_VcPsWipLimit, I_WorkItemEvent, I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
-import { exit } from 'process'
 
 
 const debugShowOptionsDefaults: DebugShowOptions = { 

@@ -4,7 +4,7 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
-import { I_Injection, Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames, I_sortVector, I_selectionStrategy } from "./io_api_definitions.js"
+import { I_Injection, Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames, I_sortVector, I_SelectionStrategy, I_ConfigAsJson } from "./io_api_definitions.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
 import { Worker, AssignmentSet, Assignment, SelectionStrategy, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
@@ -44,7 +44,7 @@ export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSy
     } 
     finally {}
 
-    const paj: any = JSON.parse(paramsAsString)  // "paj" = parameters as JSON 
+    const paj: I_ConfigAsJson = JSON.parse(paramsAsString)  // "paj" = parameters as JSON 
     return systemCreatedFromConfigJson(paj)
 }
 
@@ -153,8 +153,8 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             } 
         }
     
-        function globallyDefinedStrategy(sId: string): I_selectionStrategy | undefined {
-            return (<I_selectionStrategy[]>paj.globally_defined_workitem_selection_strategies).find(s => s.id == sId)
+        function globallyDefinedStrategy(sId: string): I_SelectionStrategy | undefined {
+            return (<I_SelectionStrategy[]>paj.globally_defined_workitem_selection_strategies).find(s => s.id == sId)
         } 
         let weightedSelStrategies: WeightedSelectionStrategy[] = woj.workitem_selection_strategies == undefined || woj.workitem_selection_strategies.length == 0
                                         ? [ { element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy 
