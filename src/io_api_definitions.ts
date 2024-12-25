@@ -44,7 +44,10 @@ export type RgbColor       = [number, number, number]
  * @example If throughput is 1 and probability is 0.5 then the systems adds 1 new workorder to the accumulated number of new workorders until the rolled dice at the end of every timestamp decides to flush out the accumulated new workorders and inject them.
  * A remainder < 1 may be left over. The system continues to ad another new workorder to the accumulated number of new workorders and rolls the dice and so on...   
  */
-export type Injection      = { throughput: number, probability: number }
+export type Injection      = { 
+    throughput: number, 
+    probability: number
+}
 /** Work in progress limit: if 0 then no limit, if > 0 then the wip limit restricts the number of workitems allowed in a process step at any given time. */
 export type WipLimit       = number
 
@@ -60,13 +63,13 @@ interface I_LearnAndAdaptParamsAsJson {
 }
 
 /** value degradation function and argument */
-interface I_ValueDegradationAsJson {
+export interface I_ValueDegradationAsJson {
     function: string,
     argument: number
 }
 
 /** value chain injection parameters */
-interface I_InjectionAsJson {
+export interface I_InjectionAsJson {
     throughput: number,
     probability?: number
 }
@@ -149,7 +152,7 @@ export type I_ConfigAsJson = {  // frontend
     value_chains: I_ValueChainAsJson[],
 	globally_defined_workitem_selection_strategies?: I_GloballyDefinedWorkitemSelectionStrategyAsJson[]
     workers: I_WorkerAsJson[]
-} | undefined
+} // | undefined
 
 // -----------------------------------------------------------
 /** Request to iterate */

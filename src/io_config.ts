@@ -4,9 +4,9 @@
 
 import { readFileSync } from "fs"
 import { LonelyLobsterSystem } from "./system.js"
-import { I_Injection, Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames, I_sortVector, I_SelectionStrategy, I_ConfigAsJson } from "./io_api_definitions.js"
+import { Injection, TimeUnit, I_FrontendPresets, valueDegradationFunctionNames, successMeasureFunctionNames, I_sortVector, I_SelectionStrategy, I_ConfigAsJson, I_ValueChainAsJson, I_ProcessStepAsJson, I_InjectionAsJson, I_ValueDegradationAsJson, I_WorkerAsJson } from "./io_api_definitions.js"
 import { ValueChain, TimeValuationFct, discounted, expired, net } from './valuechain.js'
-import { Worker, AssignmentSet, Assignment, SelectionStrategy, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
+import { Worker, AssignmentSet, Assignment, WeightedSelectionStrategy, LearnAndAdaptParms, SuccessMeasureFunction, successMeasureIvc, successMeasureRoce, successMeasureNone } from './worker.js'
 import { WiExtInfoElem } from './workitem.js'
 import { ProcessStep } from "./workitembasketholder.js"
 import { SortVector, SelectionCriterion, arrayWithNormalizedWeights} from "./helpers.js"
@@ -52,35 +52,37 @@ export function systemCreatedFromConfigFile(filename : string) : LonelyLobsterSy
 // Create system from JSON config object
 // -----------------------------------------------------------------------------------------------------------
 
-export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
+export function systemCreatedFromConfigJson(paj: I_ConfigAsJson) : LonelyLobsterSystem {
     // extract system id
     const systemId: string = paj.system_id
 
-    // extract value chains
-    interface I_process_step {
-        process_step_id:        string
-        norm_effort:            number
-        wip_limit:              number
-        bar_length:             number
-    } 
+    // // extract value chains
+    // interface I_process_step {
+    //     process_step_id:        string
+    //     norm_effort:            number
+    //     wip_limit:              number
+    //     bar_length:             number
+    // } 
     
-    interface I_value_chain {
-        value_chain_id:         string
-        value_add:              number,
-        injection?:             I_Injection,
-        value_degradation:      I_TimeValueFctAndArg,
-        process_steps:          I_process_step[]  
-    }
+    // interface I_value_chain {
+    //     value_chain_id:         string
+    //     value_add:              number,
+    //     injection?:             I_Injection,
+    //     value_degradation:      I_TimeValueFctAndArg,
+    //     process_steps:          I_process_step[]  
+    // }
 
-    function valueDegradationFct(timeValueFctAndArg: I_TimeValueFctAndArg): TimeValuationFct {
+    const c_barLength = 20
+
+    function valueDegradationFct(valueDegradationFunctionAndArgument: I_ValueDegradationAsJson | undefined): TimeValuationFct {
             // console.log("io_config: valueDegradationFct(): argument timeValueFctAndArg = " + timeValueFctAndArg.function)
-            switch (timeValueFctAndArg?.function) {
-            case valueDegradationFunctionNames[0]: { /*console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[0]);*/ return discounted.bind(null, timeValueFctAndArg.argument) }
-            case valueDegradationFunctionNames[1]: { /*console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[1]);*/ return expired.bind(null, timeValueFctAndArg.argument)    }
+            switch (valueDegradationFunctionAndArgument?.function) {
+            case valueDegradationFunctionNames[0]: { /*console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[0]);*/ return discounted.bind(null, valueDegradationFunctionAndArgument.argument) }
+            case valueDegradationFunctionNames[1]: { /*console.log("io_config: valueDegradationFct(): function name = " + valueDegradationFunctionNames[1]);*/ return expired.bind(null, valueDegradationFunctionAndArgument.argument)    }
 //          case "discounted": return discounted.bind(null, timeValueFctAndArg.argument) 
 //          case "expired":    return expired.bind(null, timeValueFctAndArg.argument)
             default: { 
-                console.log(`WARNING: io_config: Reading system parameters: value degration function \"${timeValueFctAndArg?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
+                console.log(`WARNING: io_config: Reading system parameters: value degration function \"${valueDegradationFunctionAndArgument?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
                 return net
             }
         }
@@ -99,28 +101,28 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         }
     }
 
-    const debugShowOptions: DebugShowOptions  = {
-                                                    clock          : paj.debug_show_options == undefined ? false : paj.debug_show_options.clock,
-                                                    workerChoices  : paj.debug_show_options == undefined ? false : paj.debug_show_options.worker_choices,
-                                                    readFiles      : paj.debug_show_options == undefined ? false : paj.debug_show_options.read_files
-                                                }
+    // const debugShowOptions: DebugShowOptions  = {
+    //                                                 clock          : paj.debug_show_options == undefined ? false : paj.debug_show_options.clock,
+    //                                                 workerChoices  : paj.debug_show_options == undefined ? false : paj.debug_show_options.worker_choices,
+    //                                                 readFiles      : paj.debug_show_options == undefined ? false : paj.debug_show_options.read_files
+    //                                             }
 
-    const sys = new LonelyLobsterSystem(systemId, debugShowOptions)
+    const sys = new LonelyLobsterSystem(systemId)
 
-    function filledInjectionParms(inj?: I_Injection): Injection {
+    function filledInjectionParms(inj?: I_InjectionAsJson): Injection {
         return inj ? { "throughput":  inj!.throughput  ? inj!.throughput  : 1, "probability": inj!.probability ? inj!.probability : 1 }
                    : { "throughput":  1,                                       "probability": 1 } 
     }                                                
 
-    const newProcessStep         = (psj:  I_process_step, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.wip_limit, psj.bar_length)
-    const newEmptyValueChain     = (vcj:  I_value_chain)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, filledInjectionParms(vcj.injection), valueDegradationFct(vcj.value_degradation))
-    const addProcStepsToValChain = (pssj: I_process_step[], vc: ValueChain) : void          => pssj.forEach(psj => vc.processSteps.push(newProcessStep(psj, vc))) 
-    const filledValueChain       = (vcj:  I_value_chain)                    : ValueChain    => {
+    const newProcessStep         = (psj:  I_ProcessStepAsJson, vc: ValueChain)   : ProcessStep   => new ProcessStep(sys, psj.process_step_id, vc, psj.norm_effort, psj.wip_limit, c_barLength)
+    const newEmptyValueChain     = (vcj:  I_ValueChainAsJson)                    : ValueChain    => new ValueChain(sys, vcj.value_chain_id, vcj.value_add, filledInjectionParms(vcj.injection), valueDegradationFct(vcj.value_degradation))
+    const addProcStepsToValChain = (pssj: I_ProcessStepAsJson[], vc: ValueChain) : void          => pssj.forEach(psj => vc.processSteps.push(newProcessStep(psj, vc))) 
+    const filledValueChain       = (vcj:  I_ValueChainAsJson)                    : ValueChain    => {
         const newVc: ValueChain = newEmptyValueChain(vcj)
         addProcStepsToValChain(vcj.process_steps, newVc)
         return newVc
     }
-    const valueChains: ValueChain[] = paj.value_chains.map((vcj: I_value_chain) => filledValueChain(vcj))
+    const valueChains: ValueChain[] = paj.value_chains.map((vcj: I_ValueChainAsJson) => filledValueChain(vcj))
     sys.addValueChains(valueChains)
 
     // extract workers and assignments
@@ -135,7 +137,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         process_step_assignments:                               I_process_step_assignment[]
     }
     
-    const createdNewWorker = (woj: I_worker): Worker => {
+    const createdNewWorker = (woj: I_WorkerAsJson): Worker => {
         // console.log("createdNewWorker() param="); console.log(woj)
 
         function sortVectorFromJson(svj: I_sortVector): SortVector {
@@ -195,7 +197,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
         asSet.assignments.push(newAssignment)
     }
 
-    const createAndAssignWorker = (woj: I_worker, workers: Worker[], valueChains: ValueChain[], asSet: AssignmentSet): void => { 
+    const createAndAssignWorker = (woj: I_WorkerAsJson, workers: Worker[], valueChains: ValueChain[], asSet: AssignmentSet): void => { 
         const newWorker: Worker = createdNewWorker(woj)
         workers.push(newWorker)
         woj.process_step_assignments.forEach(psaj => addWorkerAssignment(psaj, newWorker, valueChains, asSet))
@@ -203,7 +205,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
  
     const workers: Worker[] = [] 
     const asSet:   AssignmentSet = new AssignmentSet("default")
-    paj.workers.forEach((woj: I_worker) => createAndAssignWorker(woj, workers, valueChains, asSet))
+    paj.workers.forEach((woj: I_WorkerAsJson) => createAndAssignWorker(woj, workers, valueChains, asSet))
     
     sys.addWorkersAndAssignments(workers, asSet)
 
@@ -214,7 +216,7 @@ export function systemCreatedFromConfigJson(paj: any) : LonelyLobsterSystem {
             adjustmentFactor:  paj.learn_and_adapt_parms.adjustment_factor  ? paj.learn_and_adapt_parms.adjustment_factor  : 0.3 
         } : {
             observationPeriod: 20,
-            successMeasureFct: successMeasureFct(paj.learn_and_adapt_parms.success_measure_function ? paj.learn_and_adapt_parms.success_measure_function : "none"),
+            successMeasureFct: successMeasureFct("none"),
             adjustmentFactor:  0.3 
         }
     // console.log("io_config: learn&adapt: successMeasureFct = " + learnAndAdaptParms.successMeasureFct)
