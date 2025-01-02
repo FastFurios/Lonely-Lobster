@@ -132,5 +132,5 @@ https://jsdoc.app/#block-tags
 @summary
 @endpoint
 
-../frontend$ npm run build-docs
-npx http-server docs &  =>  Browser: localhost:8080
+$ npm run build-docs
+$ npx http-server docs &  =>  Browser: localhost:8080
