@@ -427,6 +427,7 @@ export enum EventTypeId {
     loggedOut           = "logged out.",
 
     configFileLoaded    = "Configuration File loaded",
+    configFileLoadError = "Configuration File loading error",
     configFileNotFound  = "Configuration File not found",
     configJsonError     = "JSON of configuration file is corrupt.",
     configCorrupt       = "Configuration is corrupt",
