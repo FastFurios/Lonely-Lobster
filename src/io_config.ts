@@ -69,7 +69,7 @@ export function systemCreatedFromConfigJson(paj: I_ConfigAsJson) : LonelyLobster
             case valueDegradationFunctionNames[0]: { return discounted.bind(null, valueDegradationFunctionAndArgument.argument) }
             case valueDegradationFunctionNames[1]: { return expired.bind(null, valueDegradationFunctionAndArgument.argument)    }
             default: { 
-                console.log(`WARNING: io_config: Reading system parameters: value degration function \"${valueDegradationFunctionAndArgument?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
+                console.log(`WARNING: io_config: Reading system parameters: value degradation function \"${valueDegradationFunctionAndArgument?.function}\" not known to Lonely Lobster; resorting to \"net()\"`)
                 return net
             }
         }

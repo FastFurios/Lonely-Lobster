@@ -1,10 +1,14 @@
-//----------------------------------------------------------------------------
-// MULTIDIMENSIONAL SEARCH FOR OPTIMUM 
-//----------------------------------------------------------------------------
+// ------------------------------------------------------------
+/** 
+ * MULTIDIMENSIONAL SEARCH FOR THE OPTIMUM 
+ * a heuristic algorithm in a multidimensional space to search the peak value inspired by "simulated annealing",
+ * see e.g. https://www.bing.com/search?q=simulated+annealing&form=ANNTH1&refig=7d005b93e9644fc49bd1c96a0871e7c7&pc=ACTS
+ */
+// ------------------------------------------------------------
+// last code cleaning: 04.01.2025
 
-import { randomPick } from './helpers.js'
+import { randomPick, topPercentileValues } from './helpers.js'
 import { Timestamp } from './io_api_definitions.js'
-import { topPercentileValues } from './helpers.js'
 
 //----------------------------------------------------------------------------
 // MULTIDIMENSIONAL SEARCH FOR OPTIMUM 
@@ -12,50 +16,80 @@ import { topPercentileValues } from './helpers.js'
 
 export type infinite = undefined
 
+/** mode that controls how verbose the stringify methods are */
 export enum StringifyMode {
     concise,
     verbose
 }
 
+/** interface for a toString method */
 interface Stringify {
     toString: (mode?: StringifyMode) => string
 }
 
+/** result of an operation with a vector dimension */
 type VectorDimensionOperationResult = {
-    result:     number      // resulting new value of a dimension 
-    rebound:    boolean     // indicates if jump was rebound at boundary
-}
-
-type VectorOperationResult<T extends Stringify> = {
-    position:   Position<T>
+    /** resulting new value of a dimension */
+    result:     number       
+    /** indicates if jump was rebound at boundary */
     rebound:    boolean
 }
 
+/** result of an operation with a vector */
+type VectorOperationResult<T extends Stringify> = {
+    /** resulting new value of a vector */
+    position:   Position<T>
+    /** indicates if jump was rebound at boundary */
+    rebound:    boolean
+}
+
+/** percentile of measured performances at a position to be taken for calculating an average */
 const c_AvgPerformanceOfTopPercentile = 50
 
 // --- VECTOR DIMENSION MAPPER --------------------------------------------------------------------
-
+/**
+ * A dimension of a multi-dimensional vector
+ */
 export class VectorDimension<T extends Stringify> {
-    constructor(public dimension: T, 
-                public min:       number | infinite,        // boundary für dimension values
-                public max:       number | infinite ) { }   // boundary für dimension values
+    constructor(/** object that identifies a vector dimension */
+                public dimension: T, 
+                /** lower boundary of the vector dimension */
+                public min:       number | infinite,
+                /** upper boundary of the vector dimension */
+                public max:       number | infinite ) { }
 
     toString(mode?: StringifyMode): string {
         return `${this.dimension.toString(mode)} from ${this.min} to ${this.max}`
     }
 }
 
-export class VectorDimensionMapper<T extends Stringify> {  // maps object references to dimensions in a vector 
+/**
+ * Maps object references to dimensions in a vector
+ */
+export class VectorDimensionMapper<T extends Stringify> {  
     constructor(public vds: VectorDimension<T>[]) { }
 
+    /**
+     * returns the vector dimension of an element in the array of vector dimensions
+     * @param idx index in the array of dimensions 
+     * @returns the vector dimension 
+     */
     public vectorDimension(idx: number): VectorDimension<T> { 
         return this.vds[idx] 
     }
 
+    /**
+     * returns the index in the array of vector dimensions
+     * @param dim object that identifies an vector dimension 
+     * @returns the index
+     */
     public vectorDimensionIndex(dim: T): number { 
         return this.vds.findIndex(vd => vd.dimension == dim) 
     }
 
+    /**
+     * return the number of vector dimensions
+     */
     get length() { 
         return this.vds.length
     }
@@ -67,7 +101,9 @@ export class VectorDimensionMapper<T extends Stringify> {  // maps object refere
 }
 
 // --- VECTOR --------------------------------------------------------------------
-
+/**
+ * A vector
+ */
 class Vector<T extends Stringify> {
     constructor(public vdm: VectorDimensionMapper<T>, public vec: number[]) {
         if (vec.length != vdm.length) throw Error("Class Vector.constructor: mismatching number of vector dimensions")
@@ -91,23 +127,32 @@ class Vector<T extends Stringify> {
     }
 }
 
-// --- POSITION ---- a fixed location in space. There must be only one Position per location. Positions are updated with data from the visits ----------------------------------------------
-
+// --- POSITION --------------------------------------------------
+/**
+ * A fixed location in space. There is only one position object per location or none. 
+ * Positions objects are updated with data from the visits of the peak search algorithm. 
+ */
 export class Position<T extends Stringify> extends Vector<T> {
-    // -- class properties ---- 
-    static visitedPositions = new Map<string, any>() // should actually be Position<T>
+    /**
+     * A map of positions: key is a location e.g. [4, 3, 2, 2, 5] => value: the position object 
+     */
+    static visitedPositions = new Map<string, any>() // "any" should actually be Position<T> but typescript complains
 
+    /**
+     * Looks up the location in the map and returns the Position object; if no Position object yet create one for the location
+     * @param vdm vector dimension mapper
+     * @param vec location
+     * @returns position object
+     */
     static new<T extends Stringify>(vdm: VectorDimensionMapper<T>, vec: number[]): Position<T> {
-        const vecAsStringConcise = `[${vec}]`
+        const vecAsStringConcise = `[${vec}]` // location e.g. [4, 3, 2, 2, 5]
         const visitedPosition: Position<T> | undefined = this.visitedPositions.get(vecAsStringConcise)
         if (visitedPosition) {
-            //console.log(`\tPosition.new(): ${visitedPosition.toString(StringifyMode.concise)}: have visited that place before`)
             return visitedPosition 
         }
         else {
             const newPos = new Position<T>(vdm, vec)
             Position.visitedPositions.set(vecAsStringConcise, newPos) 
-            //console.log(`\tPosition.new(): ${newPos.toString(StringifyMode.concise)}: have not been to this place yet`)
             return newPos
         }
     } 
@@ -117,64 +162,84 @@ export class Position<T extends Stringify> extends Vector<T> {
     }
 
     // -- object properties ---- 
+    /** log of the location visits */
     private visitsOverTime: SearchLogEntry<T>[] = []
 
     constructor(vdm: VectorDimensionMapper<T>, vec: number[]) {
         super(vdm, vec)
     }
 
+    /**
+     * Calculate the average performance of the best performances measured at this position 
+     * @param topPercentile determines which portion of all performances measured are taken into the calculation  
+     * @returns average performance measured so far at this position
+     */
     public avgPerformanceOfTopPercentile(topPercentile: number): number | undefined {
         if (this.visitsOverTime.length < 1) return undefined
         const tpv = topPercentileValues(this.visitsOverTime.map(sle => sle.performance), topPercentile) 
-        //console.log(`position: ${this.toString(StringifyMode.concise)}: optimize.Position.avgPerformanceOfTopPercentile(${topPercentile}): #visits=${tpv.length}, topAvg=${tpv.map(pv => pv.toPrecision(3))}`)
         return tpv.reduce((a, b) => a + b) / tpv.length
     }
 
     /**
-    //public avgPerformance(ignoreWorstPerformingPortion: number): number | undefined {
-    public avgPerformance(): number | undefined {
-        if (this.visitsOverTime.length < 1) return undefined
-        return this.visitsOverTime.map(sle => sle.performance).reduce((a, b) => a + b) / this.visitsOverTime.length
-    }
-
-    public avgPerformanceChangeSince(compareSplitAtVisit: number): number | undefined {  // returns the rate of change from avg perf before compareSplitAtVist and after
-        const avgPerfBeforeSplit = this.avgPerformance(0, compareSplitAtVisit)
-        const avgPerfAfterSplit  = this.avgPerformance(compareSplitAtVisit)
-        if (!avgPerfBeforeSplit || !avgPerfAfterSplit || avgPerfBeforeSplit == 0) return undefined
-        return (avgPerfAfterSplit - avgPerfBeforeSplit) / avgPerfBeforeSplit
-    } 
-    */
+     * Record a new visit of the peak search algorithm at this position in the search log
+     * @param sle the current search log entry
+     */
     public recordNewVisit(sle: SearchLogEntry<T>): void {
         this.visitsOverTime.push(sle)
     }
 
+    /**
+     * Calculate new value for a dimension. If value is beyond of the dimension boundaries the function calculates 
+     * the new position after deflection at the dimension boundary  
+     * @param idx index of the dimension
+     * @param to value for , may well be outside the boundaries a dimension
+     * @returns value after potential deflection  
+     */
     protected dimHandledRebound(idx: number, to: number): VectorDimensionOperationResult {
-        if (this.vdm.vectorDimension(idx).min != undefined) {
-            if (to < this.vdm.vectorDimension(idx).min!) {
+        if (this.vdm.vectorDimension(idx).min != undefined) {  // if a lower boundary is defined
+            if (to < this.vdm.vectorDimension(idx).min!) { // if "to" is below lower boundary
                 return { result:  2 * this.vdm.vectorDimension(idx).min! - to,
                          rebound: true }
             }
         }
-        if (this.vdm.vectorDimension(idx).max != undefined) {
-            if (to > this.vdm.vectorDimension(idx).max!) { 
+        if (this.vdm.vectorDimension(idx).max != undefined) { // if a upper boundary is defined 
+            if (to > this.vdm.vectorDimension(idx).max!) { // if "to" is above upper boundary
                 return { result:  2 * this.vdm.vectorDimension(idx).max! - to,
                          rebound: true } 
             }
         }
+        // if "to" was already inside the boundaries, than no rebound and the "to" value can be taken unchanged 
     	return { result: to, rebound: false }
     }
 
+    /**
+     * Calculate the dimension value when adding a vector to this position  
+     * @param idx dimesion index
+     * @param v vector being added
+     * @returns the result for the dimension, possibly after rebound 
+     */
     protected dimPlus(idx: number, v: Vector<T>): VectorDimensionOperationResult {
         const r: number = this.vec[idx] + v.vec[idx] 
         return this.dimHandledRebound(idx, r)
     }
 
+    /**
+     * Creates a new position after adding a vector to this position 
+     * @param v vector to be added
+     * @returns new position
+     */
     public plus(v: Vector<T>): VectorOperationResult<T> {
         const vdors: VectorDimensionOperationResult[] = this.vec.map((_, idx) => this.dimPlus(idx, v))
         return { position: Position.new(this.vdm, vdors.map(vdor => vdor.result)),
                  rebound:  vdors.map(vdor => vdor.rebound).reduce((a, b) => (a || b), false) }
     }
 
+    /**
+     * Creates a string for the current state of the position
+     * @param mode 
+     * @param visitHistory 
+     * @returns 
+     */
     public toString(mode?: StringifyMode, visitHistory?: boolean): string {
         const basics  = (mode == StringifyMode.concise ? `[${this.vec}]` : this.vec.map((val, idx) => `${this.vdm.vectorDimension(idx).dimension.toString()}: ${val}`).reduce((a, b) => `${a}, ${b}`))
         const viHist  = ", visits=" + this.visitsOverTime.map(v => `(t=${v.timestamp}, perf=${v.performance.toPrecision(3)})`).reduce((a, b) => `${a} ${b}`, "")
@@ -186,8 +251,16 @@ export class Position<T extends Stringify> extends Vector<T> {
 // --- DIRECTION --------------------------------------------------------------------
 const randomizeDirectionRetries = 5
 
+/**
+ * Direction vector with dimension values -1, 0 or 1
+ */
 export class Direction<T extends Stringify> extends Vector<T> {
 
+    /**
+     * set direction to neutral i.e. all dimension values are 0
+     * @param vdm vector dimension mapper
+     * @returns neutral direction
+     */
     static noDirection<T extends Stringify>(vdm: VectorDimensionMapper<T>): Direction<T> {
         return new Direction<T>(vdm, vdm.vds.map(_ => 0))  // Direction = [0, 0, ...0]
     }
@@ -196,6 +269,10 @@ export class Direction<T extends Stringify> extends Vector<T> {
         super(vdm, vec) 
     }
 
+    /**
+     * Creates a new random direction
+     * @returns new random direction
+     */
     public newRandomDirection(): Direction<T> {
         let newDirVec = new Direction<T>(this.vdm, Array(this.vdm.length))
         for (let attempts = 0; attempts < randomizeDirectionRetries; attempts++) {
@@ -212,19 +289,29 @@ export class Direction<T extends Stringify> extends Vector<T> {
         }
         return newDirVec
     }
-
 }
 
 // --- SEARCH LOG --------------------------------------------------------------------
 
+/**
+ * Log entry for an iteration of the peak search algorithm
+ */
 export class SearchLogEntry<T extends Stringify> {
-    constructor(public timestamp:           number,
+    constructor(/** time */
+                public timestamp:           number,
+                /** current position */
                 public position:            Position<T>,
+                /** direction currently pursued */
                 public direction:           Direction<T>,
+                /** current jump distance */
                 public jumpDistance:        number,
+                /** currently measured performance */
                 public performance:         number,
+                /** current performance */
                 public temperature:         number,
+                /** current number of steps went downhill in direct sequence */
                 public downhillStepCount:   number,
+                /** best performance mearured at the position */
                 public bestPosPerf:         PositionPerformance<T> | undefined) { 
     }
 
@@ -235,28 +322,42 @@ export class SearchLogEntry<T extends Stringify> {
     public stringified = (): string => this.toString()
 }
 
-
+/** position and its performance */
 type PositionPerformance<T extends Stringify> = {
     position: Position<T>
     performance: number
 }
+
+/**
+ * the peak search algorithm's log of search entries 
+ */
 export class SearchLog<T extends Stringify> {
     log: SearchLogEntry<T>[] = []
     constructor() { }
 
+    /**
+     * Append another log entry
+     * @param le log entry
+     * @returns the last log entry i.e. @see {@link le}
+     */
     public appended(le: SearchLogEntry<T>): SearchLogEntry<T>  {
         this.log.push(le)
         return this.log[this.log.length -1]
     } 
 
+    /**
+     * return last log entry or undefined
+     */
     get last(): SearchLogEntry<T> | undefined {
         return this.log.length < 1 ? undefined : this.log[this.log.length - 1]
     }
 
+    /** the last but one log entry */
     get secondLast(): SearchLogEntry<T> | undefined {
         return this.log.length < 2 ? undefined : this.log[this.log.length - 2]
     }
 
+    /**  returns the position with the best average performance so far */
     get positionWithBestAvgPerformance(): PositionPerformance<T> | undefined { // checks all log entries and calculates the avg performance of each position and returns the position with the best avg. performance
         let bestPosAvgPerf: PositionPerformance<T> | undefined = undefined
         for (let le of this.log) {
@@ -280,17 +381,27 @@ type Temperature                        = number // as in "Simulated Annealing"
 type Tolerance                          = number // the higher the temperature the higher the tolerance for continued downhill steps 
 type DegreesPerDownhillStepTolerance    = number // e.g. 20 = for every 20 degree of cooling it tolerates 1 step downhill less
 
-export type PeakSearchParms = {    // parameter set for the search algorithm 
-    initTemperature:                 Temperature                        // initial temperature; need to be > 0
-    temperatureCoolingParm:          number                             // cooling down parameter for cooling function 
-    degreesPerDownhillStepTolerance: DegreesPerDownhillStepTolerance    // downhill step sequences tolerance
-    initJumpDistance:                number                             // jump distances in choosen direction; reduces when temperature cools
-    measurementPeriod:               number                             // number of iterations after which the performance is measured
-    wipLimitUpperBoundaryFactor:     number                             // will be multiplied with the lower boundary which is (#assigned-workers / norm-effort)  
-    searchOnAtStart:                 boolean                            // search is on from first iteration if true
-    verbose:                         boolean                            // outputs debug data if true
+/** parameters for the peak search algoritm */
+export type PeakSearchParms = { 
+    /** initial temperature; need to be > 0 */
+    initTemperature:                 Temperature                        
+    /** cooling down parameter for cooling function */
+    temperatureCoolingParm:          number                              
+    /** downhill step sequences tolerance */
+    degreesPerDownhillStepTolerance: DegreesPerDownhillStepTolerance    
+    /** jump distances in choosen direction; reduces when temperature cools */
+    initJumpDistance:                number                             
+    /** number of iterations after which the performance is measured */
+    measurementPeriod:               number                             
+    /** will be multiplied with the lower boundary which is (#assigned-workers / norm-effort) */
+    wipLimitUpperBoundaryFactor:     number                               
+    /** search is on from first iteration if true */
+    searchOnAtStart:                 boolean                            
+    /** outputs debug data if true */
+    verbose:                         boolean                            
 }
 
+/** current state of the search algorithm */
 export type SearchState<T extends Stringify> = {
     position:           Position<T>,
     direction:          Direction<T>,
@@ -300,6 +411,15 @@ export type SearchState<T extends Stringify> = {
 
 // --- SEARCH ALGORITHM --------------------------------------------------------------------
 
+/**
+ * Peak search algorithm 
+ * @param log search log
+ * @param performanceAt function that measures the performance at a position 
+ * @param psp peak search algorithm parameters
+ * @param timestamp current time 
+ * @param curr current search state
+ * @returns new search state
+ */
 export function nextSearchState<T extends Stringify> (
             log:                SearchLog<T>,
             performanceAt:      (p: Position<T>) => number, 
@@ -341,7 +461,7 @@ export function nextSearchState<T extends Stringify> (
             if (curr.downhillStepsCount > downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance)) { // too many steps with lower performance in a row
                                                                                                                                                                     ; if (psp.verbose) console.log(`\t\t${curr.downhillStepsCount} are too many steps downhill. Retreat from ${log.last?.position.toString(StringifyMode.concise)} with avg. perf=${log.last?.performance.toPrecision(3)} to ${bestAvgPerfPosition.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition.performance.toPrecision(3)}. Setting new course`)
                 return {
-                    position:           bestAvgPerfPosition.position,                               // retreat to a position that showed best performance
+                    position:           bestAvgPerfPosition.position,                               // retreat to a position that has showed best performance
                     direction:          curr.direction.newRandomDirection(),                                                                                                  
                     temperature:        newTemperature(curr.temperature, psp.temperatureCoolingParm), 
                     downhillStepsCount: 0

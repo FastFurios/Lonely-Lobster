@@ -1,6 +1,9 @@
 // ------------------------------------------------------------
-//  read work order inflow csv file and feed it to the LonelyLobster system
+/** 
+ * read work order inflow csv file and feed it to the LonelyLobster system
+ */
 // ------------------------------------------------------------
+// last code cleaning: 04.01.2025
 
 import { createReadStream } from "fs"
 import { Interface, createInterface } from "readline"
@@ -13,15 +16,24 @@ import { WorkOrder } from './workitem.js'
 
 type MaybeValueChain = ValueChain | undefined
 
+/** inflow of new work items into value chains at a point in time */
 interface CsvTableProcessorResult {
-    time?:       Timestamp,
+    time?:      Timestamp,
     workOrders: WorkOrder[] 
 }
 
+/**
+ * Provides a method to interpret a line from a work order file and create work orders processable by the system   
+ */
 class CsvTableProcessor {  // is actually a function however needs to hold state (i.e. the header once it is read)
     headers: MaybeValueChain[] = []
     constructor(private sys: LonelyLobsterSystem) { }
  
+    /**
+     * Read work order file line and return work orders for a value chain for the timestamp of specified in the line 
+     * @param line from the work order file  
+     * @returns work orders to be processed by the system
+     */    
     public workedOrdersFromLine(line: string): CsvTableProcessorResult {
         if (line.substring(0, 2) == "//") 
             return { workOrders: [] }  // ignore
@@ -50,6 +62,11 @@ class CsvTableProcessor {  // is actually a function however needs to hold state
     }
 }
 
+/**
+ * Feed the workorders from the work order file to the system and display the results on the console
+ * @param filename work orders
+ * @param sys the Lonely Lobster system
+ */
 export function processWorkOrderFile(filename : string, sys: LonelyLobsterSystem): void {
     const ctp = new CsvTableProcessor(sys)
 

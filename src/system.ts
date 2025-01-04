@@ -1,6 +1,9 @@
 //----------------------------------------------------------------------
-//    SYSTEM
+/**
+ *  SYSTEM
+ */   
 //----------------------------------------------------------------------
+// last code cleaning: 04.01.2025
 
 import { Clock } from './clock.js'
 import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem, ElapsedTimeMode } from './workitem.js'
@@ -23,20 +26,24 @@ const debugShowOptionsDefaults: DebugShowOptions = {
     readFiles:      false  
 }
 
+/** work item with the value add of the work item's value chain and the elapsed time in the value chain */
 interface WiElapTimeValAdd {
     wi:             WorkItem
+    /** value add of the work item's value chain */
     valueAdd:       Value
+    /** elapsed time of the work item in its value chain */
     elapsedTime:    Timestamp
 }
 
 //----------------------------------------------------------------------
-//    LONELY LOBSTER SYSTEM
+/**
+ *    LONELY LOBSTER SYSTEM
+ */
 //----------------------------------------------------------------------
 export class LonelyLobsterSystem {
     public  valueChains:         ValueChain[]       = []
     public  workers:             Worker[]           = []
     public  assignmentSet!:      AssignmentSet
-    public  workOrderInFlow:     WorkOrder[]        = []
     public  outputBasket:        OutputBasket 
 
     public  clock:               Clock              = new Clock(this, -1)
@@ -45,10 +52,10 @@ export class LonelyLobsterSystem {
 
     private frontendPresets!:    I_FrontendPresets	
 
-    // workers' work selection strategy learning:
+    /** workers' work selection strategy learning */
     public  learnAndAdaptParms!: LearnAndAdaptParms
 
-    // system's wip limit optimization:
+    /** system's wip limit optimization  */
     private searchParms!:       PeakSearchParms
     private vdm!:               VectorDimensionMapper<ProcessStep>
     private searchState!:       SearchState<ProcessStep>   
@@ -59,6 +66,10 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
+    /**
+     * Execute iteration requests i.e. iterate
+     * @param iterRequests itertion requests
+     */
     public doIterations(iterRequests: I_IterationRequests): void {
         this.setWipLimits(iterRequests[0].wipLimits) // we take the first iterations wip-limits as they don't change over time anyway
         //console.log("doIteration: searchState.temperature= " +  this.searchState?.temperature)
@@ -72,10 +83,12 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * execute one iteration
+     * @param wos work orders
+     * @param optimizeWipLimits current wip limits 
+     */
     public doOneIteration(wos: WorkOrder[], optimizeWipLimits: boolean): void {
-        //console.log("\t\t\t\tSystem: doOneIteration():  clock = " + this.clock.time)
-        //if (this.clock.time < 1) this.showHeader()
-
         // populate process steps with work items (and first process steps with new work orders)
         this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
         this.valueChains.forEach(vc => vc.letWorkItemsFlow())
@@ -87,7 +100,6 @@ export class LonelyLobsterSystem {
         // measure system performance with current WIP limits and adjust them
         if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % this.searchParms.measurementPeriod == 0) {
             this.optimizeWipLimits()
-///* !! */      this.outputBasket.purgeWorkitemsUpto(this.clock.time - wipLimitOptimizationObservationPeriod - 50)  // #### shortens the output basket; stats will be corrupt if going into the past too deeply #####
         }
 
         // prepare workitem extended statistical infos before workers make their choice 
@@ -102,22 +114,16 @@ export class LonelyLobsterSystem {
 
         // update workers stats after having worked
         this.workers.forEach(wo => wo.utilization(this))
-
-
-        // tbd ##############################
-        if (this.clock.time < -1 && this.clock.time % 100 == 0) {
-            console.log("Workitem Events: -----------------------")
-            console.log(this.workitemEvents)
-            process.exit(0)
-        }
-        // show valuechains line for current timestamp on console
-        //this.showLine()
     }
     
 //----------------------------------------------------------------------
 //    API mode - Initialization
 //----------------------------------------------------------------------
 
+    /**
+     * Generates an empty iteration request
+     * @returns empty iteration request
+     */
     public emptyIterationRequest(): I_IterationRequests {
         return [{
             vcsWorkOrders:      this.valueChains.map(vc => { return { valueChainId: vc.id, numWorkOrders: 0 }}),
@@ -126,27 +132,52 @@ export class LonelyLobsterSystem {
           }]
     }
 
-    public addValueChains(vcs: ValueChain[]) { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
+    /**
+     * add value chains to the system
+     * @param vcs value chains to be added 
+     */
+    public addValueChains(vcs: ValueChain[]): void { this.valueChains = vcs }   // *** not sure if this works or if I need to copy the array into this.array
 
+    /**
+     * add workers and their assignments to the system
+     * @param wos workers
+     * @param asSet worker assigments to process steps
+     */
     public addWorkersAndAssignments(wos: Worker[], asSet: AssignmentSet ) { this.workers = wos; this.assignmentSet = asSet }   // *** not sure if this works or if I need to copy the array into this.array
 
+    /**
+     * add learning parameters to the system
+     * @param laps learning and adaption parameters
+     */
     public addLearningParameters(laps: LearnAndAdaptParms) { this.learnAndAdaptParms = laps; Worker.sysStats = <any>undefined } // clear system 
 
+    /**
+     * add wip limit search parameters to the system
+     * @param sp wip limit search parameters
+     */
     public addWipLimitSearchParameters(sp: PeakSearchParms) { 
         this.searchParms = sp 
         // console.log("system.addWipLimitSearchParameters(): this.searchParms=")
         // console.log(this.searchParms)
     }
+
+    /**
+     * add the frontend's preset parameters to the system 
+     * @param feps 
+     */
     public addFrontendPresets(feps: I_FrontendPresets) { 
         this.frontendPresets = feps
-        // console.log("system.addFrontendPresets(): frontendPresets=")
-        // console.log(this.frontendPresets)
     }
 
 //----------------------------------------------------------------------
 //    API mode - Iteration
 //----------------------------------------------------------------------
 
+    /**
+     * create individual work order items to be fed into the value chains  
+     * @param vcsWos list of value chains with the number of wor orders 
+     * @returns list of work orders for eaach value chain
+     */
     private workOrderList(vcsWos: I_VcWorkOrders[]): WorkOrder[] {
         return vcsWos.flatMap(vcWos => duplicate<WorkOrder>(
                                                 { timestamp:    this.clock.time,
@@ -154,6 +185,11 @@ export class LonelyLobsterSystem {
                                                 vcWos.numWorkOrders))
     }
 
+    /**
+     * create a work item data object for the new system state 
+     * @param wi work item 
+     * @returns work item data object 
+     */
     private i_workItem (wi: WorkItem): I_WorkItem { 
         return {
           id:                 wi.id,
@@ -167,6 +203,11 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * create a process step data object for the new system state
+     * @param ps process step
+     * @returns process step data object
+     */
     private i_processStep(ps: ProcessStep): I_ProcessStep {
         return {
             id:                 ps.id,
@@ -177,6 +218,11 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * create a value chain data object for the new system state
+     * @param vc value chain
+     * @returns value chain data object
+     */
     private i_valueChain(vc: ValueChain): I_ValueChain {
         return {
             id:                 vc.id,
@@ -186,6 +232,11 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * create a work item data object in the output basket for the new system state
+     * @param wi end product i.e. work item in the output basket 
+     * @returns value chain data object
+     */
     private i_endProduct (wi: WorkItem): I_WorkItem { 
         return {
             id:                 wi.id,
@@ -199,6 +250,11 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * create a worker data object for the new system state
+     * @param wo worker
+     * @returns worker data object
+     */
     private i_workerState(wo: Worker): I_WorkerState {
         const aux =  {
             worker: wo.id,
@@ -218,11 +274,11 @@ export class LonelyLobsterSystem {
         return aux
     }
 
+    /**
+     * create the new system state data object as response to a frontend iteration request 
+     * @returns system state data object
+     */
     private i_systemState(): I_SystemState {
-        if (this.clock.time <= 0) {
-            // console.log(`t=${this.clock.time}: system.i_systemState().frontendPresets= `)
-            // console.log(this.frontendPresets)
-        }
         return {
             id:                                     this.id,
             time:                                   this.clock.time,
@@ -234,44 +290,53 @@ export class LonelyLobsterSystem {
             isWipLimitOptimizationInBackendActive:  this.clock.time == 0 ? false : this.isWipLimitOptimizationStillActive, // default at start: optimization is off
             frontendPresets:                        this.frontendPresets
         }
-      }
+    }
 
-    private setWipLimits(wipLimits: I_VcPsWipLimit[]): void {  // I_VcPsWipLimit contains the current WIP limits sent in the request from the frontend
+    /**
+     * set the wip limits in the system 
+     * @param wipLimits  contains the current WIP limits sent in the request from the frontend
+     */
+    private setWipLimits(wipLimits: I_VcPsWipLimit[]): void { 
         for (let wl of wipLimits) {
             const vc = this.valueChains.find(vc => vc.id == wl.vc.trim())
             if (!vc) throw Error(`System: setWipLimits(): value-chain ${vc} not found`)
             const ps: ProcessStep = vc.processSteps.find(ps => ps.id == wl.ps.trim())!
             if (!ps) throw Error(`System: setWipLimits(): process-step ${ps} not found`)
             ps.wipLimit = wl.wipLimit ? wl.wipLimit : 0
-            //console.log("system.setWIPlimits() to " + wl.ps + "=" + wl.wipLimit)
         }
     }
 
-    public nextSystemState(iterReqs: I_IterationRequests) { 
-        //console.log("\tSystem: nextSystemState(): iterReq.batchSize = " + iterReqs.length)
-        //console.log("system.nextSystemState(): wos= " + iterReqs.flatMap((ir: I_IterationRequest) => ir.vcsWorkOrders.map(wo => `${wo.valueChainId}: ${wo.numWorkOrders}; `)))
-
+    /**
+     * Calculate the resulting system state after the iterations
+     * @param iterReqs iteration requests
+     * @return new system state
+     */   
+    public nextSystemState(iterReqs: I_IterationRequests): I_SystemState { 
         this.doIterations(iterReqs)
-        //console.log("\tSystem: nextSystemState(): doIterations done; returning i_systemState")
         return this.i_systemState()        
     }
 
+    /**
+     * optimize wip limits on basis of current system statistics; calculate new peak search algorithm state
+     */
     private optimizeWipLimits() {
         this.searchState.position = this.searchStatePositionFromWipLimits()
         const currPerf = this.systemStatistics(this.clock.time - this.searchParms.measurementPeriod < 1 ? 1 : this.clock.time - this.searchParms.measurementPeriod, this.clock.time).outputBasket.economics.roceFix
-            // console.log(`system.optimizeWipLimits().currPerf = ${currPerf}`)
- 
         this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, this.searchParms, this.clock.time, this.searchState)
-                                                                //console.log(`system.doOneIteration: nextSearchState() result:  position= ${this.searchState.position.toString(StringifyMode.concise)}, direction= ${this.searchState.direction.toString(StringifyMode.concise)}, temperature= ${this.searchState.temperature}, downhillStepsCount= ${this.searchState.downhillStepsCount}`)
         this.setWipLimitsFromSearchStatePosition()
-                                                                //console.log(`system.doOneIteration: new WIP limits set to ${this.valueChains.flatMap(vc => vc.processSteps.map(ps => ps.valueChain.id + "." + ps.id + ": " + ps.wipLimit))}`)
     }
 //----------------------------------------------------------------------
 //    API mode - System Statistics
 //----------------------------------------------------------------------
 
+    /**
+     * Calculate the working capital at timestamp, i.e. the sum of the accumulated effort 
+     * of all work items in the value chains at the timestamp 
+     * @param t timestamp 
+     * @returns working capital 
+     */
     private workingCapitalAt = (t:Timestamp): Value => { 
-        const aux = this
+        return this
             .valueChains
                 .flatMap(vc => vc.processSteps
                     .flatMap(ps => ps.workItemBasket))
@@ -279,9 +344,14 @@ export class LonelyLobsterSystem {
             .filter(wi => wi.wasInValueChainAt(t))
             .map(wi => wi.accumulatedEffort(t))
             .reduce((a, b) => a + b, 0)
-        return aux
     }
 
+    /**
+     * Calculates the statistics for a work item over the last intervall time units  
+     * @param wiElapTimeValAdd work item with its value chain added value and the elapsed time   
+     * @param interval interval into the past from now 
+     * @returns work item statistics
+     */
     private workItemStatistics(wiElapTimeValAdd: WiElapTimeValAdd[], interval: TimeUnit): I_WorkItemStatistics {
         const elapsedTimes: TimeUnit[] = wiElapTimeValAdd.flatMap(el => el.elapsedTime)
         const hasCalculatedStats = elapsedTimes.length > 0
@@ -299,18 +369,30 @@ export class LonelyLobsterSystem {
         } 
     }
 
+    /**
+     * calculates the statistics of the work items in the output basket 
+     * @param ses work item events of entering a work item basket holder (process step or output basket)
+     * @param interval interval into the past from now
+     * @returns output basket statistics
+     */
     private obStatistics(ses: StatsEventForExitingAProcessStep[], interval: TimeUnit): I_WorkItemStatistics {
         const sesOfOb = ses.filter(se => se.psEntered == this.outputBasket)
-        const wiElapTimeValAdd: WiElapTimeValAdd[] = sesOfOb.map(se => { 
+        const wisElapTimeValAdd: WiElapTimeValAdd[] = sesOfOb.map(se => { 
             return { 
                 wi:          se.wi,
                 valueAdd:    se.vc.totalValueAdd,
                 elapsedTime: se.finishedTime - se.injectionIntoValueChainTime 
             }
         })
-        return this.workItemStatistics(wiElapTimeValAdd, interval)
+        return this.workItemStatistics(wisElapTimeValAdd, interval)
     }
 
+    /**
+     * calculates the statistics of the work items in a process step 
+     * @param ses work item events of entering a work item basket holder (process step or output basket)
+     * @param interval interval into the past from now
+     * @returns process step statistics
+     */
     private psStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, ps: ProcessStep, interval: TimeUnit): I_ProcessStepStatistics {
         const wiElapTimeValAddOfVcPs: WiElapTimeValAdd[] = ses.filter(se => se.vc == vc && se.psExited == ps)
                                                 .map(se => { return {
@@ -324,6 +406,12 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * calculates the statistics of the work items in a value chain 
+     * @param ses work item events of entering a work item basket holder (process step or output basket)
+     * @param interval interval into the past from now
+     * @returns value chain statistics
+     */
     private vcStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, interval: TimeUnit): I_ValueChainStatistics {
         const sesOfVc = ses.filter(se => se.vc == vc && se.psEntered == this.outputBasket)
         const wiElapTimeValAddOfVc: WiElapTimeValAdd[] = sesOfVc.map(se => { 
@@ -342,6 +430,12 @@ export class LonelyLobsterSystem {
         }
     }
 
+    /**
+     * Calculate the average working capital in the time interval 
+     * @param fromTime interval's first timestamp 
+     * @param toTime interval's last timestamp
+     * @returns average working capital
+     */
     private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime
         let accumulatedWorkingCapital = 0
@@ -351,20 +445,47 @@ export class LonelyLobsterSystem {
         return accumulatedWorkingCapital / interval
     }
 
+    /**
+     * Calculates average discounted value add
+     * @param endProductMoreStatistics work items in the output basket with their work item statistics
+     * @param fromTime interval's first timestamp 
+     * @param toTime interval's last timestamp
+     * @returns average discounted value add
+     */
     private avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime
         return endProductMoreStatistics.discountedValueAdd / interval
     }
 
+    /**
+     * Calcutates the average norm effort
+     * @param endProductMoreStatistics 
+     * @param fromTime interval's first timestamp 
+     * @param toTime interval's last timestamp
+     * @returns average norm effort
+     */
     private avgNormEffort(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime
         return endProductMoreStatistics.normEffort / interval
     }
 
+    /**
+     * Calculates the average cost of a fixed employed staff
+     * @param endProductMoreStatistics not used
+     * @param fromTime not used as staffing is time invariant
+     * @param toTime not used as staffing is time invariant
+     * @returns cost of a fixed staff
+     */
     private avgFixStaffCost(endProductMoreStatistics?: I_EndProductMoreStatistics, fromTime?: Timestamp, toTime?: Timestamp): Value {
        return this.workers.length
     }
 
+    /**
+     * Calculated the system statistics
+     * @param fromTime interval's first timestamp 
+     * @param toTime interval's last timestamp
+     * @returns the system statitiscs
+     */
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
         //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + ")")
         const interval:TimeUnit = toTime - fromTime
@@ -399,15 +520,22 @@ export class LonelyLobsterSystem {
 //    API mode - retrieve all workitem events (for export for external statistical analysis)
 //----------------------------------------------------------------------
 
-public get workitemEvents(): I_WorkItemEvent[] {
-    return this.outputBasket.workItemBasket.flatMap(wi => wi.log.map(le => le.workItemEvent))
-}
+    /**
+     * retrieve all workitem events (for export for external statistical analysis)
+     * @returns work item events of all end products
+     */
+    get workitemEvents(): I_WorkItemEvent[] {
+        return this.outputBasket.workItemBasket.flatMap(wi => wi.log.map(le => le.workItemEvent))
+    }
 
 //----------------------------------------------------------------------
 //    API mode - Learning Statistics (= workers' weighted workitem selection strategies over time)
 //----------------------------------------------------------------------
 
-    public get learningStatistics(): I_LearningStatsWorkers {
+    /**
+     * @returns learning statistics (= workers' weighted workitem selection strategies over time)
+     */
+    get learningStatistics(): I_LearningStatsWorkers {
         return this.workers.map(wo => wo.statsOverTime)
     }
 
@@ -415,23 +543,34 @@ public get workitemEvents(): I_WorkItemEvent[] {
 //    API mode - WIP limit optimization 
 //----------------------------------------------------------------------
 
-
+    /**
+     * CReates a optimization position from wip limits
+     * @returns position
+     */
     private searchStatePositionFromWipLimits(): Position<ProcessStep> { 
         return Position.new(this.vdm, this.vdm.vds.map(vd => vd.dimension?.wipLimit > 0 ? vd.dimension.wipLimit : 1 ))
     }
 
+    /**
+     * set wip limits from the results of the peak search algorithm 
+     */
     private setWipLimitsFromSearchStatePosition(): void { 
         this.vdm.vds.forEach((vd, idx) => vd.dimension.wipLimit = this.searchState.position.vec[idx])
     }
 
+    /**
+     * Calculate the upper boundary of an undefined wip limit on basis of the norm effort and assigned workers 
+     * @param ps process step 
+     * @returns wip limit
+     */
     private wipLimitUpperBoundary(ps: ProcessStep): number {
         const assignedWorkers = this.assignmentSet.assignedWorkersToProcessStep(ps)
-        const aux = Math.ceil(Math.max(ps.wipLimit, Math.ceil(assignedWorkers ? assignedWorkers.length / ps.normEffort : 1)) * this.searchParms.wipLimitUpperBoundaryFactor)
-        //console.log(`system.wipLimitUpperBoundary(${ps.id}): assigned workers are: ${assignedWorkers?.map(aw => aw.id)}`)
-        // console.log(`system.wipLimitUpperBoundary(${ps.id})= ${aux}`)
-        return aux
+        return Math.ceil(Math.max(ps.wipLimit, Math.ceil(assignedWorkers ? assignedWorkers.length / ps.normEffort : 1)) * this.searchParms.wipLimitUpperBoundaryFactor)
     } 
 
+    /**
+     * initialize wip limit optimization
+     */
     public initializeWipLimitOptimization(): void {
         Position.visitedPositions.clear()
         this.vdm                = new VectorDimensionMapper<ProcessStep>(this.valueChains.flatMap(vc => vc.processSteps.map(ps => new VectorDimension<ProcessStep>(ps, 1, this.wipLimitUpperBoundary(ps)))))
@@ -445,6 +584,9 @@ public get workitemEvents(): I_WorkItemEvent[] {
         this.setWipLimitsFromSearchStatePosition()
     }
 
+    /**
+     * @returns true if wip limit optimization is still active 
+     */
     get isWipLimitOptimizationStillActive(): boolean { 
         return this.searchState ? !(this.searchState.temperature < 0) : false  
     }
