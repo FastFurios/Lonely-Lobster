@@ -10,7 +10,7 @@
  * _MAIN - server main program
  */
 //-------------------------------------------------------------------
-// last code cleaning: 21.12.2024
+// last code cleaning: 04.01.2025
 
 import express, { NextFunction } from 'express';
 import session  from "express-session"
@@ -56,9 +56,9 @@ declare module "express-session" { // expand the type of the session data by my 
  */  
 // -------------------------------------------------------------------
 
-const debugApiCalls         = true
+const debugApiCalls         = false
 const debugAuthentication   = false
-const debugAutoDrop         = true
+const debugAutoDrop         = false
 
 /** printing debug logging timestamp as hh:mm:ss  */
 const debugTime = (): string => new Date().toTimeString().split(" ")[0]
@@ -215,7 +215,6 @@ function apiMode(): void {
             updateSystemLifecycle(webSessions, req.sessionID, LifeCycleActions.used)
             if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
-            req.session.hasLonelyLobsterSession = true // probably not required as express-session knows already it is a session
             // return next system state to frontend
             res.status(200).send(lonelyLobsterSystemLifecycle.system.nextSystemState(req.body))
         } catch(exception) {
@@ -267,7 +266,7 @@ function apiMode(): void {
             // handle web session
             const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID) // webSessions.values().next().value
             if (!lonelyLobsterSystemLifecycle?.system) { 
-                console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
+                if (debugApiCalls) console.log("_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = " + req.sessionID)
                 next(applicationEventFrom("_main/workitem-events", mask(req.sessionID), EventTypeId.sessionNotFound, EventSeverity.critical))
                 return
             }            
@@ -438,7 +437,7 @@ function apiMode(): void {
             case LifeCycleActions.dropped: {
                 const slc: SystemLifecycle | undefined = webSessions.get(sessionID)
                 if (!slc) {
-                    console.log("_main.updateSystemLifecycle(): switch case dropped: no system lifecycle for sessionID =" + sessionID)
+                    if (debugAutoDrop) console.log("_main.updateSystemLifecycle(): switch case dropped: no system lifecycle for sessionID =" + sessionID)
                     return
                 }
                 webSessions.delete(sessionID)

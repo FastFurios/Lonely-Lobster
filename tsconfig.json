@@ -15,8 +15,7 @@
       "types": ["node"]
     },
     "files": [
-      "src/_main.ts",
-      "src/__testbed__.ts"
+      "src/_main.ts"
     ],
 //    "include": ["src/**/*"],
     "exclude": ["node_modules"]

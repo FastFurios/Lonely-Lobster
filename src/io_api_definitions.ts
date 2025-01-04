@@ -380,18 +380,6 @@ export type I_LearningStatsWorkers = I_LearningStatsWorker[]
 /** types and value lists for the editor */ 
 // -----------------------------------------------------------
 
-/** sort vector i.e. a measurement kpi (measure) and the sort order (ascending/descending) */ 
-export interface I_sortVector {
-    measure:             string
-    selection_criterion: string
-}
-
-/** a list of sort vectors ordered by the sequence the multi-columnar sort takes place */ 
-export interface I_SelectionStrategy {
-    id:         string
-    strategy:   I_sortVector[]
-}
-
 /** function that calculates the discounting of the value of the end product dependent on the elapsed time beyond the minimum cycle time */ 
 export const valueDegradationFunctionNames = [
     /** value degradation per time unit */ 

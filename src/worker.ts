@@ -23,7 +23,7 @@ export type LearnAndAdaptParms = {
 //    WORKER BEHAVIOUR 
 //----------------------------------------------------------------------
 
-export interface SelectionStrategy {
+interface SelectionStrategy {
     id:         string
     strategy:   SortVectorSequence
 }
@@ -282,4 +282,3 @@ export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number
 export function successMeasureNone(sys: LonelyLobsterSystem, wo: Worker): number {
     return 0  
 }
-
