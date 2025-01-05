@@ -187,7 +187,8 @@ export class WorkItem {
         (workItemBasketHolder == undefined ? this.log 
                                            : this.log.filter(le => le.workItemBasketHolder == workItemBasketHolder))
         .filter(le => le.timestamp <= until)
-        .filter(le => le.logEntryType == LogEntryType.workItemWorkedOn).length
+        .filter(le => le.logEntryType == LogEntryType.workItemWorkedOn)
+        .length
 
     public hasBeenWorkedOnAtCurrentTime = (timestamp: Timestamp, ps?: ProcessStep): boolean  => // ## "ps?: ProcessStep" delete?
         this.log.filter(le => (le.timestamp == timestamp && le.logEntryType == LogEntryType.workItemWorkedOn)).length > 0
@@ -214,7 +215,7 @@ export class WorkItem {
     private materializedValue(): Value {
         if (this.currentProcessStep != this.sys.outputBasket) return 0
         const vc         = this.log[0].valueChain 
-        const crv: Value = vc.valueDegration(vc.totalValueAdd, this.elapsedTime(ElapsedTimeMode.firstToLastEntryFound) - vc.minimalCycleTime)
+        const crv: Value = vc.valueDegradation(vc.totalValueAdd, this.elapsedTime(ElapsedTimeMode.firstToLastEntryFound) - vc.minimalCycleTime)
         return crv
     } 
 

@@ -132,7 +132,7 @@ export class OutputBasket extends WorkItemBasketHolder {
             const minCycleTime          = wi.log[0].valueChain.minimalCycleTime
             const elapsedTime           = wi.elapsedTime(ElapsedTimeMode.firstToLastEntryFound)
             const netValueAdd           = wi.log[0].valueChain.totalValueAdd
-            const discountedValueAdd    = wi.log[0].valueChain.valueDegration!(netValueAdd, elapsedTime - minCycleTime)
+            const discountedValueAdd    = wi.log[0].valueChain.valueDegradation!(netValueAdd, elapsedTime - minCycleTime)
             invWisStats.push(
                 {
                     numWis:             1,

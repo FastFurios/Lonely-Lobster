@@ -157,8 +157,6 @@ export class LonelyLobsterSystem {
      */
     public addWipLimitSearchParameters(sp: PeakSearchParms) { 
         this.searchParms = sp 
-        // console.log("system.addWipLimitSearchParameters(): this.searchParms=")
-        // console.log(this.searchParms)
     }
 
     /**

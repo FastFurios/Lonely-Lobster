@@ -176,22 +176,23 @@ export function systemCreatedFromConfigJson(paj: I_ConfigAsJson) : LonelyLobster
         }
 
         /**
-         * Find the globally defined workitem selection strategyin the configuration by its name 
+         * Find the globally defined workitem selection strategy in the configuration by its name 
          * @param sId name of the strategy
          * @returns the configuration definiton of the strategy 
          */    
         function globallyDefinedStrategy(sId: string): I_GloballyDefinedWorkitemSelectionStrategyAsJson | undefined {
             return (<I_GloballyDefinedWorkitemSelectionStrategyAsJson[]>paj.globally_defined_workitem_selection_strategies).find(s => s.id == sId)
         } 
+
         let weightedSelStrategies: WeightedSelectionStrategy[] = woj.workitem_selection_strategies == undefined || woj.workitem_selection_strategies.length == 0
-                                        ? [ { element: { id: "random", strategy: [] }, weight: 1 }] // random ("[]") is the only available selection strategy 
+                                        ? [ { element: { id: "random", svs: [] }, weight: 1 }] // random ("[]") is the only available selection strategy 
                                         : arrayWithNormalizedWeights(woj.workitem_selection_strategies
                                                 .map(sId => globallyDefinedStrategy(sId))
                                                 .filter(strat => strat != undefined)
                                                 .map(strat => { return { 
                                                                     element: { 
-                                                                        id:         strat!.id,
-                                                                        strategy:   strat!.strategy.map(svj => sortVectorFromJson(svj)) 
+                                                                        id:  strat!.id,
+                                                                        svs: strat!.strategy.map(svj => sortVectorFromJson(svj)) 
                                                                     },
                                                                     weight: 1
                                                                 }}), (x => x) /* take numbers as is */)       
@@ -268,7 +269,7 @@ export function systemCreatedFromConfigJson(paj: I_ConfigAsJson) : LonelyLobster
             measurementPeriod:                  paj.wip_limit_search_parms?.measurement_period                  ? paj.wip_limit_search_parms.measurement_period                     : 100,
             wipLimitUpperBoundaryFactor:        paj.wip_limit_search_parms?.wip_limit_upper_boundary_factor     ? paj.wip_limit_search_parms?.wip_limit_upper_boundary_factor       : 2,
             searchOnAtStart:                    paj.wip_limit_search_parms?.search_on_at_start                  ? paj.wip_limit_search_parms.search_on_at_start                     : false,
-            verbose:                            paj.wip_limit_search_parms?.verbose                             ? paj.wip_limit_search_parms.verbose                                : true 
+            verbose:                            paj.wip_limit_search_parms?.verbose                             ? paj.wip_limit_search_parms.verbose                                : false 
         }
     sys.addWipLimitSearchParameters(searchParms)
 
