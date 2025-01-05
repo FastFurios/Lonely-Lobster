@@ -434,12 +434,12 @@ export function nextSearchState<T extends Stringify> (
     const perf                  = performanceAt(curr.position)                                                                                                                          
     const jumpDist              = jumpDistance(curr.temperature)                                                                                                    ; if (psp.verbose) console.log(`\n\n****** time=${timestamp}\t${curr.position.toString(StringifyMode.concise)} with perf= ${perf.toPrecision(3)}, tolerance= ${downhillTolerance(curr.temperature, psp.degreesPerDownhillStepTolerance).toPrecision(3)}, temperature=${curr.temperature}, downhillStepCount= ${curr.downhillStepsCount}, jump distance= ${jumpDist}, dir= ${curr.direction.toString(StringifyMode.concise)}  ----------------------`)
     const bestAvgPerfPosition   = log.positionWithBestAvgPerformance                                                                                                ; if (psp.verbose) console.log(`\tnextSearchState: position with best avg perf seen had been so far=${bestAvgPerfPosition?.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition?.performance.toPrecision(3)}`)
-    if (!bestAvgPerfPosition) console.log("\t** WARNING: nextSearchState: bestAvgPerfPosition == undefined")
+    if (!bestAvgPerfPosition) if (psp.verbose) console.log("\t** WARNING: nextSearchState: bestAvgPerfPosition == undefined")
     const le = log.appended(new SearchLogEntry<T>(timestamp, curr.position, curr.direction, jumpDist, perf, curr.temperature, curr.downhillStepsCount, bestAvgPerfPosition))
     if (!le) console.log("*** no reference to log entry from search log.appended()")
     curr.position.recordNewVisit(le)
     
-    console.log(`${Position.visitedPositionsToString()}`)
+    if (psp.verbose) console.log(`${Position.visitedPositionsToString()}`)
 
     // if cooled down to below 0 degree, i.e. it's "frozen", go to position that has performed best on average and stay there
     if (curr.temperature <= 0 && bestAvgPerfPosition) {                                                                                                             ; if (psp.verbose) console.log(`\tnow frozen at best performing position observed so far: ${bestAvgPerfPosition?.position.toString(StringifyMode.concise)} with perf=${bestAvgPerfPosition?.performance.toPrecision(3)}`)

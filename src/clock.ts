@@ -1,6 +1,6 @@
 //----------------------------------------------------------------------
 /**
- * CLOCK / TIME 
+ * CLOCK & TIME 
  */
  //----------------------------------------------------------------------
 // last code cleaning: 04.01.2025
@@ -21,7 +21,7 @@ const timeUnit: TimeUnit = 1
 export class Clock {
     /** current time
      * @example -1 when starting setup of a system instance
-     * @example 0 after initialization incl. first iteration finished
+     * @example 0 after initialization incl. first empty iteration finished
      * @example >=1 after further iterations 
      */
     public time: Timestamp
@@ -32,7 +32,7 @@ export class Clock {
         this.time = startTime
     }
 
-    /** timestamp after first iteration i.e. after initialization */
+    /** timestamp after first iteration i.e. after initialization finished */
     get firstIteration() { return this.startTime + 1 }
 
     /** set clock time to @param time */
@@ -42,7 +42,7 @@ export class Clock {
         return 
     } 
 
-    /** progress time by @see {@link TimeUnit} */
+    /** progress time by timeUnit */
     public tick(): Timestamp {
         this.time += timeUnit
         return this.time            

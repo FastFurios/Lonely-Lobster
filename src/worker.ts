@@ -274,7 +274,7 @@ export class Worker {
          * which no other worker has already worked on at the current time */
         const workableWorkItemsAtHand: WorkItem[] = this.workItemsAtHand(asSet)
                                                     .filter(wi => !wi.finishedAtCurrentProcessStep())               // not yet in OutputBasket
-                                                    .filter(wi => !wi.hasBeenWorkedOnAtCurrentTime(this.sys.clock.time))     // no one worked on it at current time
+                                                    .filter(wi => !wi.hasBeenWorkedOnAtTimestamp(this.sys.clock.time))     // no one worked on it at current time
         if (workableWorkItemsAtHand.length == 0) return // no workable workitems at hand
 
         if(this.sys.debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
