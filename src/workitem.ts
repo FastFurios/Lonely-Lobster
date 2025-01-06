@@ -86,8 +86,10 @@ abstract class LogEntryWorkItem extends LogEntry {
                            logEntryType:        LogEntryType) {
         super(sys, logEntryType)
     }
-    public stringifyLeWi = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.workItemBasketHolder == this.sys.outputBasket ? "OutputBasket" : (<ProcessStep>this.workItemBasketHolder).id}, wi = ${this.workItem.id}`
+    /** provide getter for work item events */
     abstract get workItemEvent(): I_WorkItemEvent 
+
+    public stringifyLeWi = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.workItemBasketHolder == this.sys.outputBasket ? "OutputBasket" : (<ProcessStep>this.workItemBasketHolder).id}, wi = ${this.workItem.id}`
 } 
 
 /**
@@ -165,21 +167,16 @@ export interface StatsEventForExitingAProcessStep {
     /** the work items timestamp when it was injected into the value chain; used for calculating cycletimes of the value chain */
     injectionIntoValueChainTime:    Timestamp   
 }
-
 //----------------------------------------------------------------------
-//    WORK ITEM   
-//-- terminology remark: work item: at the beginning it is typically a work order, in its final state it is the end-product / service 
-
-//----------------------------------------------------------------------
-
 /**
  *    WORK ITEM   
  * 
  * Terminology remarks: 
- * - work item: is a item that is being worked on by workers in process steps of the value chain the work item was injected into:
+ * - work item: is a item that is being worked on by workers in process steps of the value chain the work item was injected into. Special types are:
  * - work order: is a work item that is being injected into a value chain
  * - end-product: is a work item that has reached the output basket i.e. it is finished 
  */
+//----------------------------------------------------------------------
 export class WorkItem {
     /** the  log of work item lifecycle events */
     public  log:            LogEntryWorkItem[] = []
@@ -188,7 +185,7 @@ export class WorkItem {
     /** additional low level statistical data about the work item's lifecycle */
     public  extendedInfos:  WorkItemExtendedInfos
 
-    constructor(private sys:                 LonelyLobsterSystem,
+    constructor(private sys:                LonelyLobsterSystem,
                 public valueChain:          ValueChain,
                 /** the process step the work item is to be placed into */
                 public currentProcessStep:  WorkItemBasketHolder) {
@@ -353,6 +350,13 @@ export class WorkItem {
             currentlyLastMovedToEvent = le // set the latest moved-to log entry to the current log entry for the next loop iteration  
         }
         return statEvents
+    }
+
+    /**
+     * @returns all lifecycle events in the log of the work item 
+     */
+    public get allWorkitemLifecycleEvents() {
+        return this.log.map(le => le.workItemEvent)
     }
 
     /**

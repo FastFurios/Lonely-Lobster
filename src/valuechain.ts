@@ -145,6 +145,13 @@ export class ValueChain {
         return this.normEffort
     } 
 
+    /**
+     * @returns all work item lifecycle events in the value chain 
+     */
+    public get allWorkitemLifecycleEvents() {
+        return this.processSteps.flatMap(ps => ps.allWorkitemLifecycleEvents)
+    }
+    
     /** batch mode only */
     public stringifiedHeader(): string {
         const stringifyColumnHeader = (wibh: ProcessStep): string => `_${this.id}.${wibh.id}${"_".repeat(wibh.barLen)}`.substring(0, wibh.barLen)

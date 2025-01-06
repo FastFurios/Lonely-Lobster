@@ -519,13 +519,13 @@ export class LonelyLobsterSystem {
 //----------------------------------------------------------------------
 
     /**
-     * retrieve all workitem events (for export for external statistical analysis)
-     * @returns work item events of all end products
+     * retrieve all lifecycle events of the work items in the system (for export for external statistical analysis)
+     * @returns all work item lifecycle events in the system 
      */
-    get workitemEvents(): I_WorkItemEvent[] {
-        return this.outputBasket.workItemBasket.flatMap(wi => wi.log.map(le => le.workItemEvent))
+    public get allWorkitemLifecycleEvents() {
+        return this.valueChains.flatMap(vc => vc.allWorkitemLifecycleEvents).concat(this.outputBasket.allWorkitemLifecycleEvents)
     }
-
+    
 //----------------------------------------------------------------------
 //    API mode - Learning Statistics (= workers' weighted workitem selection strategies over time)
 //----------------------------------------------------------------------

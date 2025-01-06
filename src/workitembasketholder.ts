@@ -6,7 +6,7 @@
 // last code cleaning: 05.01.2025
 
 import { LogEntry, LogEntryType } from './logging.js'
-import { Timestamp, Value, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
+import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
 import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
 import { ValueChain } from './valuechain.js'
 import { LonelyLobsterSystem } from './system.js'
@@ -70,6 +70,13 @@ export abstract class WorkItemBasketHolder {
         return this.workItemBasket.map(wi => wi.accumulatedEffort(until)).reduce((ef1, ef2) => ef1 + ef2, 0 )
     }
 
+    /**
+     * @returns all lifecycle events in the workitem basket holder 
+     */
+    public get allWorkitemLifecycleEvents() {
+        return this.workItemBasket.flatMap(wi => wi.allWorkitemLifecycleEvents)
+    }
+    
     /** batch mode only */
     public abstract stringified(): string
 

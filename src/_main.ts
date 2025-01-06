@@ -274,7 +274,7 @@ function apiMode(): void {
             if (!autoDroppingIsInAction) autoDropApparentlyAbandonedSystems(webSessions)
 
             // return workitem events to frontend
-            res.status(200).send(lonelyLobsterSystemLifecycle.system.workitemEvents)
+            res.status(200).send(lonelyLobsterSystemLifecycle.system.allWorkitemLifecycleEvents)
         } catch(exception) {
             next(applicationEventFrom("_main/workitem-events", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
