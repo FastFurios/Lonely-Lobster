@@ -78,9 +78,10 @@ export class ValueChain {
      * if wip limit is set and not yet reached create a new work item and inject it into the process step 
      */
     public createAndInjectNewWorkItem(): void { 
+        console.log(`\nValueChain.createAndInjectNewWorkItem(): time = ${this.sys.clock.time}; about to inject a new workorder`) // ##
         if (!(<ProcessStep>this.processSteps[0]).reachedWipLimit()) { 
-            const wi = new WorkItem(this.sys, this, this.processSteps[0])
-            this.processSteps[0].addToBasket(wi)
+            const wi = new WorkItem(this.sys, this)  // ## delete "const wi =" and subsequent console.log
+            console.log(`ValueChain.createAndInjectNewWorkItem(): time = ${this.sys.clock.time}; created new work item= ${wi.id}`)
         }
     }
 
@@ -95,33 +96,17 @@ export class ValueChain {
     }
 
     /**
-     * Move an work item to the next basket holder, it may be the next process step or the output basket what ever follows the current process step the work item is in
-     * @param wi the work item
+     * Update the statistical data of the work items in the value chain
      */
-    private moveWorkItemToNextWorkItemBasketHolder(wi: WorkItem): void {
-        const nextProcessStep: WorkItemBasketHolder = this.nextWorkItemBasketHolder(<ProcessStep>wi.currentProcessStep) 
-        if (nextProcessStep == this.sys.outputBasket || !(<ProcessStep>nextProcessStep).reachedWipLimit()) { 
-            (<ProcessStep>wi.currentProcessStep).removeFromBasket(wi)
-            wi.currentProcessStep = nextProcessStep
-            nextProcessStep.addToBasket(wi)
-        }
-    }
-
-    /**
-     * Update the statistical data of an work item
-     */
-    public updateWorkItemExtendedInfos(): void {
-         this.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos()))
+    public updateWorkItemsExtendedInfos(): void {
+         this.processSteps.forEach(ps => ps.updateWorkItemsExtendedInfos())
     }
 
     /**
      * Move all work items in this value chain to the next basket holder
      */
     public letWorkItemsFlow(): void { 
-        this.processSteps.forEach(ps =>                                             // for all process steps in the value chain 
-            ps.workItemBasket                   
-                .filter(wi => wi.finishedAtCurrentProcessStep())                    // filter the workitems ready to be moved on
-                .forEach(wi => this.moveWorkItemToNextWorkItemBasketHolder(wi)))    // move these workitems on
+        this.processSteps.forEach(ps => ps.letWorkItemsFlowTo(this.nextWorkItemBasketHolder(ps)))
     }
 
     /**

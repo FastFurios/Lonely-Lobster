@@ -12,6 +12,7 @@ import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from '
 import { ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
 import { LonelyLobsterSystem } from './system'
+import { time } from 'console'
 
 /** signature of the function by which all the workers measures the outcome of their work item selection strategy behaviour  */
 export type SuccessMeasureFunction = (sys: LonelyLobsterSystem, wo: Worker) => number
@@ -55,10 +56,10 @@ function selectedNextWorkItemBySortVectorSequence(wis: WorkItem[], svs: SortVect
  * Log entry for a worker
  */
 abstract class LogEntryWorker extends LogEntry {
-    constructor(       sys:          LonelyLobsterSystem,
-                       logEntryType: LogEntryType,
-                public worker:       Worker) {
-        super(sys, logEntryType)
+    constructor(       timestamp:       Timestamp,
+                       logEntryType:    LogEntryType,
+                public worker:          Worker) {
+        super(timestamp, logEntryType)
     }
 } 
 
@@ -66,24 +67,24 @@ abstract class LogEntryWorker extends LogEntry {
  * Log entry for a worker having worked on a work item
  */
 class LogEntryWorkerWorked extends LogEntryWorker {
-    constructor(sys:     LonelyLobsterSystem,
-                worker:  Worker) {
-        super(sys, LogEntryType.workerWorked, worker)
+    constructor(timestamp:  Timestamp,
+                worker:     Worker) {
+        super(timestamp, LogEntryType.workerWorked, worker)
     }
-    public stringified = (): string => `${this.stringifiedLe()}, ${this.logEntryType}, wo=${this.worker.id}` 
+    public toString = (): string => `${this.stringifiedLe()}, wo=${this.worker.id}` 
 } 
 
 /**
  * Log entry for a worker when he observed the success of his current behaviour using selection strategies
  */
 class LogEntryWorkerLearnedAndAdapted extends LogEntryWorker {
-    constructor (       sys:                                        LonelyLobsterSystem,
-                        worker:                                     Worker,
-                 public measurementOfEndingPeriod:                  Value,
-                 public adjustedSelectionStrategy:                  SelectionStrategy,
-                 public chosenSelectionStrategy:                    SelectionStrategy,
-                 public weigthedSelectionStrategies:                WeightedSelectionStrategy[] ) {
-        super(sys, LogEntryType.workerLearnedAndAdapted, worker)
+    constructor (       timestamp:                      Timestamp,
+                        worker:                         Worker,
+                 public measurementOfEndingPeriod:      Value,
+                 public adjustedSelectionStrategy:      SelectionStrategy,
+                 public chosenSelectionStrategy:        SelectionStrategy,
+                 public weigthedSelectionStrategies:    WeightedSelectionStrategy[] ) {
+        super(timestamp, LogEntryType.workerLearnedAndAdapted, worker)
     }
 
     /**
@@ -98,7 +99,7 @@ class LogEntryWorkerLearnedAndAdapted extends LogEntryWorker {
      * for debugging only
      * @returns log entry as string  
      */                                        
-    public stringified = () => `${this.stringifiedLe()}, ${this.worker.id},` +
+    public toString = () => `${this.stringifiedLe()}, ${this.worker.id},` +
                                `measurement=${this.measurementOfEndingPeriod.toPrecision(2)}, ` +
                                `adjusted strategy: [${this.adjustedSelectionStrategy.id}],  ` +
                                `newly chosen: [${this.chosenSelectionStrategy.id}]\n` +
@@ -224,11 +225,11 @@ export class Worker {
     }
 
     /** add log entry when worked */
-    private logEventWorked(): void { this.logWorker.add(new LogEntryWorkerWorked(this.sys, this)) }
+    private logEventWorked(): void { this.logWorker.add(new LogEntryWorkerWorked(this.sys.clock.time, this)) }
 
     /** add log entry when having gone through learning and adaption */
     private logEventLearnedAndAdapted(ivc: Value, adjustedSest: SelectionStrategy, chosenSest: SelectionStrategy, weightedSelectionStrategies: WeightedSelectionStrategy[]): void { 
-        this.logWorker.add(new LogEntryWorkerLearnedAndAdapted(this.sys, this, ivc, adjustedSest, chosenSest, weightedSelectionStrategies))
+        this.logWorker.add(new LogEntryWorkerLearnedAndAdapted(this.sys.clock.time, this, ivc, adjustedSest, chosenSest, weightedSelectionStrategies))
     }
 
     /** @returns list of worked log entries */
@@ -285,7 +286,7 @@ export class Worker {
 
         if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
 
-        wi.logWorkedOn(this)  // record in the work item log that the worker worked the item
+        wi.logWorkedEvent(this)  // record in the work item log that the worker worked the item
         this.logEventWorked() // record in the worker'slog that he did the work
     }
 

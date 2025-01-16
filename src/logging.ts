@@ -10,7 +10,7 @@ import { LonelyLobsterSystem } from './system.js'
 
 /** log entry types in a Lonely Lobster system */
 export enum LogEntryType {
-    workItemMovedTo                   = "movedTo",
+    workItemMoved                     = "moved",
     workItemWorkedOn                  = "workedOn",
     workerWorked                      = "workerWorked",
     workerLearnedAndAdapted           = "workerLearnedAndAdapted",
@@ -22,13 +22,12 @@ export enum LogEntryType {
  * common defintions of all log types
  */
 export abstract class LogEntry { // records state at end of time unit
-    public timestamp: Timestamp
-    constructor (
-        public sys: LonelyLobsterSystem,
-        public logEntryType: LogEntryType) {  
-        this.timestamp = sys.clock.time
+
+    constructor (public timestamp:    Timestamp,
+                 public logEntryType: LogEntryType) {  
     }
 
-    public abstract stringified: () => string
+    public abstract toString: () => string
+
     public stringifiedLe = (): string => `t = ${this.timestamp} ${this.logEntryType}` 
 }

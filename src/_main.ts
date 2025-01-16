@@ -180,8 +180,9 @@ function apiMode(): void {
 
         // build the system
         let lonelyLobsterSystem: LonelyLobsterSystem
-        try { lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) }
-        catch(exception) {
+        try {
+            lonelyLobsterSystem = systemCreatedFromConfigJson(req.body) 
+        } catch(exception) {
             next(applicationEventFrom("_main/initialize", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely already created below this code block      
         }
@@ -192,7 +193,7 @@ function apiMode(): void {
         req.session.hasLonelyLobsterSession = true // set the "change indicator" in the session data: once the state of this property changed, express-session will now keep the sessionID constant and send it to the client
 
         // initialize system
-        lonelyLobsterSystem.clock.setTo(-1) // 0 = setup system and first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
+        lonelyLobsterSystem.clock.setTo(-1) // -1 = system is set up but has not yet done an initial iteration; 0 = first empty iteration to produce systemState for the front end; 1 = first real iteration triggered by user
         res.status(201).send(lonelyLobsterSystem.nextSystemState(lonelyLobsterSystem.emptyIterationRequest()))
     })
 
@@ -203,8 +204,9 @@ function apiMode(): void {
      */
     //------------------------------
     app.post('/iterate', authenticateAzureAD, (req, res, next) => {
-        if (debugApiCalls) console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
-        try {       
+        // if (debugApiCalls) console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
+        console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
+            try {       
             // handle web session
             const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
             if (!lonelyLobsterSystemLifecycle?.system) { 
@@ -219,6 +221,7 @@ function apiMode(): void {
             res.status(200).send(lonelyLobsterSystemLifecycle.system.nextSystemState(req.body))
         } catch(exception) {
             next(applicationEventFrom("_main/iterate", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
+            console.log(<Error>exception)
             return // dead line of code but that way the compiler realized that lonelyLobsterSystem is definitely defined below this code block      
         }
     })
@@ -230,7 +233,8 @@ function apiMode(): void {
      */
     //-------------------------------------
     app.get('/statistics', authenticateAzureAD, (req, res, next) => {
-        if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
+//        if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
+        console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
         try {       
             // handle web session
             const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)

@@ -6,7 +6,7 @@
 // last code cleaning: 04.01.2025
 
 import { Clock } from './clock.js'
-import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem, ElapsedTimeMode } from './workitem.js'
+import { wiTags, WorkOrder, StatsEventForExitingAProcessStep, WorkItem, WiExtInfoElem, LogEntryWorkItemMoved, LogEntryWorkItemWorked } from './workitem.js'
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
@@ -15,9 +15,10 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
-         I_VcPsWipLimit, I_WorkItemEvent, I_FrontendPresets} from './io_api_definitions.js'
+         I_VcPsWipLimit, I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
+import { LogEntryType } from './logging.js'
 
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
@@ -47,8 +48,6 @@ export class LonelyLobsterSystem {
     public  outputBasket:        OutputBasket 
 
     public  clock:               Clock              = new Clock(this, -1)
-    public  idGen                                   = wiIdGenerator()
-    public  tagGen                                  = wiTagGenerator(wiTags)
 
     private frontendPresets!:    I_FrontendPresets	
 
@@ -64,6 +63,11 @@ export class LonelyLobsterSystem {
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
         this.outputBasket   = new OutputBasket(this)
+    }
+
+
+    private get allWorkItems(): WorkItem[] {
+        return this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.workItemBasket)).concat(this.outputBasket.workItemBasket) 
     }
 
     /**
@@ -89,33 +93,37 @@ export class LonelyLobsterSystem {
      * @param optimizeWipLimits current wip limits 
      */
     public doOneIteration(wos: WorkOrder[], optimizeWipLimits: boolean): void {
-        // populate process steps with work items (and first process steps with new work orders)
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))  // reset flow counters
-        this.valueChains.forEach(vc => vc.letWorkItemsFlow())
-        if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
-
         // tick the clock to the next interval
         this.clock.tick()
+        console.log(`System.doOneIteration(): clock proceeded to ${this.clock.time}; about to process ${wos.length} new workorders`) // ##
+
+        // inject new work orders
+        if (wos.length > 0) wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
 
         // measure system performance with current WIP limits and adjust them
         if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % this.searchParms.measurementPeriod == 0) {
             this.optimizeWipLimits()
         }
 
-        // prepare workitem extended statistical infos before workers make their choice 
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))  // +++ seems duplicate to see below
-
         // workers select workitems and work them
         this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
         this.workers.forEach(wo => wo.work(this.assignmentSet))
 
         // update workitem extended statistical infos after workers have done their work 
-        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.workItemBasket.forEach(wi => wi.updateExtendedInfos())))
+        this.valueChains.forEach(vc => vc.updateWorkItemsExtendedInfos())
 
         // update workers stats after having worked
         this.workers.forEach(wo => wo.utilization(this))
-    }
-    
+
+        // reset flow counters
+        this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))
+        // move finished work items from process steps on to the next (or to the output basket)
+        this.valueChains.forEach(vc => vc.letWorkItemsFlow())
+
+        // ##
+        console.log("System at end of doOneItertion(): show workitem moved log entries:")
+        this.allWorkItems.map(wi => wi.log.filter(le => le.logEntryType == LogEntryType.workItemMoved).flatMap(le => console.log((<LogEntryWorkItemMoved>le).toString_())))
+    }    
 //----------------------------------------------------------------------
 //    API mode - Initialization
 //----------------------------------------------------------------------
@@ -194,8 +202,8 @@ export class LonelyLobsterSystem {
           tag:                wiTags[0],
           valueChainId:       wi.valueChain.id,
           value:              wi.valueChain.totalValueAdd,
-          maxEffort:          (<ProcessStep>wi.currentProcessStep).normEffort,
-          processStepId:      wi.currentProcessStep.id,
+          maxEffort:          (<ProcessStep>wi.currentWorkItemBasketHolder).normEffort,
+          processStepId:      wi.currentWorkItemBasketHolder.id,
           accumulatedEffort:  wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInProcessStep],
           elapsedTime:        wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInProcessStep]
         }
@@ -242,7 +250,7 @@ export class LonelyLobsterSystem {
             valueChainId:       wi.valueChain.id,
             value:              wi.valueChain.totalValueAdd,
             maxEffort:          wi.valueChain.processSteps.map(ps => ps.normEffort).reduce((e1, e2) => e1 + e2),
-            processStepId:      wi.currentProcessStep.id,
+            processStepId:      wi.currentWorkItemBasketHolder.id,
             accumulatedEffort:  wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInValueChain],
             elapsedTime:        wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInValueChain]
         }
@@ -311,7 +319,9 @@ export class LonelyLobsterSystem {
      */   
     public nextSystemState(iterReqs: I_IterationRequests): I_SystemState { 
         this.doIterations(iterReqs)
-        return this.i_systemState()        
+        const aux = this.i_systemState()
+//      console.log(aux.valueChains)  // ##
+        return aux         
     }
 
     /**
@@ -335,11 +345,14 @@ export class LonelyLobsterSystem {
      */
     private workingCapitalAt = (t:Timestamp): Value => { 
         return this
+            // give me all work items in the system: 
             .valueChains
                 .flatMap(vc => vc.processSteps
                     .flatMap(ps => ps.workItemBasket))
             .concat(this.outputBasket.workItemBasket)
+            // then give me those that were still in a value chain i.e. unfinished work  
             .filter(wi => wi.wasInValueChainAt(t))
+            // for those calculate the effort 
             .map(wi => wi.accumulatedEffort(t))
             .reduce((a, b) => a + b, 0)
     }
@@ -374,7 +387,7 @@ export class LonelyLobsterSystem {
      * @returns output basket statistics
      */
     private obStatistics(ses: StatsEventForExitingAProcessStep[], interval: TimeUnit): I_WorkItemStatistics {
-        const sesOfOb = ses.filter(se => se.psEntered == this.outputBasket)
+        const sesOfOb = ses.filter(se => se.wibhEntered == this.outputBasket)
         const wisElapTimeValAdd: WiElapTimeValAdd[] = sesOfOb.map(se => { 
             return { 
                 wi:          se.wi,
@@ -411,12 +424,12 @@ export class LonelyLobsterSystem {
      * @returns value chain statistics
      */
     private vcStatistics(ses: StatsEventForExitingAProcessStep[], vc: ValueChain, interval: TimeUnit): I_ValueChainStatistics {
-        const sesOfVc = ses.filter(se => se.vc == vc && se.psEntered == this.outputBasket)
-        const wiElapTimeValAddOfVc: WiElapTimeValAdd[] = sesOfVc.map(se => { 
+        const sesOfVc = ses.filter(se => se.vc == vc && se.wibhEntered == this.outputBasket) // select only work item lifecycle events of the given value chain when the work item moved to the ouput basket
+        const wiElapTimeValAddOfVc: WiElapTimeValAdd[] = sesOfVc.map(se => { // calculate the elapsed time for each selected work item lifecycle event 
             return {
                 wi:          se.wi,
                 valueAdd:    se.vc.totalValueAdd,
-                elapsedTime: se.finishedTime - se.injectionIntoValueChainTime
+                elapsedTime: se.finishedTime - se.injectionIntoValueChainTime // from injection to finished the process step of the work item lifecycle event i.e. it proceeded to the the next
             }
         })
         return {
@@ -485,25 +498,27 @@ export class LonelyLobsterSystem {
      * @returns the system statitiscs
      */
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
-        //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + ")")
-        const interval:TimeUnit = toTime - fromTime
+        console.log(`System.systemStatistics(): about to calculate and return system stats at time= ${this.clock.time} ...`)
+        const interval:   TimeUnit = toTime - fromTime
+        // collect a list of all work item lifecycle events in the system where the work items have proceeded to a new work item basket holder 
+        // within the from-to-interval. Every work item lifecycle event in the list contains e.g. its cycle time in the process step it moved out.  
         const statEvents: StatsEventForExitingAProcessStep[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
                                                               .concat(this.outputBasket.flowStats(fromTime, toTime))
+        // calculate economics statistics for the overall system
         const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
-        const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
         const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
-        const avgVarCost        = this.avgNormEffort(endProductMoreStatistics, fromTime, toTime)
-        const avgFixStaffCost   = this.avgFixStaffCost(endProductMoreStatistics, fromTime, toTime)
+        const avgVarCost        = this.avgNormEffort(endProductMoreStatistics, fromTime, toTime) // cost incurred only when effort is put into a work item i.e. once it is a end product then the cost is its overall norm effort
+        const avgFixStaffCost   = this.avgFixStaffCost(endProductMoreStatistics, fromTime, toTime) // cost is incurred by the fixed permanent number of workers
 
+        const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
         const roceVar           =  (avgDiscValueAdd - avgVarCost)      / avgWorkingCapital
         const roceFix           =  (avgDiscValueAdd - avgFixStaffCost) / avgWorkingCapital
 
-        //console.log("system.systemStatistics(" +  fromTime + ", " + toTime + "): avgWorkCap= " + avgWorkingCapital.toPrecision(2) + ", avgDiscValueAdd= " + avgDiscValueAdd.toPrecision(2) + ", avgVarCost= " + avgVarCost.toPrecision(2) + ", avgFixStaffCost= " + avgFixStaffCost.toPrecision(2))
         return {
             timestamp:          this.clock.time,
-            valueChains:        this.valueChains.map(vc => this.vcStatistics(statEvents, vc, interval)),
+            valueChains:        this.valueChains.map(vc => this.vcStatistics(statEvents, vc, interval)), // flow statistics i.e. cycle times and throughputs of value chains and process steps
             outputBasket: {
-                flow:           this.obStatistics(statEvents, interval),
+                flow:           this.obStatistics(statEvents, interval), // flow statistics i.e. cycle times and throughputs of the overall system output i.e. the end products
                 economics:   {
                     ...endProductMoreStatistics,
                     avgWorkingCapital: avgWorkingCapital,
@@ -622,10 +637,10 @@ export class LonelyLobsterSystem {
 
     private showWorkitemDebuggingDetails(now: Timestamp, wi: WorkItem, ps?: ProcessStep): void {
         console.log(`\t\tWI id=${wi.id}`)
-        console.log(`\t\t total elap.time=${wi.elapsedTime(ps ? ElapsedTimeMode.firstEntryToNow : ElapsedTimeMode.firstToLastEntryFound, ps)}`) 
+//        console.log(`\t\t total elap.time=${wi.elapsedTime(ps ? ElapsedTimeMode.firstEntryToNow : ElapsedTimeMode.firstToLastEntryFound, ElapsedTimeFor.currentProcess)}`) 
         console.log(`\t\t total effort=${wi.accumulatedEffort(now, ps)}`)
         console.log(`\t\t log:`)
-        wi.log.forEach(le => console.log(`\t\t\t${le.stringified()}`))
+        wi.log.forEach(le => console.log(`\t\t\t${le}`))
     }
 
     private showDebugWorkitemData(): void {

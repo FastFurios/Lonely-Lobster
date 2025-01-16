@@ -7,7 +7,7 @@
 
 import { LogEntry, LogEntryType } from './logging.js'
 import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
-import { WorkItem, ElapsedTimeMode, StatsEventForExitingAProcessStep } from './workitem.js'
+import { WorkItem, StatsEventForExitingAProcessStep } from './workitem.js'
 import { ValueChain } from './valuechain.js'
 import { LonelyLobsterSystem } from './system.js'
 
@@ -23,10 +23,10 @@ class LogEntryWipLimit extends LogEntry {
                 public valueChain:      ValueChain, 
                 public processStep:     ProcessStep,
                 public wipLimit:        WipLimit) {
-        super(sys, LogEntryType.wipLimitsVector) 
+        super(sys.clock.time, LogEntryType.wipLimitsVector) 
     }
 
-    public stringified = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.processStep.id}, set wipLimit to = ${this.wipLimit}`
+    public toString = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.processStep.id}, set wipLimit to = ${this.wipLimit}`
 }
 
 
@@ -45,12 +45,6 @@ export abstract class WorkItemBasketHolder {
                 /** for batch mode console display only */
                 public barLen:  number = 20) {}
 
-    /** Add work item to the basket holder */
-    public addToBasket(workItem: WorkItem) { 
-        this.workItemBasket.push(workItem) 
-        workItem.logMovedTo(this)
-    }
-
     /**
      * Collect flow statistics events for the basket holder in the given interval
      * @param fromTime start of interval (excluding)
@@ -58,7 +52,7 @@ export abstract class WorkItemBasketHolder {
      * @returns list of statistic events for the basket holder
      */
     public flowStats(fromTime: Timestamp, toTime: Timestamp): StatsEventForExitingAProcessStep[] {
-        return this.workItemBasket.flatMap(wi => wi.statisticsEventsHistory(fromTime, toTime))
+        return this.workItemBasket.flatMap(wi => wi.flowStatisticsEventsHistory(fromTime, toTime))
     }
 
     /**
@@ -137,10 +131,27 @@ export class ProcessStep extends WorkItemBasketHolder  {
      * update the flow rate 
      * @param workItem the given work item
      */
-    public removeFromBasket(workItem: WorkItem) { 
+    public removeFromBasket(workItem: WorkItem): void { 
         this.lastIterationFlowRate += this.workItemBasket.some(wi => wi == workItem) ? 1 : 0  
         this.workItemBasket = this.workItemBasket.filter(wi => wi != workItem)  
     }
+
+    /**
+     * moves finsihed work items from this process step to the next work item basket holder
+     * @param toWibh work item basket holder the work items are to move to 
+     */
+    public letWorkItemsFlowTo(toWibh: WorkItemBasketHolder): void { 
+        this.workItemBasket                   
+            .filter(wi => wi.finishedAtCurrentProcessStep())                    // filter the workitems ready to be moved on
+            .forEach(wi => wi.moveTo(toWibh))                                   // move these workitems on
+    }
+
+    /**
+     * Update the statistical data of the work items in the process step
+     */
+    public updateWorkItemsExtendedInfos(): void {
+        this.workItemBasket.forEach(wi => wi.updateExtendedInfos())
+   }
 
     /**
      * set a work-in-progress limit 
@@ -193,11 +204,11 @@ export class OutputBasket extends WorkItemBasketHolder {
 
         /** process all work items that have transitioned into output basket from fromTime and up to toTime */
         for (let wi of wisArrived) {
-            const normEffort            = wi.log[0].valueChain.normEffort
-            const minCycleTime          = wi.log[0].valueChain.minimalCycleTime
-            const elapsedTime           = wi.elapsedTime(ElapsedTimeMode.firstToLastEntryFound)
-            const netValueAdd           = wi.log[0].valueChain.totalValueAdd
-            const discountedValueAdd    = wi.log[0].valueChain.valueDegradation!(netValueAdd, elapsedTime - minCycleTime)
+            const normEffort            = wi.valueChain.normEffort
+            const minCycleTime          = wi.valueChain.minimalCycleTime
+            const elapsedTime           = wi.elapsedTimeInValueChain
+            const netValueAdd           = wi.valueChain.totalValueAdd
+            const discountedValueAdd    = wi.valueChain.valueDegradation!(netValueAdd, elapsedTime - minCycleTime)
             invWisStats.push(
                 {
                     numWis:             1,
@@ -248,4 +259,7 @@ export class OutputBasket extends WorkItemBasketHolder {
 
     /** batch mode only */
     public stringified  = () => `t=${this.sys.clock.time} ${this.id}:\n` + this.stringifyBasketItems()
+
+    public toString = () => `\t${this.id}` 
+
 }
