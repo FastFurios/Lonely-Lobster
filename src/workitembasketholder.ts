@@ -7,7 +7,7 @@
 
 import { LogEntry, LogEntryType } from './logging.js'
 import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
-import { WorkItem, StatsEventForExitingAProcessStep } from './workitem.js'
+import { WorkItem, WorkItemFlowEventStats } from './workitem.js'
 import { ValueChain } from './valuechain.js'
 import { LonelyLobsterSystem } from './system.js'
 
@@ -26,7 +26,7 @@ class LogEntryWipLimit extends LogEntry {
         super(sys.clock.time, LogEntryType.wipLimitsVector) 
     }
 
-    public toString = () => `${this.stringifiedLe()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.processStep.id}, set wipLimit to = ${this.wipLimit}`
+    public toString = () => `${super.toString()}, ${this.logEntryType}, vc = ${this.valueChain.id}, ps = ${this.processStep.id}, set wipLimit to = ${this.wipLimit}`
 }
 
 
@@ -46,12 +46,20 @@ export abstract class WorkItemBasketHolder {
                 public barLen:  number = 20) {}
 
     /**
+     * add work item to the basket of this work item basket holder
+     * @param wi the work item to be added
+     */            
+    public add(wi: WorkItem): void {
+        this.workItemBasket.push(wi)
+    }    
+ 
+    /**
      * Collect flow statistics events for the basket holder in the given interval
      * @param fromTime start of interval (excluding)
      * @param toTime end of interval (including)
      * @returns list of statistic events for the basket holder
      */
-    public flowStats(fromTime: Timestamp, toTime: Timestamp): StatsEventForExitingAProcessStep[] {
+    public flowStats(fromTime: Timestamp, toTime: Timestamp): WorkItemFlowEventStats[] {
         return this.workItemBasket.flatMap(wi => wi.flowStatisticsEventsHistory(fromTime, toTime))
     }
 
@@ -86,9 +94,10 @@ export abstract class WorkItemBasketHolder {
     }  
 
     /** batch mode only */
-    public stringifyBasketItems = (): string => this.workItemBasket.length == 0 ? "empty" : this.workItemBasket.map(wi => "\t\t" + wi.stringified()).reduce((a, b) => a + " " + b)
+    public toString(): string {
+        return this.workItemBasket.length == 0 ? "empty" : this.workItemBasket.map(wi => "\t\t" + wi.stringified()).reduce((a, b) => a + " " + b)
+    }
 }
-
 //----------------------------------------------------------------------
 /**
  *      PROCESS STEP
@@ -137,13 +146,24 @@ export class ProcessStep extends WorkItemBasketHolder  {
     }
 
     /**
+     * moves a work item from a process step into another work item basket holder, and log this event in the work item's log
+     * @param wi work item to be moved 
+     * @param toWibh target work item basekt holder
+     */
+    private moveTo(wi: WorkItem, toWibh: WorkItemBasketHolder) {
+        this.removeFromBasket(wi)  // take the work item from this process step ...
+        toWibh.add(wi)             // ... and add in into the target ...
+        wi.moveTo(toWibh)          // ... and log the move within the work item
+    }
+
+    /**
      * moves finsihed work items from this process step to the next work item basket holder
      * @param toWibh work item basket holder the work items are to move to 
      */
     public letWorkItemsFlowTo(toWibh: WorkItemBasketHolder): void { 
         this.workItemBasket                   
             .filter(wi => wi.finishedAtCurrentProcessStep())                    // filter the workitems ready to be moved on
-            .forEach(wi => wi.moveTo(toWibh))                                   // move these workitems on
+            .forEach(wi => this.moveTo(wi, toWibh))                             // move these workitems on
     }
 
     /**
@@ -161,7 +181,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
     } 
 
     /** batch mode only */
-    public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.stringifyBasketItems()
+    public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.toString()
 
     /** batch mode only */
     public toString = () => `\t${this.valueChain.id}.${this.id}` 
@@ -206,7 +226,7 @@ export class OutputBasket extends WorkItemBasketHolder {
         for (let wi of wisArrived) {
             const normEffort            = wi.valueChain.normEffort
             const minCycleTime          = wi.valueChain.minimalCycleTime
-            const elapsedTime           = wi.elapsedTimeInValueChain
+            const elapsedTime           = wi.cycleTimeInValueChain()!
             const netValueAdd           = wi.valueChain.totalValueAdd
             const discountedValueAdd    = wi.valueChain.valueDegradation!(netValueAdd, elapsedTime - minCycleTime)
             invWisStats.push(
@@ -233,7 +253,7 @@ export class OutputBasket extends WorkItemBasketHolder {
     
     /**
      * Caclculate end-product statistics incl. average elapsed time;
-     * Author's annotations: why not inegrating the average elapsed time into statsOfArrivedWorkitemsBetween() ##refactor##
+     * Author's annotations: why not integrating the average elapsed time into statsOfArrivedWorkitemsBetween() ##refactor##
      * @param fromTime start of interval (including)
      * @param toTime end of interval (including)
      * @returns aggregated end-product based statistics incl.average elapsed times
@@ -258,7 +278,7 @@ export class OutputBasket extends WorkItemBasketHolder {
     } */
 
     /** batch mode only */
-    public stringified  = () => `t=${this.sys.clock.time} ${this.id}:\n` + this.stringifyBasketItems()
+    public stringified  = () => `t=${this.sys.clock.time} ${this.id}:\n` + this.toString()
 
     public toString = () => `\t${this.id}` 
 

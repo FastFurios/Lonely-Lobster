@@ -71,7 +71,7 @@ class LogEntryWorkerWorked extends LogEntryWorker {
                 worker:     Worker) {
         super(timestamp, LogEntryType.workerWorked, worker)
     }
-    public toString = (): string => `${this.stringifiedLe()}, wo=${this.worker.id}` 
+    public toString = (): string => `${super.toString()}, wo=${this.worker.id}` 
 } 
 
 /**
@@ -99,7 +99,7 @@ class LogEntryWorkerLearnedAndAdapted extends LogEntryWorker {
      * for debugging only
      * @returns log entry as string  
      */                                        
-    public toString = () => `${this.stringifiedLe()}, ${this.worker.id},` +
+    public toString = () => `${super.toString()}, ${this.worker.id},` +
                                `measurement=${this.measurementOfEndingPeriod.toPrecision(2)}, ` +
                                `adjusted strategy: [${this.adjustedSelectionStrategy.id}],  ` +
                                `newly chosen: [${this.chosenSelectionStrategy.id}]\n` +

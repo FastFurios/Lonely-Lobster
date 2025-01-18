@@ -6,7 +6,6 @@
 // last code cleaning: 04.01.2025
 
 import { Timestamp } from './io_api_definitions'
-import { LonelyLobsterSystem } from './system.js'
 
 /** log entry types in a Lonely Lobster system */
 export enum LogEntryType {
@@ -27,7 +26,7 @@ export abstract class LogEntry { // records state at end of time unit
                  public logEntryType: LogEntryType) {  
     }
 
-    public abstract toString: () => string
-
-    public stringifiedLe = (): string => `t = ${this.timestamp} ${this.logEntryType}` 
+    public toString(): string {
+        return `t = ${this.timestamp} ${this.logEntryType}`
+    }
 }

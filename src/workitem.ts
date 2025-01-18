@@ -3,7 +3,6 @@
  *    WORK ITEM
  */
 //----------------------------------------------------------------------
-// last code cleaning: 05.01.2025
 
 import { LogEntry, LogEntryType } from './logging.js'
 import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag, I_WorkItemEvent} from './io_api_definitions'
@@ -22,7 +21,6 @@ export interface WorkOrder {
     valueChain: ValueChain
 }
 
-
 /**
  * Generates unique work item identifier for console display in batch mode
  * @returns work item identifier
@@ -33,32 +31,9 @@ export function* wiIdGenerator(): IterableIterator<WorkItemId> {
 
 /** list of available work item tags for console display in batch mode */
 export const wiTags: WorkItemTag[] = [
-    ["a", "A"], 
-    ["b", "B"],
-    ["c", "C"],
-    ["d", "D"],
-    ["e", "E"],
-    ["f", "F"],
-    ["g", "G"],
-    ["h", "H"],
-    ["i", "I"],
-    ["j", "J"],
-    ["k", "K"],
-    ["l", "L"],
-    ["m", "M"],
-    ["n", "N"],
-    ["o", "O"],
-    ["p", "P"],
-    ["q", "Q"],
-    ["r", "R"],
-    ["s", "S"],
-    ["t", "T"],
-    ["u", "U"],
-    ["v", "V"],
-    ["w", "W"],
-    ["x", "X"],
-    ["y", "Y"],
-    ["z", "Z"]
+    ["a", "A"], ["b", "B"], ["c", "C"], ["d", "D"], ["e", "E"], ["f", "F"], ["g", "G"], ["h", "H"], ["i", "I"], ["j", "J"],
+    ["k", "K"], ["l", "L"], ["m", "M"], ["n", "N"], ["o", "O"], ["p", "P"], ["q", "Q"], ["r", "R"], ["s", "S"],  ["t", "T"],
+    ["u", "U"], ["v", "V"], ["w", "W"], ["x", "X"], ["y", "Y"], ["z", "Z"]
 ]  
 /**
  * Generates workitem tags for display in batch mode: lower letter = untouched, upper letter = some work already exerted;
@@ -79,7 +54,7 @@ export function* wiTagGenerator(wiTags: WorkItemTag[]): IterableIterator<WorkIte
  * Work item log entry 
  */
 abstract class LogEntryWorkItem extends LogEntry {
-    constructor(public timestamp:               Timestamp,
+    constructor(       timestamp:               Timestamp,
                 public valueChain:              ValueChain,
                 public workItem:                WorkItem,       
                 public workItemBasketHolder:    WorkItemBasketHolder | undefined, // undefined if injected i.e. moved from "outside" into the first process step of the value chain
@@ -89,7 +64,9 @@ abstract class LogEntryWorkItem extends LogEntry {
     /** provide getter for work item events */
     abstract get workItemEvent(): I_WorkItemEvent 
 
-    public stringifiedLeWi = () => `${this.stringifiedLe()}, wi = ${this.workItem.id}, vc = ${this.workItem.valueChain.id}, wibh = ${this.workItemBasketHolder!.id}, wi = ${this.workItem.id}`
+    public toString(): string {
+        return `${super.toString()}, wi = ${this.workItem.id}, vc = ${this.workItem.valueChain.id}, wibh = ${this.workItemBasketHolder!.id}`
+    }
 } 
 
 /**
@@ -111,12 +88,13 @@ export class LogEntryWorkItemMoved extends LogEntryWorkItem {
             eventType:                  LogEntryType.workItemMoved,
             valueChainId:               this.workItem.valueChain.id,
             fromProcessStepId:          this.fromWorkItemBasketHolder?.id,
-            workItemBasketHolderId:     this.workItemBasketHolder?.id
+            workItemBasketHolderId:     this.workItemBasketHolder!.id
         }
     }
 
-    public toString = () => `${this.stringifiedLeWi()}, ${this.fromWorkItemBasketHolder?.id}=>${this.workItemBasketHolder?.id}`
-    public toString_ = () => `${this.stringifiedLeWi()}, ${this.fromWorkItemBasketHolder?.id}=>${this.workItemBasketHolder?.id}`
+    public toString(): string {
+        return `${super.toString()}, ${this.fromWorkItemBasketHolder?.id}=>${this.workItemBasketHolder?.id}` // console.log uses automatically this method when called with ${this-workitem}
+    }
 }
 
 /**
@@ -136,12 +114,14 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
             workItemId:                 this.workItem.id,
             eventType:                  LogEntryType.workItemWorkedOn,
             valueChainId:               this.workItem.valueChain.id,
-            workItemBasketHolderId:     this.workItemBasketHolder?.id,
+            workItemBasketHolderId:     this.workItemBasketHolder!.id,
             worker:                     this.worker.id
         }
     }
 
-    public toString = () => `${this.stringifiedLeWi()}, worker = ${this.worker.id}`
+    public toString(): string {
+        return `${super.toString()}, worker = ${this.worker.id}`
+    }
 }
 
 //----------------------------------------------------------------------
@@ -149,7 +129,7 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
 //----------------------------------------------------------------------
 
 /** statistic event data when the work item leaves a process step */
-export interface StatsEventForExitingAProcessStep {
+export interface WorkItemFlowEventStats {
     wi:                             WorkItem,
     vc:                             ValueChain,
     /** the process step the work items left */
@@ -175,9 +155,6 @@ export interface StatsEventForExitingAProcessStep {
  */
 //----------------------------------------------------------------------
 export class WorkItem {
-    static idGen  = wiIdGenerator()
-    static tagGen = wiTagGenerator(wiTags)
-
     public  id:                             WorkItemId
     public  tag:                            WorkItemTag
     public  log:                            LogEntryWorkItem[] = []
@@ -186,26 +163,24 @@ export class WorkItem {
 
     constructor(private sys:                LonelyLobsterSystem,
                 private injectedIntoVc:     ValueChain) {
-        this.id  = WorkItem.idGen.next().value
-        this.tag = WorkItem.tagGen.next().value
+        this.id  = sys.idGen.next().value
+        this.tag = sys.tagGen.next().value
 
         // place work item in the first process step in the value chain:
         this.currentWorkItemBasketHolder = injectedIntoVc.processSteps[0]                      
-        this.currentWorkItemBasketHolder.workItemBasket.push(this)
+        this.currentWorkItemBasketHolder.add(this)
         this.logMovedEvent(undefined, this.currentWorkItemBasketHolder)    
 
         /** extended infos are bundled into a separate object */
         this.extendedInfos  = new WorkItemExtendedInfos(this.sys, this, WorkItemExtendedInfosCreationMode.empty)
-//          console.log(`Workitem.constructor(): created new work item: ${this.id}`)   
     }
 
     /** 
-     * add log entry for the work item was moved into a a new work item basket holder; includes injection and also reaching the output basket
-     * @param fromProcessStep the process step from where the work item comes; newly injected, then undefined
-     * @param toWorkItemBasketHolder the work item basket holderthe work item proceeded to
+     * add log entry when the work item was moved into a a new work item basket holder; includes injection and also the reaching of the output basket
+     * @param fromProcessStep the process step from where the work item comes; if newly injected work order, then this parameter must be undefined
+     * @param toWorkItemBasketHolder the work item basket holder the work item proceeded to
      */
     public logMovedEvent(fromProcessStep: ProcessStep | undefined, toWorkItemBasketHolder: WorkItemBasketHolder): void {
-        console.log(`Workitem.logMovedTo(): ${this.id} logging moved event: from ${fromProcessStep} to ${toWorkItemBasketHolder}`)
         this.log.push(new LogEntryWorkItemMoved(this.sys.clock.time,
                                                 this.injectedIntoVc,
                                                 this,
@@ -213,7 +188,7 @@ export class WorkItem {
                                                 toWorkItemBasketHolder))
     }
 
-    /** add log a worker worked the work item */
+    /** add log entry when a worker worked the work item */
     public logWorkedEvent(worker: Worker): void {
         this.log.push(new LogEntryWorkItemWorked(this.sys.clock.time,
                                                  this.injectedIntoVc,
@@ -222,69 +197,100 @@ export class WorkItem {
                                                  worker))
     }
 
-    /**  */
 
+    /** return all "worked" log entries */
     private get workedLogEntries(): LogEntryWorkItemWorked[] {
         return <LogEntryWorkItemWorked[]>this.log.filter(le => le.logEntryType == LogEntryType.workItemWorkedOn)
     }
 
+    /** return all "moved" log entries */
     private get movedLogEntries(): LogEntryWorkItemMoved[] {
         return <LogEntryWorkItemMoved[]>this.log.filter(le => le.logEntryType == LogEntryType.workItemMoved)
     }
 
+    /** returns last "moved" log entry */
     private get lastMovedLogEntry(): LogEntryWorkItemMoved {
         return this.movedLogEntries[this.movedLogEntries.length - 1]
     }
 
+    /** returns the first "moved" log entry */
     private get firstMovedLogEntry(): LogEntryWorkItemMoved {
         return this.movedLogEntries[0]
     }
 
+    /** returns the elapsed time since entry into the current process step; if not being in the output basket, return undefined*/
     public get elapsedTimeInCurrentProcessStep(): TimeUnit | undefined {
         if (this.currentWorkItemBasketHolder == this.sys.outputBasket) return undefined // this function calculates elapsed time for process steps only!
         return this.sys.clock.time - this.lastMovedLogEntry.timestamp
     }
  
-    public get elapsedTimeInValueChain(): TimeUnit {
+    /** returns the elapsed time of the work item still being in a value chain; if already in the output basket return undefined */
+    public get elapsedTimeInValueChain(): TimeUnit | undefined {
+        if (this.currentWorkItemBasketHolder == this.sys.outputBasket) return undefined // this function calculates elapsed time for work items that are still being in the value chain!
         return this.sys.clock.time - this.firstMovedLogEntry.timestamp
     }
 
-    public cycleTimeInProcessStep(ps: ProcessStep, from: Timestamp, to: Timestamp): TimeUnit | null { // null if never having left the given process step  
+    /** 
+     * returns the cycle time in the given process step, i.e. the work item has been worked on in the process step and has already moved out of it  
+     * @param ps the process step for which the work item's cycle time is to be caclulated   
+     * @param from (optional) from time (including) from which the work item must have entered the process step; if left empty take system start time i.e. 0 
+     * @param to (optional) to time (including) until which the work item must have moved out of the process step; if left empty take current system time
+     * @returns the work item's cycle time in the given process step 
+     */
+    public cycleTimeInProcessStep(ps: ProcessStep, from: Timestamp = 0, to: Timestamp = this.sys.clock.time): TimeUnit | undefined { // null if never having left the given process step  
         const entryIntoPsTime = this.movedLogEntries.find(le => (<LogEntryWorkItemMoved>le).workItemBasketHolder == ps)?.timestamp
-        if (!entryIntoPsTime) return null
+        if (!entryIntoPsTime) return undefined
         const exitFromPsTime  = this.movedLogEntries.find(le => (<LogEntryWorkItemMoved>le).fromWorkItemBasketHolder == ps)?.timestamp
-        if (!exitFromPsTime)  return null
-        if (exitFromPsTime < from || exitFromPsTime > to)  return null
+        if (!exitFromPsTime)  return undefined
+        if (exitFromPsTime < from || exitFromPsTime > to) return undefined
         return exitFromPsTime - entryIntoPsTime
     }
 
-    public cycleTimeInValueChain(from: Timestamp, to: Timestamp): TimeUnit | null {
+    /**
+     * returns the cycle time of the work item in its value chain, i.e. from its injection to reaching the output basket
+     * @param from (optional) from time (including) from which the work item must have entered the value chain; if left empty take system start time i.e. 0 
+     * @param to (optional) to time (including) until which the work item must have moved out of the value chain into the output basket; if left empty take current system time
+     * @returns the work item's cycle time 
+     */
+    public cycleTimeInValueChain(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): TimeUnit | undefined {
         const entryIntoVcTime = this.firstMovedLogEntry.timestamp
         const exitFromVcTime  = this.lastMovedLogEntry.timestamp 
-        if (exitFromVcTime < from || exitFromVcTime > to) return null
+        if (exitFromVcTime < from || exitFromVcTime > to ) return undefined
         return exitFromVcTime - entryIntoVcTime
     }
 
-    public get valueChain(): ValueChain {  // ## make private once the extended info object is converted into a map inside the call Workitem
+    /** returns the number of process steps the work item has entered */
+    public get numProcessStepsVisited(): number {
+        return this.movedLogEntries.length
+    }
+
+    /** returns value chain of the work */
+    public get valueChain(): ValueChain {
         return this.firstMovedLogEntry.valueChain
     }
 
+    /**
+     * move the work item on to the next basket holder; remark: this methods deals with the work item internal things to do, 
+     * the actual removing of the work item from the current process step and adding to the next work basket holder is done in the ProcessStep instance   
+     * @param toWorkItemBasketHolder target work item basket holder
+     */
     public moveTo(toWorkItemBasketHolder: WorkItemBasketHolder): void {
+// ##   console.log(`WorkItem.moveTo(): ${this.id} from ${this.currentWorkItemBasketHolder.id} to ${toWorkItemBasketHolder.id}`)
         this.logMovedEvent(<ProcessStep>this.currentWorkItemBasketHolder, toWorkItemBasketHolder)
         this.currentWorkItemBasketHolder = toWorkItemBasketHolder
     }
 
     /**
      * Calculate the accumulated effort that has gone into the work item
-     * @param until timestamp (including) until when worked-on events are to be considered
-     * @param workItemBasketHolder if defined then focus on this basket holder (i.e. process step or output basket) 
+     * @param toTime timestamp (including) until when worked-on events are to be considered
+     * @param workItemBasketHolder (optional) if defined then focus on this basket holder (i.e. process step or output basket) 
      * otherwise all process steps of the value chain
      * @returns the work effort so far 
      */
-    public accumulatedEffort = (until: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort =>
+    public accumulatedEffort = (toTime: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort =>
         (workItemBasketHolder == undefined ? this.log 
                                            : this.log.filter(le => le.workItemBasketHolder == workItemBasketHolder))
-        .filter(le => le.timestamp <= until && le.logEntryType == LogEntryType.workItemWorkedOn)
+        .filter(le => le.timestamp <= toTime && le.logEntryType == LogEntryType.workItemWorkedOn)
         .length
 
     /**
@@ -316,16 +322,19 @@ export class WorkItem {
      * @returns true if work item became an end-product i.e. it moved to output basket in the given intervall  
      */
     public hasMovedToOutputBasketBetween(fromTime: Timestamp, toTime: Timestamp): boolean {
-        return this.currentWorkItemBasketHolder == this.sys.outputBasket && this.lastMovedLogEntry.timestamp >= fromTime && this.lastMovedLogEntry.timestamp <= toTime
+        return this.currentWorkItemBasketHolder == this.sys.outputBasket 
+            && this.lastMovedLogEntry.timestamp >= fromTime 
+            && this.lastMovedLogEntry.timestamp <= toTime
     }
 
     /**
      * Check if the work item was being processed in the value chain at given point in time 
      * @param t point in time 
-     * @returns true if work item was in valiue chain else false
+     * @returns true if work item was in value chain else false
      */
     public wasInValueChainAt(t: Timestamp): boolean { 
-        return this.log[0].timestamp < t && !this.hasMovedToOutputBasketBetween(0, (t - 1))
+        return  this.log[0].timestamp <= t                      // was injected before or at t ... 
+            && !this.hasMovedToOutputBasketBetween(0, t - 1)    // ... and did not move to the output basket before t      
     }
 
     /** 
@@ -335,7 +344,7 @@ export class WorkItem {
     private materializedValue(): Value {
         if (this.currentWorkItemBasketHolder != this.sys.outputBasket) return 0
         const vc = this.valueChain 
-        return vc.valueDegradation(vc.totalValueAdd, this.cycleTimeInValueChain(0, this.sys.clock.time)! - vc.minimalCycleTime)
+        return vc.valueDegradation(vc.totalValueAdd, this.cycleTimeInValueChain()! - vc.minimalCycleTime)
     } 
 
     /**
@@ -347,7 +356,8 @@ export class WorkItem {
      */
     private effortPutInByWorker(wo: Worker, fromTime: Timestamp, toTime: Timestamp): Effort {
         return this.workedLogEntries
-                   .filter(le => le.worker == wo && le.timestamp >= fromTime && le.timestamp <= toTime).length 
+                   .filter(le => le.worker == wo && le.timestamp >= fromTime && le.timestamp <= toTime)
+                   .length 
     }
 
     /**
@@ -361,35 +371,40 @@ export class WorkItem {
     public workerValueContribution(wo: Worker, fromTime: Timestamp, toTime: Timestamp): Value {
         if (this.currentWorkItemBasketHolder != this.sys.outputBasket) return 0
         const effortByWorker =  this.effortPutInByWorker(wo, fromTime, toTime)
-        return effortByWorker > 0 ? this.materializedValue() * (effortByWorker / this.valueChain.normEffort) : 0
+        return this.materializedValue() * (effortByWorker / this.valueChain.normEffort)
     }
 
     /**
-     * Returns a list of statistics for the events when the work item transitioned from a basket holder into the next. 
-     * Annotation: weird imparative implementation, difficult to understand; 
-     * would make sense to find a more functional programming style solution ##refactor##  
+     * Returns a list of flow statistics for the events when the work item transitioned from a basket holder into the next
      * @param fromTime start of interval (including)
      * @param toTime end of interval (including)
      * @returns list of events with flow statistics of process step transitions
      */
-    public flowStatisticsEventsHistory(fromTime: Timestamp = 1, toTime: Timestamp = this.sys.clock.time): StatsEventForExitingAProcessStep[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
+    public flowStatisticsEventsHistory(fromTime: Timestamp = 1, toTime: Timestamp = this.sys.clock.time): WorkItemFlowEventStats[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
         const moveLogEntriesUntilToTime = this.movedLogEntries.filter(le => le.timestamp <= toTime)
         if (moveLogEntriesUntilToTime.length < 2) return [] // every work item that has moved out off a process step must have at least 2 moved-to log entries: a) injection into and b) moved out of process step
 
         // we have events between start and end of interval
-        const statEvents: StatsEventForExitingAProcessStep[] = []  // initialize the array of move-to events of the work item
+        const statEvents: WorkItemFlowEventStats[] = []  // initialize the array of move-to events of the work item
 
-        for (let movedLeCurrent = moveLogEntriesUntilToTime.pop()!, movedLeBefore = moveLogEntriesUntilToTime.pop()!; // 
-             movedLeCurrent.fromWorkItemBasketHolder && movedLeCurrent.timestamp >= fromTime; // is not injection but real transition from a process step to another work item basket holder; also, if timestamp < fromTime then were done. 
-             movedLeCurrent = movedLeBefore, movedLeBefore = moveLogEntriesUntilToTime.pop()!) {
+        for (// initialize loop:
+             let currentMovedLe = moveLogEntriesUntilToTime.pop()!, 
+                 beforeMovedLe  = moveLogEntriesUntilToTime.pop()!; // there are at least 2 that we can pop
+             // continue loop while this is true: 
+             beforeMovedLe &&                               // as long as a log entry before was found and ...  
+             currentMovedLe.fromWorkItemBasketHolder &&     // ... the current log entry is not the injection entry and ...
+             currentMovedLe.timestamp >= fromTime;          // ... also timestamp not younger than fromTime 
+             // execute at end of loop:
+             currentMovedLe = beforeMovedLe, 
+             beforeMovedLe = moveLogEntriesUntilToTime.pop()!) {
 
             statEvents.push({
                     wi:                          this,
                     vc:                          this.valueChain,
-                    psExited:                    <ProcessStep>movedLeCurrent.fromWorkItemBasketHolder, // process step in log entry that happened before currentlyLastMovedToEvent  
-                    wibhEntered:                 movedLeCurrent.workItemBasketHolder!, // the currently last event where the work item moved into and ...           
-                    finishedTime:                movedLeCurrent.timestamp, // ... timestamp when this happened
-                    elapsedTime:                 movedLeCurrent.timestamp - movedLeBefore.timestamp, // elapsed time between having moved to the process step and out of there 
+                    psExited:                    <ProcessStep>currentMovedLe.fromWorkItemBasketHolder, // process step in log entry that happened before currentlyLastMovedToEvent  
+                    wibhEntered:                 currentMovedLe.workItemBasketHolder!, // the currently last event where the work item moved into and ...           
+                    finishedTime:                currentMovedLe.timestamp, // ... timestamp when this happened
+                    elapsedTime:                 currentMovedLe.timestamp - beforeMovedLe.timestamp, // elapsed time between having moved to the process step and out of there 
                     injectionIntoValueChainTime: this.firstMovedLogEntry.timestamp // time when the work order was injected
             })           
         } 
@@ -404,10 +419,11 @@ export class WorkItem {
     }
 
     /**
-     * Update the extended low-level statistical data of the work items 
+     * Update the extended low-level statistical data of the work items, only as long as being in the value chain  
      */
     public updateExtendedInfos(): void {
-        this.extendedInfos = new WorkItemExtendedInfos(this.sys, this, WorkItemExtendedInfosCreationMode.calculated)         
+        if (this.currentWorkItemBasketHolder != this.sys.outputBasket) 
+            this.extendedInfos = new WorkItemExtendedInfos(this.sys, this, WorkItemExtendedInfosCreationMode.calculated)         
     }
     
    /** batch mode only, console display */ 
@@ -465,13 +481,13 @@ export class WorkItemExtendedInfos {
 
         if (creationMode == WorkItemExtendedInfosCreationMode.empty) 
             this.workOrderExtendedInfos = [wi, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        else { // creationMode == WorkItemExtendedInfosCreationMode.caclulate
+        else { // creationMode == WorkItemExtendedInfosCreationMode.caclulated
             const accumulatedEffortInProcessStep   = wi.accumulatedEffort(sys.clock.time, wi.currentWorkItemBasketHolder)
             const remainingEffortInProcessStep     = (<ProcessStep>wi.currentWorkItemBasketHolder).normEffort - accumulatedEffortInProcessStep
             const accumulatedEffortInValueChain    = wi.accumulatedEffort(sys.clock.time, )
             const remainingEffortInValueChain      = wi.valueChain.processSteps.map(ps => (<ProcessStep>ps).normEffort).reduce((a, b) => a + b) - accumulatedEffortInValueChain
-    
-            const visitedProcessSteps              = (<ProcessStep>wi.currentWorkItemBasketHolder).valueChain.processSteps.indexOf(<ProcessStep>wi.currentWorkItemBasketHolder) + 1
+
+            const visitedProcessSteps              = wi.numProcessStepsVisited
             const remainingProcessSteps            = (<ProcessStep>wi.currentWorkItemBasketHolder).valueChain.processSteps.length - visitedProcessSteps
             
             const valueOfValueChain                = (<ProcessStep>wi.currentWorkItemBasketHolder).valueChain.totalValueAdd
@@ -481,7 +497,7 @@ export class WorkItemExtendedInfos {
             const sizeOfInventoryInProcessStep     = (<ProcessStep>wi.currentWorkItemBasketHolder).workItemBasket.length
     
             const elapsedTimeInProcessStep         = wi.elapsedTimeInCurrentProcessStep || 0
-            const elapsedTimeInValueChain          = wi.elapsedTimeInValueChain
+            const elapsedTimeInValueChain          = wi.elapsedTimeInValueChain!
     
             this.workOrderExtendedInfos = [
                 wi,
