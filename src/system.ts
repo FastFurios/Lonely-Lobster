@@ -195,20 +195,19 @@ export class LonelyLobsterSystem {
     }
 
     /**
-     * create a work item data object for the new system state 
-     * @param wi work item 
+     * create a work item data object for the new system state as long as the work item is in process in the value chain  
+     * @param wi work item (must still be in the value chain)
      * @returns work item data object 
      */
     private i_workItem (wi: WorkItem): I_WorkItem { 
         return {
-          id:                 wi.id,
-          tag:                wiTags[0],
-          valueChainId:       wi.valueChain.id,
-          value:              wi.valueChain.totalValueAdd,
-          maxEffort:          (<ProcessStep>wi.currentWorkItemBasketHolder).normEffort,
-          processStepId:      wi.currentWorkItemBasketHolder.id,
-          accumulatedEffort:  wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInProcessStep],
-          elapsedTime:        wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInProcessStep]
+            id:                               wi.id,
+            tag:                              wiTags[0],
+            valueChainId:                     wi.valueChain.id,
+            processStepId:                    wi.currentWorkItemBasketHolder.id,
+            normEffort:                       (<ProcessStep>wi.currentWorkItemBasketHolder).normEffort,
+            accumulatedEffort:                wi.extendedInfos!.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInProcessStep],
+            elapsedTime:                      wi.extendedInfos!.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInProcessStep]
         }
     }
 
@@ -250,12 +249,11 @@ export class LonelyLobsterSystem {
         return {
             id:                 wi.id,
             tag:                wiTags[0],
-            valueChainId:       wi.valueChain.id,
-            value:              wi.valueChain.totalValueAdd,
-            maxEffort:          wi.valueChain.processSteps.map(ps => ps.normEffort).reduce((e1, e2) => e1 + e2), // ## add a ValueChain getter 
             processStepId:      wi.currentWorkItemBasketHolder.id,
-            accumulatedEffort:  wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInValueChain],
-            elapsedTime:        wi.extendedInfos.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInValueChain]
+            valueChainId:       wi.valueChain.id,
+            normEffort:         wi.valueChain.normEffort, 
+            accumulatedEffort:  wi.valueChain.normEffort,
+            elapsedTime:        wi.cycleTimeInValueChain()!
         }
     }
 

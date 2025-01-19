@@ -78,7 +78,7 @@ export function reshuffle<T>(a: T[]): T[] {
 
 
 // ------------------------------------------------------------
-//  sort rows and select top row of a table i.e. of an array of arrays (tuples); 
+//  sort rows and select top row of a table i.e. of an array of tuples; 
 //  if no sortVector provided, choose a row by random
 // ------------------------------------------------------------
 

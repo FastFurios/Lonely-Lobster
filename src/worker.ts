@@ -12,7 +12,6 @@ import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from '
 import { ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
 import { LonelyLobsterSystem } from './system'
-import { time } from 'console'
 
 /** signature of the function by which all the workers measures the outcome of their work item selection strategy behaviour  */
 export type SuccessMeasureFunction = (sys: LonelyLobsterSystem, wo: Worker) => number
@@ -43,7 +42,7 @@ interface SelectionStrategy {
  * @returns the top item after sort
  */
 function selectedNextWorkItemBySortVectorSequence(wis: WorkItem[], svs: SortVectorSequence): WorkItem {
-    const extInfoTuples: WiExtInfoTuple[] = wis.map(wi => wi.extendedInfos.workOrderExtendedInfos) 
+    const extInfoTuples: WiExtInfoTuple[] = wis.map(wi => wi.extendedInfos!.workOrderExtendedInfos) 
     const selectedWi: WiExtInfoTuple = topElemAfterSort(extInfoTuples, svs)
     return selectedWi[WiExtInfoElem.workItem]  // return workitem object reference
 } 
@@ -279,7 +278,7 @@ export class Worker {
         if (workableWorkItemsAtHand.length == 0) return // no workable workitems at hand
 
         if(this.sys.debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
-        if(this.sys.debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos.stringifiedDataLine()}`)) // ***
+        if(this.sys.debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos?.stringifiedDataLine()}`)) // ***
 
         /** selected work item to work on */        
         const wi: WorkItem = selectedNextWorkItemBySortVectorSequence(workableWorkItemsAtHand, this.currentSelectionStrategy.svs)

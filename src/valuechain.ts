@@ -122,7 +122,7 @@ export class ValueChain {
      * returns the norm effort of the value chain (which is by the way also the minimum cycle time) 
      */
     get normEffort(): Effort {
-        return this.processSteps.map(ps => ps.normEffort).reduce((e1, e2) => e1 + e2)  // == minimum cycle time thru value chain
+        return this.processSteps.map(ps => ps.normEffort).reduce((e1, e2) => e1 + e2)
     }
 
     /** returns the minimum cycle time of work items in the value chain */
@@ -135,6 +135,13 @@ export class ValueChain {
      */
     public get allWorkitemLifecycleEvents() {
         return this.processSteps.flatMap(ps => ps.allWorkitemLifecycleEvents)
+    }
+    
+    /**
+     * @returns the number of process steps in the value chain 
+     */
+    public get length() {
+        return this.processSteps.length
     }
     
     /** batch mode only */

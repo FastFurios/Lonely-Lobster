@@ -159,7 +159,7 @@ export class WorkItem {
     public  tag:                            WorkItemTag
     public  log:                            LogEntryWorkItem[] = []
     public  currentWorkItemBasketHolder:    WorkItemBasketHolder  // redundant for efficiency reasons: could find this information also in the log 
-    public  extendedInfos:                  WorkItemExtendedInfos // additional low level statistical data about the work item's lifecycle
+    public  extendedInfos:                  WorkItemExtendedInfos | undefined // additional low level statistical data about the work item's lifecycle
 
     constructor(private sys:                LonelyLobsterSystem,
                 private injectedIntoVc:     ValueChain) {
@@ -218,7 +218,7 @@ export class WorkItem {
         return this.movedLogEntries[0]
     }
 
-    /** returns the elapsed time since entry into the current process step; if not being in the output basket, return undefined*/
+    /** returns the elapsed time since entry into the current process step; if already being in the output basket, return undefined*/
     public get elapsedTimeInCurrentProcessStep(): TimeUnit | undefined {
         if (this.currentWorkItemBasketHolder == this.sys.outputBasket) return undefined // this function calculates elapsed time for process steps only!
         return this.sys.clock.time - this.lastMovedLogEntry.timestamp
@@ -270,6 +270,21 @@ export class WorkItem {
     }
 
     /**
+     * Calculate the accumulated effort that has gone into the work item
+     * @param toTime timestamp (including) until when worked-on events are to be considered
+     * @param workItemBasketHolder if defined then focus on that work item basket holder: if it is a process step then return the accumulated work in that process step; 
+     * if it is the output basket it returns 0 as no one works on a work item in the output basket;  
+     * if this parameter is undefined return the accumulated effort of all process steps of the value chain
+     * @returns the work effort so far 
+     */
+    public accumulatedEffort(toTime: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort {
+        return  (workItemBasketHolder == undefined ? this.log 
+                                                   : this.log.filter(le => le.workItemBasketHolder == workItemBasketHolder))
+            .filter(le => le.timestamp <= toTime && le.logEntryType == LogEntryType.workItemWorkedOn)
+            .length
+    }
+
+    /**
      * move the work item on to the next basket holder; remark: this methods deals with the work item internal things to do, 
      * the actual removing of the work item from the current process step and adding to the next work basket holder is done in the ProcessStep instance   
      * @param toWorkItemBasketHolder target work item basket holder
@@ -278,20 +293,8 @@ export class WorkItem {
 // ##   console.log(`WorkItem.moveTo(): ${this.id} from ${this.currentWorkItemBasketHolder.id} to ${toWorkItemBasketHolder.id}`)
         this.logMovedEvent(<ProcessStep>this.currentWorkItemBasketHolder, toWorkItemBasketHolder)
         this.currentWorkItemBasketHolder = toWorkItemBasketHolder
-    }
-
-    /**
-     * Calculate the accumulated effort that has gone into the work item
-     * @param toTime timestamp (including) until when worked-on events are to be considered
-     * @param workItemBasketHolder (optional) if defined then focus on this basket holder (i.e. process step or output basket) 
-     * otherwise all process steps of the value chain
-     * @returns the work effort so far 
-     */
-    public accumulatedEffort = (toTime: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort =>
-        (workItemBasketHolder == undefined ? this.log 
-                                           : this.log.filter(le => le.workItemBasketHolder == workItemBasketHolder))
-        .filter(le => le.timestamp <= toTime && le.logEntryType == LogEntryType.workItemWorkedOn)
-        .length
+        if (toWorkItemBasketHolder == this.sys.outputBasket) this.extendedInfos = undefined   // get rid of the extendedInfos as they have no longer a meaning once the work item is in the output basket
+      }
 
     /**
      * Check if the work item was worked on 
@@ -430,12 +433,12 @@ export class WorkItem {
    public stringified = (): string => `\tt=${this.sys.clock.time} wi=${this.id} ps=${this.currentWorkItemBasketHolder.id} vc=${this.valueChain.id} et=${this.elapsedTimeInValueChain} ae=${this.accumulatedEffort(this.sys.clock.time, this.currentWorkItemBasketHolder)} ${this.finishedAtCurrentProcessStep() ? "done" : ""}\n`
 }
 
-//----------------------------------------------------------------------
-//    WORKITEM EXTENDED INFO   ...for workers' decision making 
-//----------------------------------------------------------------------
+//-----------------------------------------------------------------------------
+//    WORKITEM EXTENDED INFO   e.g. for workers' decision making ## is this still valid? ## and also for  
+//                             providing work item statistics to the front end
+//-----------------------------------------------------------------------------
 
-/** tuple field indexes for @see {@link WiExtInfoTuple};
- * Author's annotation: somewhat weird implementation, consider to transform this stgructure into an interface etc. ##refactor##*/
+/** tuple field indexes for @see {@link WiExtInfoTuple} */
 export enum WiExtInfoElem {
     workItem                        =  0,
 
@@ -462,42 +465,51 @@ type wiDecisionInput = number
 export type WiExtInfoTuple = [WorkItem, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput, wiDecisionInput]
 
 enum WorkItemExtendedInfosCreationMode {
-    empty = "initialization-empty",
+    empty      = "initialization-empty",
     calculated = "calculated"
 }
 
-//----------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
 /**
- *    WORKITEM EXTENDED INFO
+ *    WORKITEM EXTENDED INFO    provides additional life cycle data of the work item used for 
+ *                              workers' decisions which work item to work on next.
+ *                              Once the work item reached the output basket these extended infos are no 
+ *                              longer valid. 
  */
-//----------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
 export class WorkItemExtendedInfos {
     public workOrderExtendedInfos: WiExtInfoTuple
 
     constructor(public sys: LonelyLobsterSystem, 
                 public wi:  WorkItem,
                        creationMode: WorkItemExtendedInfosCreationMode) {
-        // ## console.log(`WorkitemExtendedInfo.constructor(): creating new work item extended infos object in ${creationMode} mode`) // ##   
-
         if (creationMode == WorkItemExtendedInfosCreationMode.empty) 
             this.workOrderExtendedInfos = [wi, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        else { // creationMode == WorkItemExtendedInfosCreationMode.caclulated
-            const accumulatedEffortInProcessStep   = wi.accumulatedEffort(sys.clock.time, wi.currentWorkItemBasketHolder)
-            const remainingEffortInProcessStep     = (<ProcessStep>wi.currentWorkItemBasketHolder).normEffort - accumulatedEffortInProcessStep
-            const accumulatedEffortInValueChain    = wi.accumulatedEffort(sys.clock.time, )
-            const remainingEffortInValueChain      = wi.valueChain.processSteps.map(ps => (<ProcessStep>ps).normEffort).reduce((a, b) => a + b) - accumulatedEffortInValueChain
+        else {
+            // creationMode == WorkItemExtendedInfosCreationMode.caclulated
+            const currPs: ProcessStep = <ProcessStep>wi.currentWorkItemBasketHolder 
 
+            // efforts:
+            const accumulatedEffortInProcessStep   = wi.accumulatedEffort(sys.clock.time, currPs)
+            const remainingEffortInProcessStep     = currPs.normEffort - accumulatedEffortInProcessStep
+            const accumulatedEffortInValueChain    = wi.accumulatedEffort(sys.clock.time)
+            const remainingEffortInValueChain      = wi.valueChain.normEffort - accumulatedEffortInValueChain
+
+            // travelling in the value chain:
             const visitedProcessSteps              = wi.numProcessStepsVisited
-            const remainingProcessSteps            = (<ProcessStep>wi.currentWorkItemBasketHolder).valueChain.processSteps.length - visitedProcessSteps
-            
-            const valueOfValueChain                = (<ProcessStep>wi.currentWorkItemBasketHolder).valueChain.totalValueAdd
-            const totalEffortInValueChain          = accumulatedEffortInValueChain + remainingEffortInValueChain
+            const remainingProcessSteps            = wi.valueChain.length - visitedProcessSteps
+
+            // value chain static data:            
+            const valueOfValueChain                = wi.valueChain.totalValueAdd
+            const totalEffortInValueChain          = wi.valueChain.normEffort
             const contributionOfValueChain         = valueOfValueChain - totalEffortInValueChain
-    
-            const sizeOfInventoryInProcessStep     = (<ProcessStep>wi.currentWorkItemBasketHolder).workItemBasket.length
-    
-            const elapsedTimeInProcessStep         = wi.elapsedTimeInCurrentProcessStep || 0
-            const elapsedTimeInValueChain          = wi.elapsedTimeInValueChain!
+
+            // inventory size:
+            const sizeOfInventoryInProcessStep     = wi.currentWorkItemBasketHolder.inventorySize
+
+            // elapsed times:
+            const elapsedTimeInProcessStep         = wi.elapsedTimeInCurrentProcessStep!
+            const elapsedTimeInValueChain          = wi.elapsedTimeInValueChain!          
     
             this.workOrderExtendedInfos = [
                 wi,
@@ -519,7 +531,6 @@ export class WorkItemExtendedInfos {
                 elapsedTimeInProcessStep,         
                 elapsedTimeInValueChain          
             ]
-    
         }
     }
    

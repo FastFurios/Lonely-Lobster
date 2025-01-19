@@ -40,10 +40,10 @@ export abstract class WorkItemBasketHolder {
     /** work items in the basket holder */
     public workItemBasket: WorkItem[] = []
 
-    constructor(public sys:     LonelyLobsterSystem,
-                public id:      string, 
+    constructor(public sys:         LonelyLobsterSystem,
+                public id:          string,
                 /** for batch mode console display only */
-                public barLen:  number = 20) {}
+                public barLen:      number = 20) {}
 
     /**
      * add work item to the basket of this work item basket holder
@@ -77,6 +77,13 @@ export abstract class WorkItemBasketHolder {
      */
     public get allWorkitemLifecycleEvents() {
         return this.workItemBasket.flatMap(wi => wi.allWorkitemLifecycleEvents)
+    }
+    
+    /**
+     * @returns the number of work items being in this work item basket holder 
+     */
+    public get inventorySize() {
+        return this.workItemBasket.length
     }
     
     /** batch mode only */

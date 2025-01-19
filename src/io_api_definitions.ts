@@ -194,15 +194,16 @@ export interface I_WorkItem {
     /** not assigned at backend but by the frontend after having received system-state data */
     rgbColor?:                      RgbColor 
     valueChainId:                   ValueChainId
-    value:                          Value
-    /** total effort required to make a workorder to an end product i.e. the sum of norm efforts of the process steps in a value chain */
-    maxEffort:                      Effort
+    /** total effort required to make a workorder to an end product i.e. the norm efforts of the process steps in a value chain */
     processStepId:                  ProcessStepId
-    /** accumulated effort in process step or overall when in the Output basket */
-    accumulatedEffort:              number 
-    /** elapsed time in process step or when in the Output basket overall since injection as workorder */
-    elapsedTime:                    number 
+    /** norm efforts of the current process step or if in output basket the norm of the norm effort of the value chain */
+    normEffort:                     Effort
+    /** accumulated effort in the current process step or overall when already in the output basket */
+    accumulatedEffort:              Effort 
+    /** elapsed time in process step or when in the output basket the cycle time through the value chain*/
+    elapsedTime:                    TimeUnits 
 }
+
 /** process step */
 export interface I_ProcessStep {
     id:                             ProcessStepId
