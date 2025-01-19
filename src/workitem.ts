@@ -9,7 +9,7 @@ import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag, I_WorkItem
 import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
 import { Worker } from './worker.js'
-import { LonelyLobsterSystem } from './system.js'
+import { LonelyLobsterSystem, ToString } from './system.js'
 
 //----------------------------------------------------------------------
 //    definitions and helpers
@@ -154,7 +154,7 @@ export interface WorkItemFlowEventStats {
  * - end-product: is a work item that has reached the output basket i.e. it is finished 
  */
 //----------------------------------------------------------------------
-export class WorkItem {
+export class WorkItem implements ToString {
     public  id:                             WorkItemId
     public  tag:                            WorkItemTag
     public  log:                            LogEntryWorkItem[] = []
@@ -430,7 +430,9 @@ export class WorkItem {
     }
     
    /** batch mode only, console display */ 
-   public stringified = (): string => `\tt=${this.sys.clock.time} wi=${this.id} ps=${this.currentWorkItemBasketHolder.id} vc=${this.valueChain.id} et=${this.elapsedTimeInValueChain} ae=${this.accumulatedEffort(this.sys.clock.time, this.currentWorkItemBasketHolder)} ${this.finishedAtCurrentProcessStep() ? "done" : ""}\n`
+   public toString(): string {
+        return `Work item: t=${this.sys.clock.time} wi=${this.id} ps=${this.currentWorkItemBasketHolder.id} vc=${this.valueChain.id} et=${this.elapsedTimeInValueChain} ae=${this.accumulatedEffort(this.sys.clock.time, this.currentWorkItemBasketHolder)} ${this.finishedAtCurrentProcessStep() ? "done" : "in progress"}`
+   }
 }
 
 //-----------------------------------------------------------------------------

@@ -36,6 +36,11 @@ interface WiElapTimeValAdd {
     elapsedTime:    Timestamp
 }
 
+export interface ToString {
+    toString: () => string
+}
+
+
 //----------------------------------------------------------------------
 /**
  *    LONELY LOBSTER SYSTEM
@@ -122,11 +127,11 @@ export class LonelyLobsterSystem {
         this.valueChains.forEach(vc => vc.letWorkItemsFlow())
 
         // ##
-        console.log("System at end of doOneItertion(): show workitems:")
+/*         console.log("System at end of doOneItertion(): show workitems:")
         this.allWorkItems.map(wi => console.log(`\t${wi}`))
         console.log("System at end of doOneItertion(): show workitem moved log entries:")
         this.allWorkItems.map(wi => wi.log.filter(le => le.logEntryType == LogEntryType.workItemMoved).flatMap(le => console.log(`\t${(<LogEntryWorkItemMoved>le)}`)))
-    }    
+ */    }    
 //----------------------------------------------------------------------
 //    API mode - Initialization
 //----------------------------------------------------------------------
@@ -322,8 +327,8 @@ export class LonelyLobsterSystem {
         this.doIterations(iterReqs)
         const aux = this.i_systemState()
 //      console.log(aux.valueChains)  // ##
-        console.log("system.i_systemState(): wis in Alpha.One = ")
-        console.log(aux.valueChains[0].processSteps[0].workItems)
+        // console.log("system.i_systemState(): wis in Alpha.One = ")
+        // console.log(aux.valueChains[0].processSteps[0].workItems)
         return aux         
     }
 
@@ -346,18 +351,24 @@ export class LonelyLobsterSystem {
      * @param t timestamp 
      * @returns working capital 
      */
-    private workingCapitalAt = (t:Timestamp): Value => { 
-        return this
+    private workingCapitalAt = (t:Timestamp): Value => { // ## remove debug statements 
+        const wes =  this
             // give me all work items in the system: 
             .valueChains
                 .flatMap(vc => vc.processSteps
                     .flatMap(ps => ps.workItemBasket))
             .concat(this.outputBasket.workItemBasket)
             // then give me those that were still in a value chain i.e. unfinished work  
-            .filter(wi => wi.wasInValueChainAt(t))
+//          console.log(`system.workingCapitalAt(${t}): work items= ${wes.map(we => we + "\n")}`)
+
+            const wiVc = wes.filter(wi => wi.wasInValueChainAt(t))
             // for those calculate the effort 
-            .map(wi => wi.accumulatedEffort(t))
-            .reduce((a, b) => a + b, 0)
+            const wisVcAe = wiVc.map(wi => wi.accumulatedEffort(t))
+            console.log(`\tsystem.workingCapitalAt(${t}): [we: ae]= ${wiVc.map(wi => "[" + wi.id + ": " + wi.accumulatedEffort(t) + "]")}`)
+
+            const woc = wisVcAe.reduce((a, b) => a + b, 0)
+            console.log(`\tsystem.workingCapitalAt(${t}): work cap= ${woc}`)
+        return woc 
     }
 
     /**
@@ -501,7 +512,7 @@ export class LonelyLobsterSystem {
      * @returns the system statitiscs
      */
     public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
-        console.log(`System.systemStatistics(): about to calculate and return system stats at time= ${this.clock.time} ...`)
+        console.log(`\n-------- System.systemStatistics(): about to calculate and return system stats at time= ${this.clock.time} ...`)
         const interval:   TimeUnit = toTime - fromTime
         // collect a list of all work item lifecycle events in the system where the work items have proceeded to a new work item basket holder 
         // within the from-to-interval. Every work item lifecycle event in the list contains e.g. its cycle time in the process step it moved out.  

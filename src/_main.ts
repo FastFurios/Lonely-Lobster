@@ -250,7 +250,7 @@ function apiMode(): void {
             const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
             res.status(200).send(lonelyLobsterSystemLifecycle.system.systemStatistics( 
                                     interval <= 0 ? 0 // stats from the very beginning on
-                                                    : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
+                                                  : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
                                     lonelyLobsterSystemLifecycle.system.clock.time))
         } catch(exception) {
             next(applicationEventFrom("_main/statitsics", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))

@@ -9,7 +9,7 @@ import { LogEntry, LogEntryType } from './logging.js'
 import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
 import { WorkItem, WorkItemFlowEventStats } from './workitem.js'
 import { ValueChain } from './valuechain.js'
-import { LonelyLobsterSystem } from './system.js'
+import { LonelyLobsterSystem, ToString } from './system.js'
 
 //----------------------------------------------------------------------
 //    WIP LIMIT CHANGE LOG 
@@ -36,7 +36,7 @@ class LogEntryWipLimit extends LogEntry {
  *      abstract base class for process steps and output basket
  */
 // ------------------------------------------------------------
-export abstract class WorkItemBasketHolder {
+export abstract class WorkItemBasketHolder implements ToString {
     /** work items in the basket holder */
     public workItemBasket: WorkItem[] = []
 
@@ -100,9 +100,8 @@ export abstract class WorkItemBasketHolder {
             + strOfBskLen 
     }  
 
-    /** batch mode only */
     public toString(): string {
-        return this.workItemBasket.length == 0 ? "empty" : this.workItemBasket.map(wi => "\t\t" + wi.stringified()).reduce((a, b) => a + " " + b)
+        return `Work item basket holder: t=${this.sys.clock.time} wibh=${this.id} ${this.workItemBasket.length == 0 ? "empty" : this.workItemBasket.map(wi => `\t\t${wi}`).reduce((a, b) => a + " " + b)}`
     }
 }
 //----------------------------------------------------------------------
