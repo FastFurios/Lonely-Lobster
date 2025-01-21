@@ -519,7 +519,7 @@ export class LonelyLobsterSystem {
         const statEvents: WorkItemFlowEventStats[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
                                                               .concat(this.outputBasket.flowStats(fromTime, toTime))
         // calculate economics statistics for the overall system
-        const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.endProductMoreStatistics(fromTime, toTime)
+        const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.statsOfArrivedWorkitemsBetween(fromTime, toTime)
         const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
         const avgVarCost        = this.avgNormEffort(endProductMoreStatistics, fromTime, toTime) // cost incurred only when effort is put into a work item i.e. once it is a end product then the cost is its overall norm effort
         const avgFixStaffCost   = this.avgFixStaffCost(endProductMoreStatistics, fromTime, toTime) // cost is incurred by the fixed permanent number of workers

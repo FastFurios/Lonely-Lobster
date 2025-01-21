@@ -3,7 +3,6 @@
  *    WORKITEM BASKET HOLDER
  */
 //----------------------------------------------------------------------
-// last code cleaning: 05.01.2025
 
 import { LogEntry, LogEntryType } from './logging.js'
 import { Timestamp, Effort, I_EndProductStatistics, I_EndProductMoreStatistics, WipLimit } from './io_api_definitions.js'
@@ -32,8 +31,8 @@ class LogEntryWipLimit extends LogEntry {
 
 // ------------------------------------------------------------
 /**
- *      WORKITEM BASKET HOLDER
- *      abstract base class for process steps and output basket
+ *      WORKITEM BASKET HOLDER -    abstract base class for 
+ *                                  process steps and output basket
  */
 // ------------------------------------------------------------
 export abstract class WorkItemBasketHolder implements ToString {
@@ -43,10 +42,10 @@ export abstract class WorkItemBasketHolder implements ToString {
     constructor(public sys:         LonelyLobsterSystem,
                 public id:          string,
                 /** for batch mode console display only */
-                public barLen:      number = 20) {}
+                public barLen:      number = 20) { }  // ## delete when batch mode is modified to frontend workload file loading  
 
     /**
-     * add work item to the basket of this work item basket holder
+     * add work item to the basket
      * @param wi the work item to be added
      */            
     public add(wi: WorkItem): void {
@@ -86,10 +85,7 @@ export abstract class WorkItemBasketHolder implements ToString {
         return this.workItemBasket.length
     }
     
-    /** batch mode only */
-    public abstract stringified(): string
-
-    /** batch mode only */
+    /** batch mode only ## */
     public stringifiedBar = (): string => { 
         const strOfBskLen = this.workItemBasket.length.toString()
         return this.workItemBasket
@@ -124,7 +120,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
                 /** work-in-progress limit setting */
                        wipLimit:      WipLimit | undefined,
                 /** batch mode only */
-                       barLen:        number) {
+                       barLen:        number) {  // ##
         super(sys, id, barLen)
         this.wipLimitLog.push(new LogEntryWipLimit(sys, valueChain, this, wipLimit ? wipLimit : 0))
     }
@@ -143,7 +139,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
 
     /**
      * remove a work item from the process step when it moves to the next (or to the output basket);
-     * update the flow rate 
+     * increment the flow rate 
      * @param workItem the given work item
      */
     public removeFromBasket(workItem: WorkItem): void { 
@@ -163,7 +159,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
     }
 
     /**
-     * moves finsihed work items from this process step to the next work item basket holder
+     * moves finished work items from this process step to the next work item basket holder
      * @param toWibh work item basket holder the work items are to move to 
      */
     public letWorkItemsFlowTo(toWibh: WorkItemBasketHolder): void { 
@@ -186,10 +182,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
         this.wipLimitLog.push(new LogEntryWipLimit(this.sys, this.valueChain, this, wipLimit))
     } 
 
-    /** batch mode only */
-    public stringified = () => `\tt=${this.sys.clock.time} basket of ps=${this.id} ne=${this.normEffort}:\n` + this.toString()
-
-    /** batch mode only */
+    /** batch mode only ## */
     public toString = () => `\t${this.valueChain.id}.${this.id}` 
 }
 
@@ -197,9 +190,9 @@ export class ProcessStep extends WorkItemBasketHolder  {
 
 //----------------------------------------------------------------------
 /**
- *    OUTPUT BASKET  
- *    overall output basket (just one unique instance for the system): here the total output of end products 
- *    of all value chains is collected over time
+ *    OUTPUT BASKET     overall output basket (just one unique instance 
+ *                      for the system): here the total output of end products 
+ *                      of all value chains is collected over time
  */
 //----------------------------------------------------------------------
 export class OutputBasket extends WorkItemBasketHolder {
@@ -213,7 +206,7 @@ export class OutputBasket extends WorkItemBasketHolder {
      * @param toTime end of interval (including)
      * @returns aggregated end-product based statistics
      */
-    private statsOfArrivedWorkitemsBetween(fromTime: Timestamp, toTime: Timestamp): I_EndProductStatistics {
+    public statsOfArrivedWorkitemsBetween(fromTime: Timestamp, toTime: Timestamp): I_EndProductMoreStatistics {
         /** end-product statistics */
         const invWisStats: I_EndProductStatistics[] = []
         /** work items that reached the output basket within the time interval */
@@ -224,7 +217,8 @@ export class OutputBasket extends WorkItemBasketHolder {
             normEffort:         0,
             elapsedTime:        0,
             netValueAdd:        0,
-            discountedValueAdd: 0
+            discountedValueAdd: 0,
+            avgElapsedTime:     0
         }
         if (wisArrived.length < 1) return emptyWorkItemInInventoryStatistics
 
@@ -254,38 +248,8 @@ export class OutputBasket extends WorkItemBasketHolder {
                 discountedValueAdd: iws1.discountedValueAdd + iws2.discountedValueAdd }}, 
             emptyWorkItemInInventoryStatistics)
 
-        return wiBasedStats
+        return { ...wiBasedStats,
+                 avgElapsedTime: wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1) }  
+
     }
-    
-    /**
-     * Caclculate end-product statistics incl. average elapsed time;
-     * Author's annotations: why not integrating the average elapsed time into statsOfArrivedWorkitemsBetween() ##refactor##
-     * @param fromTime start of interval (including)
-     * @param toTime end of interval (including)
-     * @returns aggregated end-product based statistics incl.average elapsed times
-     */
-    public endProductMoreStatistics(fromTime: Timestamp, toTime: Timestamp): I_EndProductMoreStatistics {
-        // --- calculating figures for end products in the output basket ---
-        const wiBasedStats = this.statsOfArrivedWorkitemsBetween(fromTime, toTime)
-    
-        return {
-            ...wiBasedStats,
-            avgElapsedTime: wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1),  
-        }
-    }
-
-    /**
-     * Clean output basket from work items up to a point in time;  
-     * Author's annotation: not used yet but maybe in the future when output basket needs to be shrunk regularly for performance reasons  
-     * @param t 
-     */
-    /* public purgeWorkitemsUpto(t: Timestamp): void {
-        this.workItemBasket = this.workItemBasket.filter(wi => wi.log.length < 1 ? true : wi.log[wi.log.length - 1].timestamp > t)
-    } */
-
-    /** batch mode only */
-    public stringified  = () => `t=${this.sys.clock.time} ${this.id}:\n` + this.toString()
-
-    public toString = () => `\t${this.id}` 
-
 }
