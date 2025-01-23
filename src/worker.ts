@@ -3,7 +3,6 @@
  *   WORKERS
  */
 //----------------------------------------------------------------------
-// last code cleaning: 05.01.2025
 
 import { LogEntry, LogEntryType } from './logging.js'
 import { topElemAfterSort, randomlyPickedByWeigths, arrayWithModifiedWeightOfAnElement, WeightedElement, SortVectorSequence, arrayWithNormalizedWeights } from "./helpers.js"
@@ -43,7 +42,7 @@ interface SelectionStrategy {
  */
 function selectedNextWorkItemBySortVectorSequence(wis: WorkItem[], svs: SortVectorSequence): WorkItem {
     const extInfoTuples: WiExtInfoTuple[] = wis.map(wi => wi.extendedInfos!.workOrderExtendedInfos) 
-    const selectedWi: WiExtInfoTuple = topElemAfterSort(extInfoTuples, svs)
+    const selectedWi:    WiExtInfoTuple   = topElemAfterSort(extInfoTuples, svs)
     return selectedWi[WiExtInfoElem.workItem]  // return workitem object reference
 } 
 
@@ -70,6 +69,7 @@ class LogEntryWorkerWorked extends LogEntryWorker {
                 worker:     Worker) {
         super(timestamp, LogEntryType.workerWorked, worker)
     }
+    
     public toString = (): string => `${super.toString()}, wo=${this.worker.id}` 
 } 
 
@@ -79,9 +79,9 @@ class LogEntryWorkerWorked extends LogEntryWorker {
 class LogEntryWorkerLearnedAndAdapted extends LogEntryWorker {
     constructor (       timestamp:                      Timestamp,
                         worker:                         Worker,
-                 public measurementOfEndingPeriod:      Value,
+                 public measurementOfEndingPeriod:      Value,                  
                  public adjustedSelectionStrategy:      SelectionStrategy,
-                 public chosenSelectionStrategy:        SelectionStrategy,
+                 public chosenSelectionStrategy:        SelectionStrategy,   // chosen strategy for the next period
                  public weigthedSelectionStrategies:    WeightedSelectionStrategy[] ) {
         super(timestamp, LogEntryType.workerLearnedAndAdapted, worker)
     }
@@ -203,10 +203,11 @@ type WorkerStats = {
 /** specific type in the worker context derived from generic type definitions of the optimize module */
 export type WeightedSelectionStrategy = WeightedElement<SelectionStrategy>
 
-// --- WORKER class --------------------------------------
+// -------------------------------------------------------
 /**
- * WORKER 
+ *      WORKER 
  */
+// -------------------------------------------------------
 export class Worker {
     /** central storage of the only once calculated system statistics on basis of the latest learn and adapt observation period */
     static sysStats:    I_SystemStatistics
@@ -232,10 +233,14 @@ export class Worker {
     }
 
     /** @returns list of worked log entries */
-    public get logWorkerWorked(): LogEntryWorkerWorked[] { return this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerWorked) }
+    public get logWorkerWorked(): LogEntryWorkerWorked[] {
+        return this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerWorked)
+    }
 
     /** @returns list of learninf & adaption log entries */
-    public get logWorkerLearnedAndAdapted(): LogEntryWorkerLearnedAndAdapted[] { return <LogEntryWorkerLearnedAndAdapted[]>this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted) }
+    public get logWorkerLearnedAndAdapted(): LogEntryWorkerLearnedAndAdapted[] { 
+        return <LogEntryWorkerLearnedAndAdapted[]>this.logWorker.log.filter(le => le.logEntryType == LogEntryType.workerLearnedAndAdapted) 
+    }
 
     /** @returns work items that are currently at hand for the worker */
     private  workItemsAtHand(asSet: AssignmentSet): WorkItem[] {
@@ -273,20 +278,20 @@ export class Worker {
         /** find the work items at hand that not yet finished at the current process step and 
          * which no other worker has already worked on at the current time */
         const workableWorkItemsAtHand: WorkItem[] = this.workItemsAtHand(asSet)
-                                                    .filter(wi => !wi.finishedAtCurrentProcessStep())               // not yet in OutputBasket
-                                                    .filter(wi => !wi.hasBeenWorkedOnAtTimestamp(this.sys.clock.time))     // no one worked on it at current time
+                                                        .filter(wi => !wi.finishedAtCurrentProcessStep())                     // not yet in OutputBasket
+                                                        .filter(wi => !wi.hasBeenWorkedOnAtTimestamp(this.sys.clock.time))    // no one worked on it at current time
         if (workableWorkItemsAtHand.length == 0) return // no workable workitems at hand
 
-        if(this.sys.debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
-        if(this.sys.debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos?.stringifiedDataLine()}`)) // ***
+        // if(this.sys.debugShowOptions.workerChoices) console.log("Worker__" + WorkItemExtendedInfos.stringifiedHeader())
+        // if(this.sys.debugShowOptions.workerChoices) workableWorkItemsAtHand.forEach(wi => console.log(`${this.id.padEnd(6, ' ')}: ${wi.extendedInfos?.stringifiedDataLine()}`)) // ***
 
         /** selected work item to work on */        
         const wi: WorkItem = selectedNextWorkItemBySortVectorSequence(workableWorkItemsAtHand, this.currentSelectionStrategy.svs)
 
-        if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
+        // if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
 
-        wi.logWorkedEvent(this)  // record in the work item log that the worker worked the item
-        this.logEventWorked() // record in the worker'slog that he did the work
+        wi.logWorkedEvent(this)     // record in the work item log that the worker worked the item
+        this.logEventWorked()       // record in the worker's log that he did the work
     }
 
     /**

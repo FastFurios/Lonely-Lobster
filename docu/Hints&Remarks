@@ -134,3 +134,15 @@ https://jsdoc.app/#block-tags
 
 $ npm run build-docs
 $ npx http-server docs &  =>  Browser: localhost:8080
+
+
+# acronyms
+sys         system
+vc          value chain
+ps          process step
+wi          work item         
+le          log entry
+svs         sort vector sequence
+ivc         a worker's individual value contribution
+roce        return on capital engaged
+sest        work item selection sstrategy
