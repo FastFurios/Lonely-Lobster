@@ -364,10 +364,10 @@ export class LonelyLobsterSystem {
             const wiVc = wes.filter(wi => wi.wasInValueChainAt(t))
             // for those calculate the effort 
             const wisVcAe = wiVc.map(wi => wi.accumulatedEffort(t))
-            console.log(`\tsystem.workingCapitalAt(${t}): [we: ae]= ${wiVc.map(wi => "[" + wi.id + ": " + wi.accumulatedEffort(t) + "]")}`)
+//          console.log(`\tsystem.workingCapitalAt(${t}): [we: ae]= ${wiVc.map(wi => "[" + wi.id + ": " + wi.accumulatedEffort(t) + "]")}`)
 
             const woc = wisVcAe.reduce((a, b) => a + b, 0)
-            console.log(`\tsystem.workingCapitalAt(${t}): work cap= ${woc}`)
+//          console.log(`\tsystem.workingCapitalAt(${t}): work cap= ${woc}`)
         return woc 
     }
 
@@ -455,55 +455,70 @@ export class LonelyLobsterSystem {
         }
     }
 
+    // /**
+    //  * Calculate the average working capital in the time interval 
+    //  * @param fromTime interval's first timestamp 
+    //  * @param toTime interval's last timestamp
+    //  * @returns average working capital
+    //  */
+    // private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
+    //     const interval: TimeUnit = toTime - fromTime
+    //     let accumulatedWorkingCapital = 0
+    //     for (let t = fromTime + 1; t <= toTime; t++) {
+    //         accumulatedWorkingCapital += this.workingCapitalAt(t)
+    //     }
+    //     return accumulatedWorkingCapital / interval
+    // }
+
     /**
-     * Calculate the average working capital in the time interval 
+     * Calculate the integral of engaged working capital over the time interval 
      * @param fromTime interval's first timestamp 
      * @param toTime interval's last timestamp
-     * @returns average working capital
+     * @returns integral of working capital
      */
-    private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
+    private workingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
         const interval: TimeUnit = toTime - fromTime
         let accumulatedWorkingCapital = 0
         for (let t = fromTime + 1; t <= toTime; t++) {
             accumulatedWorkingCapital += this.workingCapitalAt(t)
         }
-        return accumulatedWorkingCapital / interval
+        return accumulatedWorkingCapital
     }
 
-    /**
-     * Calculates average discounted value add
-     * @param endProductMoreStatistics work items in the output basket with their work item statistics
-     * @param fromTime interval's first timestamp 
-     * @param toTime interval's last timestamp
-     * @returns average discounted value add
-     */
-    private avgDiscountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime
-        return endProductMoreStatistics.discountedValueAdd / interval
-    }
+    // /**
+    //  * Calculates average discounted value add
+    //  * @param endProductMoreStatistics work items in the output basket with their work item statistics
+    //  * @param fromTime interval's first timestamp 
+    //  * @param toTime interval's last timestamp
+    //  * @returns average discounted value add
+    //  */
+    // private discountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+    //     const interval: TimeUnit = toTime - fromTime
+    //     return endProductMoreStatistics.discountedValueAdd / interval
+    // }
 
-    /**
-     * Calcutates the average norm effort
-     * @param endProductMoreStatistics 
-     * @param fromTime interval's first timestamp 
-     * @param toTime interval's last timestamp
-     * @returns average norm effort
-     */
-    private avgNormEffort(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime
-        return endProductMoreStatistics.normEffort / interval
-    }
+    // /**
+    //  * Calcutates the average norm effort
+    //  * @param endProductMoreStatistics 
+    //  * @param fromTime interval's first timestamp 
+    //  * @param toTime interval's last timestamp
+    //  * @returns average norm effort
+    //  */
+    // private avgNormEffort(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
+    //     const interval: TimeUnit = toTime - fromTime
+    //     return endProductMoreStatistics.normEffort / interval
+    // }
 
-    /**
-     * Calculates the average cost of a fixed employed staff
-     * @param endProductMoreStatistics not used
-     * @param fromTime not used as staffing is time invariant
-     * @param toTime not used as staffing is time invariant
-     * @returns cost of a fixed staff
-     */
-    private avgFixStaffCost(endProductMoreStatistics?: I_EndProductMoreStatistics, fromTime?: Timestamp, toTime?: Timestamp): Value {
-       return this.workers.length
-    }
+    // /**
+    //  * Calculates the average cost of a fixed employed staff
+    //  * @param endProductMoreStatistics not used
+    //  * @param fromTime not used as staffing is time invariant
+    //  * @param toTime not used as staffing is time invariant
+    //  * @returns cost of a fixed staff
+    //  */
+    // private avgFixStaffCost(endProductMoreStatistics?: I_EndProductMoreStatistics, fromTime?: Timestamp, toTime?: Timestamp): Value {
+    //    return this.workers.length
+    // }
 
     /**
      * Calculated the system statistics
@@ -517,16 +532,16 @@ export class LonelyLobsterSystem {
         // collect a list of all work item lifecycle events in the system where the work items have proceeded to a new work item basket holder 
         // within the from-to-interval. Every work item lifecycle event in the list contains e.g. its cycle time in the process step it moved out.  
         const statEvents: WorkItemFlowEventStats[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
-                                                              .concat(this.outputBasket.flowStats(fromTime, toTime))
+                                                                     .concat(this.outputBasket.flowStats(fromTime, toTime))
         // calculate economics statistics for the overall system
         const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.statsOfArrivedWorkitemsBetween(fromTime, toTime)
-        const avgDiscValueAdd   = this.avgDiscountedValueAdd(endProductMoreStatistics, fromTime, toTime)
-        const avgVarCost        = this.avgNormEffort(endProductMoreStatistics, fromTime, toTime) // cost incurred only when effort is put into a work item i.e. once it is a end product then the cost is its overall norm effort
-        const avgFixStaffCost   = this.avgFixStaffCost(endProductMoreStatistics, fromTime, toTime) // cost is incurred by the fixed permanent number of workers
+        const fixStaffCost      = this.workers.length * interval                            // cost is incurred by the fixed permanent number of workers
+        const workingCapital    = this.workingCapitalBetween(fromTime, toTime) 
+        const roceVar           =  (endProductMoreStatistics.discountedValueAdd - endProductMoreStatistics.normEffort) / workingCapital
+        const roceFix           =  (endProductMoreStatistics.discountedValueAdd - fixStaffCost) / workingCapital
 
-        const avgWorkingCapital = this.avgWorkingCapitalBetween(fromTime, toTime)
-        const roceVar           =  (avgDiscValueAdd - avgVarCost)      / avgWorkingCapital
-        const roceFix           =  (avgDiscValueAdd - avgFixStaffCost) / avgWorkingCapital
+
+        console.log(`system.systemStatistics(from=${fromTime}, to=${toTime}): discValueAdd=${endProductMoreStatistics.discountedValueAdd}, fixStaffCost=${fixStaffCost}, effort=${endProductMoreStatistics.normEffort}, workCap=${workingCapital}, roce-var=${roceVar}, roce-fix=${roceFix}`)
 
         return {
             timestamp:          this.clock.time,
@@ -535,7 +550,7 @@ export class LonelyLobsterSystem {
                 flow:           this.obStatistics(statEvents, interval), // flow statistics i.e. cycle times and throughputs of the overall system output i.e. the end products
                 economics:   {
                     ...endProductMoreStatistics,
-                    avgWorkingCapital: avgWorkingCapital,
+                    avgWorkingCapital: workingCapital / interval,
                     roceVar:           roceVar,
                     roceFix:           roceFix           
                 }

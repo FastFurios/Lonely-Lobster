@@ -249,8 +249,8 @@ function apiMode(): void {
             // return system statistics to frontend
             const interval = req.query.interval ? parseInt(req.query.interval.toString()) : 10
             res.status(200).send(lonelyLobsterSystemLifecycle.system.systemStatistics( 
-                                    interval <= 0 ? 0 // stats from the very beginning on
-                                                  : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 0 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
+                                    interval <= 0 ? 1 // stats from the very beginning on
+                                                  : lonelyLobsterSystemLifecycle.system.clock.time <= interval ? 1 : lonelyLobsterSystemLifecycle.system.clock.time - interval, // stats of the trailing time window of length "interval"
                                     lonelyLobsterSystemLifecycle.system.clock.time))
         } catch(exception) {
             next(applicationEventFrom("_main/statitsics", mask(req.sessionID), EventTypeId.configCorrupt, EventSeverity.critical, (<Error>exception).message))
