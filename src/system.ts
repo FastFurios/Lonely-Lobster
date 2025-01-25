@@ -12,13 +12,12 @@ import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
 import { Worker, AssignmentSet, LearnAndAdaptParms } from './worker.js'
 import { DebugShowOptions } from './io_config.js'
-import { Timestamp, TimeUnit, Value, I_VcWorkOrders,
+import { Timestamp, TimeUnit, Value, Effort, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
          I_VcPsWipLimit, I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
-import { LogEntryType } from './logging.js'
 
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
@@ -28,7 +27,7 @@ const debugShowOptionsDefaults: DebugShowOptions = {
 }
 
 /** work item with the value add of the work item's value chain and the elapsed time in the value chain */
-interface WiElapTimeValAdd {
+interface WiElapTimeAndValAdd {
     wi:             WorkItem
     /** value add of the work item's value chain */
     valueAdd:       Value
@@ -337,7 +336,7 @@ export class LonelyLobsterSystem {
      */
     private optimizeWipLimits() {
         this.searchState.position = this.searchStatePositionFromWipLimits()
-        const currPerf = this.systemStatistics(this.clock.time - this.searchParms.measurementPeriod < 1 ? 1 : this.clock.time - this.searchParms.measurementPeriod, this.clock.time).outputBasket.economics.roceFix
+        const currPerf = this.systemStatistics(this.clock.time < this.searchParms.measurementPeriod ? this.clock.time : this.searchParms.measurementPeriod).outputBasket.economics.roceFix
         this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, this.searchParms, this.clock.time, this.searchState)
         this.setWipLimitsFromSearchStatePosition()
     }
@@ -346,45 +345,49 @@ export class LonelyLobsterSystem {
 //----------------------------------------------------------------------
 
     /**
+     * Calculate the accumulated effort that has gone into all work items having been in the system until the given timestamp 
+     * regardless if still in a value chain or already in the output basket
+     * @param until timestamp (inclusive)   
+     * @returns accumulated effort
+     */
+    public accumulatedEffortMade(until: Timestamp): Effort {
+        return this.valueChains.map(vc => vc.accumulatedEffortMade(until)).reduce((ae1, ae2) => ae1 + ae2)
+             + this.outputBasket.accumulatedEffortMade(until)
+    } 
+
+    /**
      * Calculate the working capital at timestamp, i.e. the sum of the accumulated effort 
      * of all work items in the value chains at the timestamp 
      * @param t timestamp 
      * @returns working capital 
      */
     private workingCapitalAt = (t:Timestamp): Value => { // ## remove debug statements 
-        const wes =  this
+        return this
             // give me all work items in the system: 
             .valueChains
                 .flatMap(vc => vc.processSteps
                     .flatMap(ps => ps.workItemBasket))
             .concat(this.outputBasket.workItemBasket)
             // then give me those that were still in a value chain i.e. unfinished work  
-//          console.log(`system.workingCapitalAt(${t}): work items= ${wes.map(we => we + "\n")}`)
-
-            const wiVc = wes.filter(wi => wi.wasInValueChainAt(t))
+            .filter(wi => wi.wasInValueChainAt(t))
             // for those calculate the effort 
-            const wisVcAe = wiVc.map(wi => wi.accumulatedEffort(t))
-//          console.log(`\tsystem.workingCapitalAt(${t}): [we: ae]= ${wiVc.map(wi => "[" + wi.id + ": " + wi.accumulatedEffort(t) + "]")}`)
-
-            const woc = wisVcAe.reduce((a, b) => a + b, 0)
-//          console.log(`\tsystem.workingCapitalAt(${t}): work cap= ${woc}`)
-        return woc 
+            .map(wi => wi.accumulatedEffort(t)).reduce((a, b) => a + b, 0)
     }
 
     /**
-     * Calculates the statistics for a work item over the last intervall time units  
-     * @param wiElapTimeValAdd work item with its value chain added value and the elapsed time   
-     * @param interval interval into the past from now 
+     * Calculates the statistics for work items over the last interval time units  
+     * @param wisElapTimeAndValAdd work items with its value chain added value and the elapsed time   
+     * @param interval interval length into the past from now, e.g. if time=15 and interval=7 then it is the interval [9-15] 
      * @returns work item statistics
      */
-    private workItemStatistics(wiElapTimeValAdd: WiElapTimeValAdd[], interval: TimeUnit): I_WorkItemStatistics {
-        const elapsedTimes: TimeUnit[] = wiElapTimeValAdd.flatMap(el => el.elapsedTime)
+    private workItemsStatistics(wisElapTimeAndValAdd: WiElapTimeAndValAdd[], interval: TimeUnit): I_WorkItemStatistics {
+        const elapsedTimes: TimeUnit[] = wisElapTimeAndValAdd.flatMap(el => el.elapsedTime)
         const hasCalculatedStats = elapsedTimes.length > 0
         return {
             hasCalculatedStats: hasCalculatedStats,
             throughput: {
-                itemsPerTimeUnit: wiElapTimeValAdd.length / interval,
-                valuePerTimeUnit: wiElapTimeValAdd.map(el => el.valueAdd).reduce((va1, va2) => va1 + va2, 0) / interval
+                itemsPerTimeUnit: wisElapTimeAndValAdd.length / interval,
+                valuePerTimeUnit: wisElapTimeAndValAdd.map(el => el.valueAdd).reduce((va1, va2) => va1 + va2, 0) / interval
             },
             cycleTime: {
                 min: hasCalculatedStats ? elapsedTimes.reduce((a, b) => a < b ? a : b)               : undefined,
@@ -396,30 +399,30 @@ export class LonelyLobsterSystem {
 
     /**
      * calculates the statistics of the work items in the output basket 
-     * @param ses work item events of entering a work item basket holder (process step or output basket)
-     * @param interval interval into the past from now
+     * @param sesFtt work item events of entering a work item basket holder (process step or output basket)
+     * @param interval interval length into the past from now, e.g. if time=15 and interval=7 then it is the interval [9-15] 
      * @returns output basket statistics
      */
-    private obStatistics(ses: WorkItemFlowEventStats[], interval: TimeUnit): I_WorkItemStatistics {
-        const sesOfOb = ses.filter(se => se.wibhEntered == this.outputBasket)
-        const wisElapTimeValAdd: WiElapTimeValAdd[] = sesOfOb.map(se => { 
+    private obStatistics(sesFtt: WorkItemFlowEventStats[], interval: TimeUnit): I_WorkItemStatistics { // "sesFtt" = Statistic EventS From-To Time
+        const sesOfOb = sesFtt.filter(se => se.wibhEntered == this.outputBasket)
+        const wisElapTimeValAdd: WiElapTimeAndValAdd[] = sesOfOb.map(se => { 
             return { 
                 wi:          se.wi,
                 valueAdd:    se.vc.totalValueAdd,
                 elapsedTime: se.finishedTime - se.injectionIntoValueChainTime 
             }
         })
-        return this.workItemStatistics(wisElapTimeValAdd, interval)
+        return this.workItemsStatistics(wisElapTimeValAdd, interval)
     }
 
     /**
      * calculates the statistics of the work items in a process step 
-     * @param ses work item events of entering a work item basket holder (process step or output basket)
-     * @param interval interval into the past from now
+     * @param sesFtt work item events of entering a work item basket holder (process step or output basket)
+     * @param interval interval length into the past from now, e.g. if time=15 and interval=7 then it is the interval [9-15] 
      * @returns process step statistics
      */
-    private psStatistics(ses: WorkItemFlowEventStats[], vc: ValueChain, ps: ProcessStep, interval: TimeUnit): I_ProcessStepStatistics {
-        const wiElapTimeValAddOfVcPs: WiElapTimeValAdd[] = ses.filter(se => se.vc == vc && se.psExited == ps)
+    private psStatistics(sesFtt: WorkItemFlowEventStats[], vc: ValueChain, ps: ProcessStep, interval: TimeUnit): I_ProcessStepStatistics { // "sesFtt" = Statistic EventS From-To Time
+        const wiElapTimeValAddOfVcPs: WiElapTimeAndValAdd[] = sesFtt.filter(se => se.vc == vc && se.psExited == ps)
                                                 .map(se => { return {
                                                     wi:          se.wi,
                                                     valueAdd:    se.vc.totalValueAdd,
@@ -427,19 +430,19 @@ export class LonelyLobsterSystem {
                                                 }})
         return {
             id: ps.id,
-            stats: this.workItemStatistics(wiElapTimeValAddOfVcPs, interval)
+            stats: this.workItemsStatistics(wiElapTimeValAddOfVcPs, interval)
         }
     }
 
     /**
      * calculates the statistics of the work items in a value chain 
-     * @param ses work item events of entering a work item basket holder (process step or output basket)
-     * @param interval interval into the past from now
+     * @param sesFtt work item events of entering a work item basket holder (process step or output basket)
+     * @param interval interval length into the past from now, e.g. if time=15 and interval=7 then it is the interval [9-15] 
      * @returns value chain statistics
      */
-    private vcStatistics(ses: WorkItemFlowEventStats[], vc: ValueChain, interval: TimeUnit): I_ValueChainStatistics {
-        const sesOfVc = ses.filter(se => se.vc == vc && se.wibhEntered == this.outputBasket) // select only work item lifecycle events of the given value chain when the work item moved to the ouput basket
-        const wiElapTimeValAddOfVc: WiElapTimeValAdd[] = sesOfVc.map(se => { // calculate the elapsed time for each selected work item lifecycle event 
+    private vcStatistics(sesFtt: WorkItemFlowEventStats[], vc: ValueChain, interval: TimeUnit): I_ValueChainStatistics {  // "sesFtt" = Statistic EventS From-To Time
+        const sesOfVc = sesFtt.filter(se => se.vc == vc && se.wibhEntered == this.outputBasket) // select only work item lifecycle events of the given value chain when the work item moved to the ouput basket
+        const wiElapTimeValAddOfVc: WiElapTimeAndValAdd[] = sesOfVc.map(se => { // calculate the elapsed time for each selected work item lifecycle event 
             return {
                 wi:          se.wi,
                 valueAdd:    se.vc.totalValueAdd,
@@ -449,105 +452,54 @@ export class LonelyLobsterSystem {
         return {
             id: vc.id,
             stats: {
-                vc:     this.workItemStatistics(wiElapTimeValAddOfVc, interval),
-                pss:    vc.processSteps.map(ps => this.psStatistics(ses, vc, ps, interval))
+                vc:     this.workItemsStatistics(wiElapTimeValAddOfVc, interval),
+                pss:    vc.processSteps.map(ps => this.psStatistics(sesFtt, vc, ps, interval))
             }
         }
     }
 
-    // /**
-    //  * Calculate the average working capital in the time interval 
-    //  * @param fromTime interval's first timestamp 
-    //  * @param toTime interval's last timestamp
-    //  * @returns average working capital
-    //  */
-    // private avgWorkingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
-    //     const interval: TimeUnit = toTime - fromTime
-    //     let accumulatedWorkingCapital = 0
-    //     for (let t = fromTime + 1; t <= toTime; t++) {
-    //         accumulatedWorkingCapital += this.workingCapitalAt(t)
-    //     }
-    //     return accumulatedWorkingCapital / interval
-    // }
-
     /**
      * Calculate the integral of engaged working capital over the time interval 
-     * @param fromTime interval's first timestamp 
-     * @param toTime interval's last timestamp
+     * @param fromTime interval's first timestamp (inclusive)
+     * @param toTime interval's last timestamp (inclusive)
      * @returns integral of working capital
      */
     private workingCapitalBetween(fromTime: Timestamp, toTime: Timestamp): Value {
-        const interval: TimeUnit = toTime - fromTime
         let accumulatedWorkingCapital = 0
-        for (let t = fromTime + 1; t <= toTime; t++) {
+        for (let t = fromTime; t <= toTime; t++) {
             accumulatedWorkingCapital += this.workingCapitalAt(t)
         }
         return accumulatedWorkingCapital
     }
 
-    // /**
-    //  * Calculates average discounted value add
-    //  * @param endProductMoreStatistics work items in the output basket with their work item statistics
-    //  * @param fromTime interval's first timestamp 
-    //  * @param toTime interval's last timestamp
-    //  * @returns average discounted value add
-    //  */
-    // private discountedValueAdd(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-    //     const interval: TimeUnit = toTime - fromTime
-    //     return endProductMoreStatistics.discountedValueAdd / interval
-    // }
-
-    // /**
-    //  * Calcutates the average norm effort
-    //  * @param endProductMoreStatistics 
-    //  * @param fromTime interval's first timestamp 
-    //  * @param toTime interval's last timestamp
-    //  * @returns average norm effort
-    //  */
-    // private avgNormEffort(endProductMoreStatistics: I_EndProductMoreStatistics, fromTime: Timestamp, toTime: Timestamp): Value {
-    //     const interval: TimeUnit = toTime - fromTime
-    //     return endProductMoreStatistics.normEffort / interval
-    // }
-
-    // /**
-    //  * Calculates the average cost of a fixed employed staff
-    //  * @param endProductMoreStatistics not used
-    //  * @param fromTime not used as staffing is time invariant
-    //  * @param toTime not used as staffing is time invariant
-    //  * @returns cost of a fixed staff
-    //  */
-    // private avgFixStaffCost(endProductMoreStatistics?: I_EndProductMoreStatistics, fromTime?: Timestamp, toTime?: Timestamp): Value {
-    //    return this.workers.length
-    // }
-
     /**
      * Calculated the system statistics
-     * @param fromTime interval's first timestamp 
-     * @param toTime interval's last timestamp
+     * @param interval interval length into the past from now, e.g. if time=15 and interval=7 then it is the interval [9-15] 
      * @returns the system statitiscs
      */
-    public systemStatistics(fromTime: Timestamp, toTime: Timestamp): I_SystemStatistics {
+    public systemStatistics(interval: TimeUnit): I_SystemStatistics {
+        const toTime   = this.clock.time
+        const fromTime = toTime - interval + 1  
         console.log(`\n-------- System.systemStatistics(): about to calculate and return system stats at time= ${this.clock.time} ...`)
-        const interval:   TimeUnit = toTime - fromTime
         // collect a list of all work item lifecycle events in the system where the work items have proceeded to a new work item basket holder 
         // within the from-to-interval. Every work item lifecycle event in the list contains e.g. its cycle time in the process step it moved out.  
-        const statEvents: WorkItemFlowEventStats[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
-                                                                     .concat(this.outputBasket.flowStats(fromTime, toTime))
+        const statEventsFromToTime: WorkItemFlowEventStats[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
+                                                                   .concat(this.outputBasket.flowStats(fromTime, toTime))
         // calculate economics statistics for the overall system
         const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.statsOfArrivedWorkitemsBetween(fromTime, toTime)
         const fixStaffCost      = this.workers.length * interval                            // cost is incurred by the fixed permanent number of workers
         const workingCapital    = this.workingCapitalBetween(fromTime, toTime) 
-        const roceVar           =  (endProductMoreStatistics.discountedValueAdd - endProductMoreStatistics.normEffort) / workingCapital
+        const roceVar           =  (endProductMoreStatistics.discountedValueAdd - this.accumulatedEffortMade(toTime)) / workingCapital
         const roceFix           =  (endProductMoreStatistics.discountedValueAdd - fixStaffCost) / workingCapital
 
-
-        console.log(`system.systemStatistics(from=${fromTime}, to=${toTime}): discValueAdd=${endProductMoreStatistics.discountedValueAdd}, fixStaffCost=${fixStaffCost}, effort=${endProductMoreStatistics.normEffort}, workCap=${workingCapital}, roce-var=${roceVar}, roce-fix=${roceFix}`)
+        // ## //    
+        console.log(`system.systemStatistics(from=${fromTime}, to=${toTime}): discValueAdd=${endProductMoreStatistics.discountedValueAdd}, fixStaffCost=${fixStaffCost}, effort=${this.accumulatedEffortMade(toTime)}, workCap=${workingCapital}, roce-var=${roceVar}, roce-fix=${roceFix}`)
 
         return {
             timestamp:          this.clock.time,
-            valueChains:        this.valueChains.map(vc => this.vcStatistics(statEvents, vc, interval)), // flow statistics i.e. cycle times and throughputs of value chains and process steps
+            valueChains:        this.valueChains.map(vc => this.vcStatistics(statEventsFromToTime, vc, interval)), // flow statistics i.e. cycle times and throughputs of value chains and process steps
             outputBasket: {
-                flow:           this.obStatistics(statEvents, interval), // flow statistics i.e. cycle times and throughputs of the overall system output i.e. the end products
+                flow:           this.obStatistics(statEventsFromToTime, interval), // flow statistics i.e. cycle times and throughputs of the overall system output i.e. the end products
                 economics:   {
                     ...endProductMoreStatistics,
                     avgWorkingCapital: workingCapital / interval,
@@ -586,7 +538,7 @@ export class LonelyLobsterSystem {
 //----------------------------------------------------------------------
 
     /**
-     * CReates a optimization position from wip limits
+     * Creates a optimization position from wip limits
      * @returns position
      */
     private searchStatePositionFromWipLimits(): Position<ProcessStep> { 

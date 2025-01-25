@@ -111,11 +111,11 @@ export class ValueChain {
 
     /**
      * Calculate the accumulated effort that had gone into work items having been in the value chain until the given timestamp
-     * @param until timestamp (including the timestamp itself, i.e. <= until)   
+     * @param until timestamp (inclusive)   
      * @returns accumulated effort
      */
     public accumulatedEffortMade(until: Timestamp): Effort {
-        return this.processSteps.map(ps => ps.accumulatedEffortMade(until)).reduce((ef1, ef2) => ef1 + ef2)
+        return this.processSteps.map(ps => ps.accumulatedEffortMade(until)).reduce((ae1, ae2) => ae1 + ae2)
     } 
 
     /**

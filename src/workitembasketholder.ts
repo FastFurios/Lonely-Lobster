@@ -54,8 +54,8 @@ export abstract class WorkItemBasketHolder implements ToString {
  
     /**
      * Collect flow statistics events for the basket holder in the given interval
-     * @param fromTime start of interval (excluding)
-     * @param toTime end of interval (including)
+     * @param fromTime start of interval (inclusive)
+     * @param toTime end of interval (inclusive)
      * @returns list of statistic events for the basket holder
      */
     public flowStats(fromTime: Timestamp, toTime: Timestamp): WorkItemFlowEventStats[] {
@@ -202,8 +202,8 @@ export class OutputBasket extends WorkItemBasketHolder {
 
     /**
      * Calculate aggregated end-product based statistics
-     * @param fromTime start of interval (including)
-     * @param toTime end of interval (including)
+     * @param fromTime start of interval (inclusive)
+     * @param toTime end of interval (inclusive)
      * @returns aggregated end-product based statistics
      */
     public statsOfArrivedWorkitemsBetween(fromTime: Timestamp, toTime: Timestamp): I_EndProductMoreStatistics {

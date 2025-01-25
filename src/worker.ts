@@ -413,9 +413,7 @@ export function successMeasureRoce(sys: LonelyLobsterSystem, wo: Worker): number
             /** calculate the system statistis for the current learning and adaption observation period and store it in the Worker class
              * where other workers then also habe access to without requiring calculating the statistics over and over again for each worker 
              */
-            Worker.sysStats = sys.systemStatistics(
-                sys.clock.time - sys.learnAndAdaptParms.observationPeriod < 0 ? 0 : sys.clock.time - sys.learnAndAdaptParms.observationPeriod,
-                sys.clock.time)
+            Worker.sysStats = sys.systemStatistics(sys.clock.time < sys.learnAndAdaptParms.observationPeriod ? sys.clock.time : sys.learnAndAdaptParms.observationPeriod)
         }
     }
     return Worker.sysStats.outputBasket.economics.roceVar  
