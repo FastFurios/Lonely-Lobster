@@ -25,34 +25,35 @@ export type TimeValuationFct = (value: Value, time: TimeUnit) => Value
  * Calculates the remaining value based on a discount rate
  * @param discRate the discount rate per time unit between 0 and 1, e.g. 0.1 is 10%  
  * @param value work item's value add
- * @param time excess time i.e. the additional time above the minimal cycle time it took to reach the output basket
+ * @param excessTime excess time i.e. the additional time above the minimal cycle time it took to reach the output basket
  * @returns the discounted value add 
  * @example discounted(0.1, 100, 1) => 90
  * discounted(0.15, 100, 3) => 61.4125
  */
-export function discounted(discRate: number, value: Value, time: TimeUnit): Value {
-    return time < 1 ? value : discounted(discRate, value * (1 - discRate), time - 1)
+export function discounted(discRate: number, value: Value, excessTime: TimeUnit): Value {
+    return excessTime < 1 ? value : discounted(discRate, value * (1 - discRate), excessTime - 1)
 }
 /**
  * Calculates the value based on a given expiry time
- * @param expiryTime time period after which and end product gets worthless; before that it has the value add from the value chain
+ * @param expiryTime time period from which on an end product gets worthless; before that it has the value add from the value chain
  * @param value work item's value add
- * @param time excess time i.e. the additional time above the minimal cycle time it took to reach the output basket, after which the work item's value is set to 0
- * @returns the resulting value
+ * @param excessTime excess time i.e. the additional time above the minimal cycle time it took to reach the output basket
+ * @returns 0 if time >= expireTime, otherwise the work item's value chain value-add 
  * @example expired(3, 100, 2) => 100
  * expired(3, 100, 4) => 0
+ * expired(3, 100, 3) => 0
  */
-export function expired(expiryTime: TimeUnit, value: Value, time: TimeUnit): number {
-    return time < expiryTime ? value : 0
+export function expired(expiryTime: TimeUnit, value: Value, excessTime: TimeUnit): number {
+    return excessTime < expiryTime ? value : 0
 }
 /**
  * No discounting or expiry or anything else
  * @param value work item's value add
- * @param time ignored
+ * @param excessTime ignored
  * @returns work item's value add unchanged i.e. as definded in the value chain
  * @example net(100, <any number>) => 100 
 */
-export function net(value: Value, time: TimeUnit): Value {
+export function net(value: Value, excessTime: TimeUnit): Value {
     return value
 }
 
@@ -78,11 +79,7 @@ export class ValueChain {
      * if wip limit is set and not yet reached create a new work item and inject it into the process step 
      */
     public createAndInjectNewWorkItem(): void { 
-        console.log(`\nValueChain.createAndInjectNewWorkItem(): time = ${this.sys.clock.time}; about to inject a new workorder`) // ##
-        if (!(<ProcessStep>this.processSteps[0]).reachedWipLimit()) { 
-            const wi = new WorkItem(this.sys, this)  // ## delete "const wi =" and subsequent console.log
-            console.log(`ValueChain.createAndInjectNewWorkItem(): time = ${this.sys.clock.time}; created new work item= ${wi.id}`)
-        }
+        if (!(<ProcessStep>this.processSteps[0]).reachedWipLimit()) new WorkItem(this.sys, this)
     }
 
     /**

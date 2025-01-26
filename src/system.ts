@@ -6,7 +6,7 @@
 // last code cleaning: 04.01.2025
 
 import { Clock } from './clock.js'
-import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, WorkItemFlowEventStats, WorkItem, WiExtInfoElem, LogEntryWorkItemMoved, LogEntryWorkItemWorked } from './workitem.js'
+import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, WorkItemFlowEventStats, WorkItem, WiExtInfoElem, LogEntryWorkItemMoved, LogEntryWorkItemWorked, WorkItemExtendedInfos } from './workitem.js'
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
@@ -103,7 +103,7 @@ export class LonelyLobsterSystem {
 
         // tick the clock to the next interval
         this.clock.tick()
-        console.log(`System.doOneIteration(): clock proceeded to ${this.clock.time}; about to process ${wos.length} new workorders`) // ##
+//      console.log(`System.doOneIteration(): clock proceeded to ${this.clock.time}; about to process ${wos.length} new workorders`) // ##
 
         // inject new work orders        // measure system performance with current WIP limits and adjust them
         if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % this.searchParms.measurementPeriod == 0) {
@@ -405,14 +405,14 @@ export class LonelyLobsterSystem {
      */
     private obStatistics(sesFtt: WorkItemFlowEventStats[], interval: TimeUnit): I_WorkItemStatistics { // "sesFtt" = Statistic EventS From-To Time
         const sesOfOb = sesFtt.filter(se => se.wibhEntered == this.outputBasket)
-        const wisElapTimeValAdd: WiElapTimeAndValAdd[] = sesOfOb.map(se => { 
+        const wisElapTimeAndValAdd: WiElapTimeAndValAdd[] = sesOfOb.map(se => { 
             return { 
                 wi:          se.wi,
-                valueAdd:    se.vc.totalValueAdd,
+                valueAdd:    se.wi.materializedValue(),
                 elapsedTime: se.finishedTime - se.injectionIntoValueChainTime 
             }
         })
-        return this.workItemsStatistics(wisElapTimeValAdd, interval)
+        return this.workItemsStatistics(wisElapTimeAndValAdd, interval)
     }
 
     /**
@@ -445,7 +445,7 @@ export class LonelyLobsterSystem {
         const wiElapTimeValAddOfVc: WiElapTimeAndValAdd[] = sesOfVc.map(se => { // calculate the elapsed time for each selected work item lifecycle event 
             return {
                 wi:          se.wi,
-                valueAdd:    se.vc.totalValueAdd,
+                valueAdd:    se.wi.materializedValue(),
                 elapsedTime: se.finishedTime - se.injectionIntoValueChainTime // from injection to finished the process step of the work item lifecycle event i.e. it proceeded to the the next
             }
         })
@@ -491,9 +491,6 @@ export class LonelyLobsterSystem {
         const workingCapital    = this.workingCapitalBetween(fromTime, toTime) 
         const roceVar           =  (endProductMoreStatistics.discountedValueAdd - this.accumulatedEffortMade(toTime)) / workingCapital
         const roceFix           =  (endProductMoreStatistics.discountedValueAdd - fixStaffCost) / workingCapital
-
-        // ## //    
-        console.log(`system.systemStatistics(from=${fromTime}, to=${toTime}): discValueAdd=${endProductMoreStatistics.discountedValueAdd}, fixStaffCost=${fixStaffCost}, effort=${this.accumulatedEffortMade(toTime)}, workCap=${workingCapital}, roce-var=${roceVar}, roce-fix=${roceFix}`)
 
         return {
             timestamp:          this.clock.time,

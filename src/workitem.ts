@@ -344,7 +344,7 @@ export class WorkItem implements ToString {
      * Calculate the (degraded) value-add the work item materialized if and when it reached the output basket
      * @returns the (degraded) value-add  
      */
-    private materializedValue(): Value {
+    public materializedValue(): Value {
         if (this.currentWorkItemBasketHolder != this.sys.outputBasket) return 0
         const vc = this.valueChain 
         return vc.valueDegradation(vc.totalValueAdd, this.cycleTimeInValueChain()! - vc.minimalCycleTime)
