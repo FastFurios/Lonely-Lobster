@@ -67,8 +67,8 @@ export abstract class WorkItemBasketHolder implements ToString {
      * @param until point in time until made efforts are considered   
      * @returns accumulated effort
      */
-    public accumulatedEffortMade(until: Timestamp): Effort {
-        return this.workItemBasket.map(wi => wi.accumulatedEffort(until)).reduce((ef1, ef2) => ef1 + ef2, 0 )
+    public accumulatedEffortMade(fromTime: Timestamp, toTime: Timestamp): Effort {
+        return this.workItemBasket.map(wi => wi.accumulatedEffort(fromTime, toTime)).reduce((ef1, ef2) => ef1 + ef2, 0 )
     }
 
     /**
@@ -248,6 +248,7 @@ export class OutputBasket extends WorkItemBasketHolder {
                 discountedValueAdd: iws1.discountedValueAdd + iws2.discountedValueAdd }}, 
             emptyWorkItemInInventoryStatistics)
 
+        console.log(`Wibh.statsOfArrivedWorkitemsBetween(${fromTime}, ${toTime}): numWis=${wiBasedStats.numWis}, normEffort=${wiBasedStats.normEffort}, elapsedTime=${wiBasedStats.elapsedTime}, netValueAdd=${wiBasedStats.netValueAdd}, discValueAdd=${wiBasedStats.discountedValueAdd}, avgElapsedTime=${wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1)}`)    
         return { ...wiBasedStats,
                  avgElapsedTime: wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1) }  
 

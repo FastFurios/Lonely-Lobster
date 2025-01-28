@@ -111,8 +111,8 @@ export class ValueChain {
      * @param until timestamp (inclusive)   
      * @returns accumulated effort
      */
-    public accumulatedEffortMade(until: Timestamp): Effort {
-        return this.processSteps.map(ps => ps.accumulatedEffortMade(until)).reduce((ae1, ae2) => ae1 + ae2)
+    public accumulatedEffortMade(fromTime: Timestamp, toTime: Timestamp): Effort {
+        return this.processSteps.map(ps => ps.accumulatedEffortMade(fromTime, toTime)).reduce((ae1, ae2) => ae1 + ae2)
     } 
 
     /**

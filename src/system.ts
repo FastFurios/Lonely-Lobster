@@ -350,9 +350,9 @@ export class LonelyLobsterSystem {
      * @param until timestamp (inclusive)   
      * @returns accumulated effort
      */
-    public accumulatedEffortMade(until: Timestamp): Effort {
-        return this.valueChains.map(vc => vc.accumulatedEffortMade(until)).reduce((ae1, ae2) => ae1 + ae2)
-             + this.outputBasket.accumulatedEffortMade(until)
+    public accumulatedEffortMade(fromTime: Timestamp, toTime: Timestamp): Effort {
+        return this.valueChains.map(vc => vc.accumulatedEffortMade(fromTime, toTime)).reduce((ae1, ae2) => ae1 + ae2)
+             + this.outputBasket.accumulatedEffortMade(fromTime, toTime)
     } 
 
     /**
@@ -371,7 +371,7 @@ export class LonelyLobsterSystem {
             // then give me those that were still in a value chain i.e. unfinished work  
             .filter(wi => wi.wasInValueChainAt(t))
             // for those calculate the effort 
-            .map(wi => wi.accumulatedEffort(t)).reduce((a, b) => a + b, 0)
+            .map(wi => wi.accumulatedEffort(0, t)).reduce((a, b) => a + b, 0)
     }
 
     /**
@@ -489,7 +489,7 @@ export class LonelyLobsterSystem {
         const endProductMoreStatistics: I_EndProductMoreStatistics  = this.outputBasket.statsOfArrivedWorkitemsBetween(fromTime, toTime)
         const fixStaffCost      = this.workers.length * interval                            // cost is incurred by the fixed permanent number of workers
         const workingCapital    = this.workingCapitalBetween(fromTime, toTime) 
-        const roceVar           =  (endProductMoreStatistics.discountedValueAdd - this.accumulatedEffortMade(toTime)) / workingCapital
+        const roceVar           =  (endProductMoreStatistics.discountedValueAdd - this.accumulatedEffortMade(fromTime, toTime)) / workingCapital
         const roceFix           =  (endProductMoreStatistics.discountedValueAdd - fixStaffCost) / workingCapital
 
         return {
@@ -616,7 +616,7 @@ export class LonelyLobsterSystem {
     private showWorkitemDebuggingDetails(now: Timestamp, wi: WorkItem, ps?: ProcessStep): void {
         console.log(`\t\tWI id=${wi.id}`)
 //        console.log(`\t\t total elap.time=${wi.elapsedTime(ps ? ElapsedTimeMode.firstEntryToNow : ElapsedTimeMode.firstToLastEntryFound, ElapsedTimeFor.currentProcess)}`) 
-        console.log(`\t\t total effort=${wi.accumulatedEffort(now, ps)}`)
+        console.log(`\t\t total effort=${wi.accumulatedEffort(0, now, ps)}`)
         console.log(`\t\t log:`)
         wi.log.forEach(le => console.log(`\t\t\t${le}`))
     }

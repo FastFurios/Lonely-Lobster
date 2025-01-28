@@ -277,10 +277,10 @@ export class WorkItem implements ToString {
      * if this parameter is undefined return the accumulated effort of all process steps of the value chain
      * @returns the work effort so far 
      */
-    public accumulatedEffort(toTime: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort {
+    public accumulatedEffort(fromTime: Timestamp, toTime: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort {
         return  (workItemBasketHolder == undefined ? this.log 
                                                    : this.log.filter(le => le.workItemBasketHolder == workItemBasketHolder))
-            .filter(le => le.timestamp <= toTime && le.logEntryType == LogEntryType.workItemWorkedOn)
+            .filter(le => le.timestamp >= fromTime && le.timestamp <= toTime && le.logEntryType == LogEntryType.workItemWorkedOn)
             .length
     }
 
@@ -309,14 +309,14 @@ export class WorkItem implements ToString {
      * @returns true if has beed worked on else false 
      */
     public workedOnAtCurrentProcessStep = (): boolean => 
-        this.accumulatedEffort(this.sys.clock.time, <ProcessStep>this.currentWorkItemBasketHolder) > 0
+        this.accumulatedEffort(0, this.sys.clock.time, <ProcessStep>this.currentWorkItemBasketHolder) > 0
 
     /**
      * Check if all work is done on the work item in the current process step  
      * @returns true if this work item is finished at the current process step  
      */
     public finishedAtCurrentProcessStep = (): boolean => 
-        this.accumulatedEffort(this.sys.clock.time, <ProcessStep>this.currentWorkItemBasketHolder) >= (<ProcessStep>this.currentWorkItemBasketHolder).normEffort
+        this.accumulatedEffort(0, this.sys.clock.time, <ProcessStep>this.currentWorkItemBasketHolder) >= (<ProcessStep>this.currentWorkItemBasketHolder).normEffort
 
     /**
      * check if work item moved to the output basket in a given time interval
@@ -431,7 +431,7 @@ export class WorkItem implements ToString {
     
    /** batch mode only, console display */ 
    public toString(): string {
-        return `Work item: t=${this.sys.clock.time} wi=${this.id} ps=${this.currentWorkItemBasketHolder.id} vc=${this.valueChain.id} et=${this.elapsedTimeInValueChain} ae=${this.accumulatedEffort(this.sys.clock.time, this.currentWorkItemBasketHolder)} ${this.finishedAtCurrentProcessStep() ? "done" : "in progress"}`
+        return `Work item: t=${this.sys.clock.time} wi=${this.id} ps=${this.currentWorkItemBasketHolder.id} vc=${this.valueChain.id} et=${this.elapsedTimeInValueChain} ae=${this.accumulatedEffort(0, this.sys.clock.time, this.currentWorkItemBasketHolder)} ${this.finishedAtCurrentProcessStep() ? "done" : "in progress"}`
    }
 }
 
@@ -492,9 +492,9 @@ export class WorkItemExtendedInfos {
             const currPs: ProcessStep = <ProcessStep>wi.currentWorkItemBasketHolder 
 
             // efforts:
-            const accumulatedEffortInProcessStep   = wi.accumulatedEffort(sys.clock.time, currPs)
+            const accumulatedEffortInProcessStep   = wi.accumulatedEffort(0, sys.clock.time, currPs)
             const remainingEffortInProcessStep     = currPs.normEffort - accumulatedEffortInProcessStep
-            const accumulatedEffortInValueChain    = wi.accumulatedEffort(sys.clock.time)
+            const accumulatedEffortInValueChain    = wi.accumulatedEffort(0, sys.clock.time)
             const remainingEffortInValueChain      = wi.valueChain.normEffort - accumulatedEffortInValueChain
 
             // travelling in the value chain:
