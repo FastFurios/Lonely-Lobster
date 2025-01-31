@@ -298,6 +298,7 @@ export class Worker {
      * Compile the utilization data for the worker and store it in @see {@link this.stats}
      */
     public utilization(sys: LonelyLobsterSystem): void {
+        //console.log(`Worker.utilization(): t=${this.sys.clock.time} wo=${this.id} logWorkerWorked.length=${this.logWorkerWorked.length} clock.firstIteration=${this.sys.clock.firstIteration}`)
         this.stats.utilization = this.logWorkerWorked.length / (this.sys.clock.time - this.sys.clock.firstIteration) * 100 
         this.stats.assignments = sys.assignmentSet.assignments
                                 .filter(a => a.worker.id == this.id)

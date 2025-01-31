@@ -70,9 +70,11 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
+    /*  
     private get allWorkItems(): WorkItem[] {
         return this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.workItemBasket)).concat(this.outputBasket.workItemBasket) 
     }
+    */
 
     /**
      * Execute iteration requests i.e. iterate
@@ -467,7 +469,7 @@ export class LonelyLobsterSystem {
     public systemStatistics(interval: TimeUnit): I_SystemStatistics {
         const toTime   = this.clock.time
         const fromTime = toTime - interval + 1  
-        console.log(`\n-------- System.systemStatistics(): about to calculate and return system stats at time= ${this.clock.time} ...`)
+        // ## console.log(`\n-------- System.systemStatistics(): about to calculate and return system stats at time= ${this.clock.time} ...`)
         // collect a list of all work item lifecycle events in the system where the work items have proceeded to a new work item basket holder 
         // within the from-to-interval. Every work item lifecycle event in the list contains e.g. its cycle time in the process step it moved out.  
         const statEventsFromToTime: WorkItemFlowEventStats[] = this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.flowStats(fromTime, toTime)))
@@ -575,7 +577,7 @@ export class LonelyLobsterSystem {
 
     private headerForValueChains = ():string => "_t_||" + this.valueChains.map(vc => vc.stringifiedHeader()).reduce((a, b) => a + "| |" + b) +"| "
 
-    public showHeader = () => console.log(this.headerForValueChains() + "_#outs__CT:[min___avg___max]_TP:[__#______$]") 
+    public showHeader = () => console.log(this.headerForValueChains() + "_#outs___CT__TPI__TPV") 
 
     public showLine = () => console.log(this.clock.time.toString().padStart(3, ' ') + "||" 
                                     + this.valueChains.map(vc => vc.stringifiedRow()).reduce((a, b) => a + "| |" + b) + "| " 
@@ -593,7 +595,8 @@ export class LonelyLobsterSystem {
     }                               
 
     private obStatsAsString(): string {
-        return"system.obStatsAsString() - left empty"  /* needs to be fixed */
+        const sysStats: I_SystemStatistics = this.systemStatistics(this.clock.time)
+        return `${sysStats.outputBasket.flow.cycleTime.avg?.toFixed(1).padStart(4, ' ') || "   -"} ${sysStats.outputBasket.flow.throughput.itemsPerTimeUnit?.toFixed(1).padStart(4, ' ')} ${sysStats.outputBasket.flow.throughput.valuePerTimeUnit?.toFixed(1).padStart(4, ' ')}`
     }
 
 //----------------------------------------------------------------------

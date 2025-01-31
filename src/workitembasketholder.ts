@@ -246,7 +246,7 @@ export class OutputBasket extends WorkItemBasketHolder {
                 discountedValueAdd: iws1.discountedValueAdd + iws2.discountedValueAdd }}, 
             emptyWorkItemInInventoryStatistics)
 
-        console.log(`Wibh.statsOfArrivedWorkitemsBetween(${fromTime}, ${toTime}): numWis=${wiBasedStats.numWis}, normEffort=${wiBasedStats.normEffort}, elapsedTime=${wiBasedStats.elapsedTime}, netValueAdd=${wiBasedStats.netValueAdd}, discValueAdd=${wiBasedStats.discountedValueAdd}, avgElapsedTime=${wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1)}`)    
+        //console.log(`Wibh.statsOfArrivedWorkitemsBetween(${fromTime}, ${toTime}): numWis=${wiBasedStats.numWis}, normEffort=${wiBasedStats.normEffort}, elapsedTime=${wiBasedStats.elapsedTime}, netValueAdd=${wiBasedStats.netValueAdd}, discValueAdd=${wiBasedStats.discountedValueAdd}, avgElapsedTime=${wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1)}`)    
         return { ...wiBasedStats,
                  avgElapsedTime: wiBasedStats.elapsedTime / (wiBasedStats.numWis > 0 ? wiBasedStats.numWis : 1) }  
 
