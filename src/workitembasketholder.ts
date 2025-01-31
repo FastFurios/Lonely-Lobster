@@ -186,8 +186,6 @@ export class ProcessStep extends WorkItemBasketHolder  {
     public toString = () => `\t${this.valueChain.id}.${this.id}` 
 }
 
-
-
 //----------------------------------------------------------------------
 /**
  *    OUTPUT BASKET     overall output basket (just one unique instance 

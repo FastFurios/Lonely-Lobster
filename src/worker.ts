@@ -7,7 +7,7 @@
 import { LogEntry, LogEntryType } from './logging.js'
 import { topElemAfterSort, randomlyPickedByWeigths, arrayWithModifiedWeightOfAnElement, WeightedElement, SortVectorSequence, arrayWithNormalizedWeights } from "./helpers.js"
 import { Timestamp, WorkerName, Value, TimeUnit, I_WeightedSelectionStrategyAtTimestamp, I_LearningStatsWorker, I_SystemStatistics  } from './io_api_definitions'
-import { WorkItem, WiExtInfoElem, WiExtInfoTuple, WorkItemExtendedInfos } from './workitem.js'
+import { WorkItem, WiExtInfoElem, WiExtInfoTuple } from './workitem.js'
 import { ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
 import { LonelyLobsterSystem } from './system'

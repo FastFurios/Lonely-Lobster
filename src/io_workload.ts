@@ -72,7 +72,10 @@ export function processWorkOrderFile(filename : string, sys: LonelyLobsterSystem
 
     function processWorkOrdersFromLine(line: string): void {
         const { time, workOrders } = ctp.workedOrdersFromLine(line)
-        if (time != undefined) sys.doOneIteration(workOrders, false)
+        if (time != undefined) {
+            sys.doOneIteration(workOrders, false)
+            sys.showLine()
+        }
     }
     const fileReaderConfig      = { input: createReadStream(filename), terminal: false }
     const lineReader: Interface = createInterface(fileReaderConfig)

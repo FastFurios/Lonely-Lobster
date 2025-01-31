@@ -6,7 +6,7 @@
 // last code cleaning: 04.01.2025
 
 import { Clock } from './clock.js'
-import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, WorkItemFlowEventStats, WorkItem, WiExtInfoElem, LogEntryWorkItemMoved, LogEntryWorkItemWorked, WorkItemExtendedInfos } from './workitem.js'
+import { wiIdGenerator, wiTagGenerator, wiTags, WorkOrder, WorkItemFlowEventStats, WorkItem, WiExtInfoElem } from './workitem.js'
 import { duplicate, reshuffle } from './helpers.js'
 import { ValueChain } from './valuechain.js'
 import { ProcessStep, OutputBasket } from './workitembasketholder.js'
@@ -17,7 +17,7 @@ import { Timestamp, TimeUnit, Value, Effort, I_VcWorkOrders,
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
          I_VcPsWipLimit, I_FrontendPresets} from './io_api_definitions.js'
 import { environment } from './environment.js'
-import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState, StringifyMode} from './optimize.js'
+import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState } from './optimize.js'
 
 
 const debugShowOptionsDefaults: DebugShowOptions = { 
@@ -38,7 +38,6 @@ interface WiElapTimeAndValAdd {
 export interface ToString {
     toString: () => string
 }
-
 
 //----------------------------------------------------------------------
 /**
@@ -64,13 +63,12 @@ export class LonelyLobsterSystem {
     private searchParms!:       PeakSearchParms
     private vdm!:               VectorDimensionMapper<ProcessStep>
     private searchState!:       SearchState<ProcessStep>   
-    public  wipLimitSearchLog                       = new SearchLog<ProcessStep>()
+    public  wipLimitSearchLog = new SearchLog<ProcessStep>()
 
     constructor(public id:                  string,
                 public debugShowOptions:    DebugShowOptions = debugShowOptionsDefaults) {
         this.outputBasket   = new OutputBasket(this)
     }
-
 
     private get allWorkItems(): WorkItem[] {
         return this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.workItemBasket)).concat(this.outputBasket.workItemBasket) 
@@ -103,7 +101,6 @@ export class LonelyLobsterSystem {
 
         // tick the clock to the next interval
         this.clock.tick()
-//      console.log(`System.doOneIteration(): clock proceeded to ${this.clock.time}; about to process ${wos.length} new workorders`) // ##
 
         // inject new work orders        // measure system performance with current WIP limits and adjust them
         if (optimizeWipLimits && this.clock.time > 0 && this.clock.time % this.searchParms.measurementPeriod == 0) {
@@ -124,13 +121,7 @@ export class LonelyLobsterSystem {
         this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))
         // move finished work items from process steps on to the next (or to the output basket)
         this.valueChains.forEach(vc => vc.letWorkItemsFlow())
-
-        // ##
-/*         console.log("System at end of doOneItertion(): show workitems:")
-        this.allWorkItems.map(wi => console.log(`\t${wi}`))
-        console.log("System at end of doOneItertion(): show workitem moved log entries:")
-        this.allWorkItems.map(wi => wi.log.filter(le => le.logEntryType == LogEntryType.workItemMoved).flatMap(le => console.log(`\t${(<LogEntryWorkItemMoved>le)}`)))
- */    }    
+    }    
 //----------------------------------------------------------------------
 //    API mode - Initialization
 //----------------------------------------------------------------------
@@ -324,11 +315,7 @@ export class LonelyLobsterSystem {
      */   
     public nextSystemState(iterReqs: I_IterationRequests): I_SystemState { 
         this.doIterations(iterReqs)
-        const aux = this.i_systemState()
-//      console.log(aux.valueChains)  // ##
-        // console.log("system.i_systemState(): wis in Alpha.One = ")
-        // console.log(aux.valueChains[0].processSteps[0].workItems)
-        return aux         
+        return this.i_systemState()
     }
 
     /**
@@ -361,7 +348,7 @@ export class LonelyLobsterSystem {
      * @param t timestamp 
      * @returns working capital 
      */
-    private workingCapitalAt = (t:Timestamp): Value => { // ## remove debug statements 
+    private workingCapitalAt = (t:Timestamp): Value => { 
         return this
             // give me all work items in the system: 
             .valueChains
@@ -590,7 +577,7 @@ export class LonelyLobsterSystem {
 
     public showHeader = () => console.log(this.headerForValueChains() + "_#outs__CT:[min___avg___max]_TP:[__#______$]") 
 
-    private showLine = () => console.log(this.clock.time.toString().padStart(3, ' ') + "||" 
+    public showLine = () => console.log(this.clock.time.toString().padStart(3, ' ') + "||" 
                                     + this.valueChains.map(vc => vc.stringifiedRow()).reduce((a, b) => a + "| |" + b) + "| " 
                                     + this.outputBasket.workItemBasket.length.toString().padStart(6, " ") + " " 
                                     + this.obStatsAsString())

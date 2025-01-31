@@ -290,7 +290,6 @@ export class WorkItem implements ToString {
      * @param toWorkItemBasketHolder target work item basket holder
      */
     public moveTo(toWorkItemBasketHolder: WorkItemBasketHolder): void {
-// ##   console.log(`WorkItem.moveTo(): ${this.id} from ${this.currentWorkItemBasketHolder.id} to ${toWorkItemBasketHolder.id}`)
         this.logMovedEvent(<ProcessStep>this.currentWorkItemBasketHolder, toWorkItemBasketHolder)
         this.currentWorkItemBasketHolder = toWorkItemBasketHolder
         if (toWorkItemBasketHolder == this.sys.outputBasket) this.extendedInfos = undefined   // get rid of the extendedInfos as they have no longer a meaning once the work item is in the output basket
@@ -435,10 +434,15 @@ export class WorkItem implements ToString {
    }
 }
 
-//-----------------------------------------------------------------------------
-//    WORKITEM EXTENDED INFO   e.g. for workers' decision making ## is this still valid? ## and also for  
-//                             providing work item statistics to the front end
-//-----------------------------------------------------------------------------
+//-------------------------------------------------------------------------------------------------------
+/**
+ *    WORKITEM EXTENDED INFO    provides additional life cycle data of the work item used for 
+ *                              workers' decisions which work item to work on next. 
+ *                              Also used to compile system flow statistics. 
+ *                              Once the work item reached the output basket these extended infos are no 
+ *                              longer valid. 
+ */
+//-------------------------------------------------------------------------------------------------------
 
 /** tuple field indexes for @see {@link WiExtInfoTuple} */
 export enum WiExtInfoElem {
@@ -471,14 +475,6 @@ enum WorkItemExtendedInfosCreationMode {
     calculated = "calculated"
 }
 
-//-------------------------------------------------------------------------------------------------------
-/**
- *    WORKITEM EXTENDED INFO    provides additional life cycle data of the work item used for 
- *                              workers' decisions which work item to work on next.
- *                              Once the work item reached the output basket these extended infos are no 
- *                              longer valid. 
- */
-//-------------------------------------------------------------------------------------------------------
 export class WorkItemExtendedInfos {
     public workOrderExtendedInfos: WiExtInfoTuple
 
