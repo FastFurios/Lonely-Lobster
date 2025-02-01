@@ -196,7 +196,7 @@ export class LonelyLobsterSystem {
      * @param wi work item (must still be in the value chain)
      * @returns work item data object 
      */
-    private i_workItem (wi: WorkItem): I_WorkItem { 
+    private workItemState (wi: WorkItem): I_WorkItem { 
         return {
             id:                               wi.id,
             tag:                              wiTags[0],
@@ -213,12 +213,12 @@ export class LonelyLobsterSystem {
      * @param ps process step
      * @returns process step data object
      */
-    private i_processStep(ps: ProcessStep): I_ProcessStep {
+    private processStepState(ps: ProcessStep): I_ProcessStep {
         return {
             id:                 ps.id,
             normEffort:         ps.normEffort,
             wipLimit:           ps.wipLimit,            
-            workItems:          ps.workItemBasket.map(wi => this.i_workItem(wi)),
+            workItems:          ps.workItemBasket.map(wi => this.workItemState(wi)),
             workItemFlow:       ps.lastIterationFlowRate
         }
     }
@@ -228,12 +228,12 @@ export class LonelyLobsterSystem {
      * @param vc value chain
      * @returns value chain data object
      */
-    private i_valueChain(vc: ValueChain): I_ValueChain {
+    private valueChainState(vc: ValueChain): I_ValueChain {
         return {
             id:                 vc.id,
             totalValueAdd:      vc.totalValueAdd,
             injection:          vc.injection,
-            processSteps:       vc.processSteps.map(ps => this.i_processStep(ps))
+            processSteps:       vc.processSteps.map(ps => this.processStepState(ps))
         }
     }
 
@@ -242,7 +242,7 @@ export class LonelyLobsterSystem {
      * @param wi end product i.e. work item in the output basket 
      * @returns value chain data object
      */
-    private i_endProduct (wi: WorkItem): I_WorkItem { 
+    private endProductState (wi: WorkItem): I_WorkItem { 
         return {
             id:                 wi.id,
             tag:                wiTags[0],
@@ -259,7 +259,7 @@ export class LonelyLobsterSystem {
      * @param wo worker
      * @returns worker data object
      */
-    private i_workerState(wo: Worker): I_WorkerState {
+    private workerState(wo: Worker): I_WorkerState {
         const aux =  {
             worker: wo.id,
             utilization: wo.stats.utilization,
@@ -282,13 +282,13 @@ export class LonelyLobsterSystem {
      * create the new system state data object as response to a frontend iteration request 
      * @returns system state data object
      */
-    private i_systemState(): I_SystemState {
+    private systemState(): I_SystemState {
         return {
             id:                                     this.id,
             time:                                   this.clock.time,
-            valueChains:                            this.valueChains.map(vc => this.i_valueChain(vc)),
-            outputBasket:                           { workItems: this.outputBasket.workItemBasket.map(wi => this.i_endProduct(wi)) },
-            workersState:                           this.workers.map(wo => this.i_workerState(wo)),
+            valueChains:                            this.valueChains.map(vc => this.valueChainState(vc)),
+            outputBasket:                           { workItems: this.outputBasket.workItemBasket.map(wi => this.endProductState(wi)) },
+            workersState:                           this.workers.map(wo => this.workerState(wo)),
             version:                                environment.version,
             turnWipLimitOptimizationOnInFrontend:   this.clock.time == 0 ? this.searchParms.searchOnAtStart : undefined,   // when initializating, set the UI toggle to start WIP limit optimization or not
             isWipLimitOptimizationInBackendActive:  this.clock.time == 0 ? false : this.isWipLimitOptimizationStillActive, // default at start: optimization is off
@@ -317,7 +317,7 @@ export class LonelyLobsterSystem {
      */   
     public nextSystemState(iterReqs: I_IterationRequests): I_SystemState { 
         this.doIterations(iterReqs)
-        return this.i_systemState()
+        return this.systemState()
     }
 
     /**
@@ -329,6 +329,7 @@ export class LonelyLobsterSystem {
         this.searchState = nextSearchState<ProcessStep>(this.wipLimitSearchLog, () => currPerf, this.searchParms, this.clock.time, this.searchState)
         this.setWipLimitsFromSearchStatePosition()
     }
+    
 //----------------------------------------------------------------------
 //    API mode - System Statistics
 //----------------------------------------------------------------------
@@ -464,7 +465,7 @@ export class LonelyLobsterSystem {
     /**
      * Calculated the system statistics
      * @param interval interval length into the past from now, e.g. if time=15 and interval=7 then it is the interval [9-15] 
-     * @returns the system statitiscs
+     * @returns the system statistics
      */
     public systemStatistics(interval: TimeUnit): I_SystemStatistics {
         const toTime   = this.clock.time

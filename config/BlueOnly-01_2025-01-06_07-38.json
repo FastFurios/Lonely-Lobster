@@ -1,0 +1,56 @@
+{
+	"system_id": "BlueOnly-01",
+	"frontend_preset_parameters": {
+		"num_iterations_per_batch": 10,
+		"economics_stats_interval": null
+	},
+	"learn_and_adapt_parms": {
+		"observation_period": null,
+		"success_measure_function": null,
+		"adjustment_factor": null
+	},
+	"wip_limit_search_parms": {
+		"initial_temperature": null,
+		"cooling_parm": null,
+		"degrees_per_downhill_step_tolerance": null,
+		"initial_jump_distance": null,
+		"measurement_period": null,
+		"wip_limit_upper_boundary_factor": null,
+		"search_on_at_start": null,
+		"verbose": null
+	},
+	"value_chains": [
+		{
+			"value_chain_id": "Blue",
+			"value_add": 3,
+			"value_degradation": {
+				"function": null,
+				"argument": null
+			},
+			"injection": {
+				"throughput": null,
+				"probability": null
+			},
+			"process_steps": [
+				{
+					"process_step_id": "One",
+					"norm_effort": 1,
+					"wip_limit": null
+				}
+			]
+		}
+	],
+	"workers": [
+		{
+			"worker_id": "Sally",
+			"process_step_assignments": [
+				{
+					"value_chain_id": "Blue",
+					"process_steps_id": "One"
+				}
+			],
+			"workitem_selection_strategies": []
+		}
+	],
+	"globally_defined_workitem_selection_strategies": []
+}

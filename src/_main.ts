@@ -204,9 +204,8 @@ function apiMode(): void {
      */
     //------------------------------
     app.post('/iterate', authenticateAzureAD, (req, res, next) => {
-        // if (debugApiCalls) console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
-        console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
-            try {       
+        // ## if (debugApiCalls) console.log(`\n${debugTime()} _main: app.post /iterate -------- webSession = ${req.sessionID} ----------------------------`)
+        try {       
             // handle web session
             const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
             if (!lonelyLobsterSystemLifecycle?.system) { 
@@ -233,8 +232,7 @@ function apiMode(): void {
      */
     //-------------------------------------
     app.get('/statistics', authenticateAzureAD, (req, res, next) => {
-//        if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
-        console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
+// ##   if (debugApiCalls) console.log(`\n${debugTime()} _main: app.get /statistics -------- webSession = ${req.sessionID} ----------------------------`)
         try {       
             // handle web session
             const lonelyLobsterSystemLifecycle = webSessions.get(req.sessionID)
