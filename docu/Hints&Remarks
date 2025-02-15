@@ -34,7 +34,7 @@ Sharing API definitions btw. frontend and backend:
 ~/sw_projects/Angular-Testbed$ sh getApiDefsFromBackend.sh
 
 
-Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net
+Azure Deployment (2023-10-10): https://lonely-lobster.azurewebsites.net
 - frontend:
 -- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonely-lobster.azurewebsites.net/initialize/" (check environment.prod.ts file)
 -- check if enviroment.prod.ts contains the new frontend version number 
@@ -44,7 +44,7 @@ Azure Deployment (2023-10-10): https://lonelylobster.azurewebsites.net
 -- check if enviroment.ts contains the new backend version number 
 -- tsc
 
-- copy files to deplyment stage i.e. ~/sw-projects/azure/Lonely-Lobster/
+- copy files to deployment stage i.e. ~/sw-projects/azure/Lonely-Lobster/
 ~/sw_projects/Lonely-Lobster$ sh buildForAzure.sh
 
 in VSCode:
@@ -146,3 +146,11 @@ svs         sort vector sequence
 ivc         a worker's individual value contribution
 roce        return on capital engaged
 sest        work item selection strategy
+
+
+# VSCode
+- Ctrl + Shift + P: command palette
+
+# Markdown
+see ondrive/.../Software Development Archive/Hints and Guides
+<mark>THis is highlited text!</mark>

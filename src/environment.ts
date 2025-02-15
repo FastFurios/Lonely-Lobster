@@ -7,6 +7,6 @@
 
 /** environment information of the Lonely Lobster backend */
 export const environment = {
-    version: "6.0.0",
-    notes: "prepared io_config.ts to changes in config file regarding workitem selection strategies "
+    version: "7.0.0",
+    notes: "production readiness"
   }

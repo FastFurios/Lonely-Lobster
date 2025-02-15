@@ -56,9 +56,9 @@ declare module "express-session" { // expand the type of the session data by my 
  */  
 // -------------------------------------------------------------------
 
-const debugApiCalls         = false
-const debugAuthentication   = false
-const debugAutoDrop         = false
+const debugApiCalls         = true
+const debugAuthentication   = true
+const debugAutoDrop         = true
 
 /** printing debug logging timestamp as hh:mm:ss  */
 const debugTime = (): string => new Date().toTimeString().split(" ")[0]
@@ -80,7 +80,7 @@ function showManual(): void {
  */ 
 // -------------------------------------------------------------------
 function batchMode(): void {
-    console.log("Running in batch mode ...")
+    console.log("_main.ts: Running in batch mode ...")
 
     // create the system from the config JSON file
     let lonelyLobsterSystem = systemCreatedFromConfigFile(process.argv[InputArgs.SystemConfig])
@@ -93,7 +93,7 @@ function batchMode(): void {
  */ 
 // -------------------------------------------------------------------
 function apiMode(): void {
-    console.log("Running in api mode ...")
+    console.log("_main.ts: Running in api mode ...")
 
     const app  = express()
     const port = process.env.PORT || 3000
@@ -409,7 +409,7 @@ function apiMode(): void {
 
     type Minutes                                = number
     const autoDropCheckInterval: Minutes        = 1
-    const autoDropThreshold: Minutes            = 2
+    const autoDropThreshold: Minutes            = 60
     enum LifeCycleActions { created, used, dropped }
     let autoDroppingIsInAction                  = false  // global "semaphore"
 
