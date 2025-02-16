@@ -105,8 +105,45 @@ Beispiele für Spezialisten, die häufig den Spagat zwischen verschiedenen Werts
 | 
 
 # Lonely Lobster
-Das Software-Projekt "Lonely Lobster" hat zum Ziel, die grundlegenden Effekte und Wirkungszusammenhänge in solchen Unternehmen systemtisch erforschen zu können. Die Lonely-Lobster-Anwendung bietet die Möglichkeit, idealisierte und von vielen Details des realen UNternehmensalltags abstrahierend Wertschöpfungsketten mit Arbeitsschritten zu definieren, Mitarbeiter Arbeitschritten, einem oder mehreren, zuzuordnen und den Zufluss neuer Arbeitsaufträge zu steuern. Lonely-Lobster simuliert die Abarbeitung der (immteriellen) Werkstücke und visualisiert diese.     
+Das Software-Projekt "Lonely Lobster" hat zum Ziel, die grundlegenden Effekte und Wirkungszusammenhänge in solchen Unternehmen systemtisch erforschen zu können. Die Lonely-Lobster-Anwendung bietet die Möglichkeit, idealisierte und von vielen Details des realen Unternehmensalltags abstrahierend ein System mit mehreren Wertschöpfungsketten, jeweils mit mehreren Arbeitsschritten, zu definieren, Mitarbeiter einem oder mehreren Arbeitschritten  zuzuordnen und den Zufluss neuer Arbeitsaufträge zu steuern. Lonely-Lobster simuliert die Abarbeitung der (immteriellen) Werkstücke und visualisiert diese. Statistiken und KPIs werden errechnet und dargestellt, um die Effizenz des Systems bewerten zu können. Es erlaubt insbesondere u.a folgenden Frage nachzugehen:
+1. Wie soll der Zufluss an neuen Arbeitsaufträgen in das System und in einzelne Arbeitsstationen gesteuert werden, um ein bestmögliches Ergebnis für das Unternehmen zu erzielen?
+1. Wie soll sich der einzelner Mitarbeiter verhalten, wenn sie oder er mehrere Werkstücke zur Bearbeitung vorliegen hat. Welches Werkstück soll sie oder er auswählen, um es als nächstes (weiter) zu bearbeiten?
+1. Wie soll sie oder er die Auswahl treffen, wenn die Werkstücke aus verschiedenen Arbeitsschritten von mglw. unterschiedlichen Wertschöpfungsketten zur Bearbeitung vorliegen? 
+1. Welche Effekte auf die Effizienz des Gesamtsystems haben verschiedene Auswahlstrategien?     
 
+## Terminologie
+Im Weiteren werden nachfolgenden Begriffe verwendet:
+| Begriff | Definition | Synonyme |
+| :--- | :--- | :--- |
+| Worker | ein oder eine Mitarbeiterin | Bearbeiter(in) |
+| Work Item | Werkstück | |
+| Inventory | eine Sammlung von noch nicht fertigen Work Items |  |
+| Output Basket | ist das Inventory aller End Products |  |
+| Process Step | Arbeitsstation, in der die zugewiesenen Workers die notwendige Arbeit an Work Items im Inventory des Process Step verrichten, bis es zum nächste Process Step oder schließlich zum Output Basket weitergegeben werden kann  | Arbeitsstation |
+| Value Chain | Wertschöpfungskette, bestehend aus mindest einem PRocess Step |  |
+| Work Order | ein Work Item, das in einer Value Chain in den ersten Process Step eintritt | Arbeitsauftrag, Auftrag |
+| End Product | ein Work Item, dessen Bearbeitung in seiner Value Chain komplett abgeschlossen und den Output Basket erreicht hat. |  |
+| Time Unit | Zeitabschnitt: die Zeit in Lonely-Lobster vergeht in diskreten Schritten. DIe Zeit startet bei 0 und wird bei jeder Iteration inkrementiert | Time |
+| Effort | Aufwand, d.h. die Anzahl von Zeiteinheiten, die Worker für ein Work Item aufgewandt haben. Worker können 0 oder 1 Effort-Einheit pro Time Unit an einem Work Item arbeiten.  |  |
+| Value | der Erlös, den das End Product beim Kunden oder am Markt erzielt. Da in Lonely-Lobster von immterieller Wissensarbeit augegangen wird und der Erwerb von Rohmaterial nicht erforderlich ist, entspricht der Value gleichzeitig dem Mehrwert.  | Value-add |
+| Cost | Kosten für den geleisteten Effort, falls die Worker-Kosten variable sind, d.h. die Worker werden nur vergütet, wenn sie an einem Work Item arbeiten, entspricht Cost der Summe des Efforts. Bei fixen Worker-Kosten, d.h. einem Bestand von Festangestellten, enstehen die Kosten durch die vergehende Zeit, unabhängig davon, wie oft der Worker an Work Items gearbeitet hat. Amerkung: Effort und Value haben in Lonely-Lobster dieselbe Maßeinheit |  |
+| Strategy | Strategie, nach der Worker eines von mehreren Work Items, das ihr oder ihm vorliegt, zur Bearbeitung in der aktuellen Time Unit auswählt. | Langform: Work Item Selecton Strategy |
+| WIP Limit | Die maximale zulässige Anzahl an Work Items in einem Process Step. Hierzu werden auch im Process Step fertigestellte Work Items gezählt. Anmerkung: der Wert 0 bedeutet in Lonely Lobster, dass **kein** Limit gesetzt ist  | Work in Progress Limit |
+| Cycle Time | Durchlaufzeit eines Work Items, gemessen vom Eintritt in eine Value Chain oder in einen Process Step, bis zu dessen Verlassen. |  |
+| Elapsed Time | bisher vergangene Zeit, seit ein Work Item in seine Value Chain oder Process Step eingetreten ist |  |
+| Discounted Value  | reduzierter Wert, der beim Kunden oder am Markt erzielt werden kann. Der Wert mag sich verändern, je länger der Kunde oder der Markt auf die Lieferung warten muss. In Lonely-Lobster kann eingestellt werden, wie der Wert sich verändert abhängig von der Cycle Time eines End Products, die über die minimale Cycle Time, d.h. den Effort der Value Chain, hinausgeht. |  |
+| Contribution Margin | Die Differenz zwischen dem für ein End Product erlösten (discountierten) Werts und dem Effort  |  |
+| Interval | Zeitspanne zurück in die Vergangenheit gemessen in Time Units | Observation Period |
+| Throughput | Anzahl von Work Items, die in einem Interval pro Time Unit in einem Process Step abgeschlossen wurden bzw. den Output Basket erreicht haben (i.e. Troughput in Items "TPI"). Der Durchsatz kann auch anhand des Wertes gemessen werden (i.e. Troughput in Value "TPV"). TPV berücksichtigt  nicht Stücke sondern den Value.  |  |
+| ROCE | Return On Capital Engaged: die zu einem Zeitpunkt kummulierte Cost im System für alle Work Items, die noch kein End Product sind, m.a.W. die noch in ihrer Value Chain in Bearbeitung sind. ROCE fix wird auf Basis einer fixen Belegschaft berechnet, ROCE var auf der Annahme, dass nur erbrachte Arbeit an Work Items vergütet wird.  |  |
+
+
+
+
+|  |  |  |
+|  |  |  |
+|  |  |  |
+|  |  |  |
 
 
 #############
