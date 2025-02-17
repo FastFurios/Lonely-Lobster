@@ -138,16 +138,8 @@ Im Weiteren werden nachfolgenden Begriffe verwendet:
 | ROCE | Return On Capital Engaged: die zu einem Zeitpunkt kummulierte Cost im System für alle Work Items, die noch kein End Product sind, m.a.W. die noch in ihrer Value Chain in Bearbeitung sind. ROCE fix wird auf Basis einer fixen Belegschaft berechnet, ROCE var auf der Annahme, dass nur erbrachte Arbeit an Work Items vergütet wird.  |  |
 
 
+## Functionality
+Hier das User Interface von Lonely Lobster:
+![Lonely Lobster System "Italian Restaurant"](ItalianRestaurantScreenshot.jpg)
 
-
-|  |  |  |
-|  |  |  |
-|  |  |  |
-|  |  |  |
-
-
-#############
-
-  eines Gutachtens, einer Analyse, ein Konzept, ein amtlicher Bescheid, eine Bankfinanzierung, Buchungen auf Konten, Kauf von Wertpapieren,       
-    
-https://www.mckinsey.com/~/media/mckinsey/industries/consumer%20packaged%20goods/our%20insights/the%20consumer%20sector%20in%202030%20trends%20and%20questions%20to%20consider/2014_lean_management_enterprise_compendium.pdf
+...
