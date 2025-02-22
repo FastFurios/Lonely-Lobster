@@ -153,22 +153,24 @@ Nachfolgend wird auf die einzelnen Sektionen des User Interface eingegangen.
 
 | Label | Erläuterung | Details |
 | :---: | :--- | :--- |
-| 1 | Hier finden sich 8 Symbole. Von links nach rechts:  | __Home__: zeigt einige Informationen |
-|   |   | __Upload__: eine JSON-Datei mit einer Configuration in das Lonely-Lobster-Frontend hochladen |
-|   |   | __Edit__: eine Configuration erstellen und editieren |
-|   |   | __Run__: aktuelle Configuration in das Lonely-Lobster-Backend laden und als System ausgeführen; Ausführen erfordert zuvor einen Login, s.u. |
-|   |   | __Download__: eine Configuration in den  Download-Folder auf dem lokalen Rechner herunterladen  |
-|   |   | __Events Export__: die Einzel-Events eines ausgeführten Systems als CSV-Datei in den  Download-Folder auf dem lokalen Rechner herunterladen; mit diese Daten können mit Statistics-Tools weitergehende statistische Auswertungen gemacht werden |
-|   |   | __Drop__: die aktuelle Configuration wird verworfen |
-|   |   | __Activity Log__: zeigt die Aktivitäten der Lonely-Lobster Anwendung, u.a. Warnings, Errors; die Anzeige der Liste der Aktivitätenmeldungen kann toggled werden |
+| 1 | Hier finden sich 8 Symbole. Von links nach rechts:  | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg> __Home__: zeigt einige Informationen |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Upload__: eine JSON-Datei mit einer Configuration in das Lonely-Lobster-Frontend hochladen |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg> __Edit__: eine Configuration erstellen und editieren |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg> __Run__: aktuelle Configuration in das Lonely-Lobster-Backend laden und als System ausgeführen; Ausführen erfordert zuvor einen Login, s.u. |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Download__: eine Configuration in den  Download-Folder auf dem lokalen Rechner herunterladen  |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg> __Events Export__: die Einzel-Events eines ausgeführten Systems als CSV-Datei in den  Download-Folder auf dem lokalen Rechner herunterladen; mit diese Daten können mit Statistics-Tools weitergehende statistische Auswertungen gemacht werden |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z"/></svg> __Drop__: die aktuelle Configuration wird verworfen |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/></svg> <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m792-282-58-56 26-26v-232L596-760H364l-26 26-56-58 48-48h300l210 210v298l-48 50ZM520-552v-128h-80v48l80 80ZM820-28 678-170l-48 50H330L120-332v-298l48-48L28-820l56-56L876-84l-56 56ZM536-536ZM364-200h232l26-26-396-396-26 26v232l164 164Zm116-80q-17 0-28.5-11.5T440-320q0-17 11.5-28.5T480-360q17 0 28.5 11.5T520-320q0 17-11.5 28.5T480-280Zm-56-144Z"/></svg>  __Activity Log__: zeigt die Aktivitäten der Lonely-Lobster Anwendung, u.a. Warnings, Errors; die Anzeige der Liste der Aktivitätenmeldungen kann toggled werden |
 | 2 | Zentrale Informationen :  | Frontend Software Version |
 |   |  | Systemnamen der aktuellen Configuration |
 |   |  | Events aus dem Lonely-Lobster Anwendungs-Activity Log  |
-| 3 | Log in / Log out:  | soll eine Configuration (im Backend) ausgeführt werden, muss der User sich zuerst einloggen; ist der USer eingeloggt, wird sein Namen angezeigt  |
+| 3 | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg> Log in / <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></svg> Log out:  | soll eine Configuration (im Backend) ausgeführt werden, muss der User sich zuerst einloggen; ist der User eingeloggt, wird sein Namen angezeigt  |
 
 
 
+[home](https://fonts.google.com/icons?selected=Material+Symbols+Outlined:home:FILL@0;wght@400;GRAD@0;opsz@24&icon.size=24&icon.color=%235f6368)
 
 
+<svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg>
 
 ...

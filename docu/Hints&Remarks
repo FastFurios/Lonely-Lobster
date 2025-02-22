@@ -153,4 +153,6 @@ sest        work item selection strategy
 
 # Markdown
 see ondrive/.../Software Development Archive/Hints and Guides
-<mark>THis is highlited text!</mark>
+<mark>This is highlited text!</mark>
+X<sup>2</sup>
+H<sub>2</sub>O
