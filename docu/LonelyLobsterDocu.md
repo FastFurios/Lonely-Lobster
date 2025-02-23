@@ -125,8 +125,10 @@ Im Weiteren werden nachfolgenden Begriffe verwendet:
 | Work Order | ein Work Item, das in einer Value Chain in den ersten Process Step eintritt | Arbeitsauftrag, Auftrag |
 | End Product | ein Work Item, dessen Bearbeitung in seiner Value Chain komplett abgeschlossen und den Output Basket übergeben wurde |  |
 | Time Unit | Zeitabschnitt: die Zeit in Lonely-Lobster vergeht in diskreten Schritten. Die Zeit startet bei 0 und wird bei jeder Iteration inkrementiert | Time |
+| Iteration | Aus dem aktuellen State wird der nächste errechnet, dabei schreitet die Zeit um eine Time Unit voran. |  |
 | Effort | Aufwand, d.h. die Anzahl von Zeiteinheiten, die Worker für ein Work Item aufgewandt haben. Worker können 0 oder 1 Effort-Einheit pro Time Unit an einem Work Item arbeiten  |  |
 | Norm Effort | Aufwand für die nötige Arbeit, die Worker an einem Work Item in einem Process Step leisten müssen, um es zur nächsten Arbeitsstation oder dem Output Basket weiterreichen zu können  |  |
+| Utilization | Be-/Auslastung eines Workers über das Interval. Utilization errechnet sich als Anteil der TimeUnits in einem Interval, in der der Worker an Workitems gearbeitet hat. Ist der Anteil kleiner 50% wird der Name in hellgrün angezeigt, bis 80% grün, bis 90% orange, darüber rot |  |
 | Value | der Erlös, den das End Product beim Kunden oder am Markt erzielt. Da in Lonely-Lobster von immaterieller Wissensarbeit ausgegangen wird und der Erwerb von Rohmaterial nicht erforderlich ist, entspricht der Value gleichzeitig dem Mehrwert  | Value-add |
 | Cost | Kosten für den geleisteten Effort, falls die Worker-Kosten variabel sind, d.h. die Worker werden nur vergütet, wenn sie an einem Work Item arbeiten. Damit entspricht Cost der Summe des geleisteten Efforts bzw. bei Ankunft im Output Basket der Summe aller Norm Efforts der Process Steps in der Value Chain. Bei fixen Worker-Kosten, d.h. einem Bestand von Festangestellten, entstehen die Kosten durch die vergehende Zeit, unabhängig davon, wie oft der Worker an Work Items gearbeitet hat. Amerkung: Effort und Value haben in Lonely-Lobster dieselbe Maßeinheit |  |
 | Strategy | Strategie, nach der Worker in der aktuellen Time Unit eines von mehreren Work Items, die ihr oder ihm vorliegen, zur Bearbeitung auswählt. | Langform: Work Item Selecton Strategy |
@@ -135,7 +137,7 @@ Im Weiteren werden nachfolgenden Begriffe verwendet:
 | Elapsed Time | bisher vergangene Zeit, seitdem ein Work Item in seine Value Chain oder Process Step eingetreten ist |  |
 | Discounted Value  | reduzierter Wert, der beim Kunden oder am Markt erzielt werden kann. Der Wert mag sich verändern, je länger der Kunde oder der Markt auf die Lieferung warten muss. In Lonely-Lobster kann eingestellt werden, wie der Wert sich verändert abhängig von der Cycle Time eines End Products: maßgeblich ist die Zeit, die über die minimale Cycle Time, d.h. den Effort der Value Chain, hinausgeht |  |
 | Contribution Margin | Die Differenz zwischen dem für ein End Product erlösten (discounted) Werts und dem Effort  |  |
-| Interval | Zeitspanne zurück in die Vergangenheit gemessen in Time Units | Observation Period |
+| Interval | Zeitspanne zurück in die Vergangenheit gemessen in Time Units. Ein Wert von 0 bedeutet von Anfang, also Time 0, an  | Observation Period |
 | Throughput | Anzahl von Work Items, die in einem Interval pro Time Unit in einem Process Step abgeschlossen wurden bzw. den Output Basket erreicht haben (i.e. Troughput in Items "TPI"). Der Durchsatz kann auch anhand des Wertes gemessen werden (i.e. Troughput in Value "TPV"). TPV berücksichtigt  nicht Stücke sondern den Value  |  |
 | ROCE | Return On Capital Engaged: die zu einem Zeitpunkt kummulierte Cost im System für alle Work Items, die noch kein End Product sind, m.a.W. die noch in ihrer Value Chain in Bearbeitung sind. "ROCE fix" wird auf Basis einer fixen Belegschaft berechnet, "ROCE var" auf der Annahme, dass nur erbrachte Arbeit an Work Items vergütet wird  |  |
 | Frontend | Der Teil von Lonely-Lobster, der im Browser des Users läuft  |  |
@@ -153,7 +155,7 @@ Nachfolgend wird auf die einzelnen Sektionen des User Interface eingegangen.
 
 | Label | Erläuterung | Details |
 | :---: | :--- | :--- |
-| 1 | Hier finden sich 8 Symbole. Von links nach rechts:  | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg> __Home__: zeigt einige Informationen |
+| 1 | Hier finden sich 8 Symbole. Von links nach rechts:  | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg> __Home__: zeigt einige Informationen über Lonely-Lobster |
 |   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Upload__: eine JSON-Datei mit einer Configuration in das Lonely-Lobster-Frontend hochladen |
 |   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg> __Edit__: eine Configuration erstellen und editieren |
 |   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg> __Run__: aktuelle Configuration in das Lonely-Lobster-Backend laden und als System ausgeführen; Ausführen erfordert zuvor einen Login, s.u. |
@@ -166,8 +168,40 @@ Nachfolgend wird auf die einzelnen Sektionen des User Interface eingegangen.
 |   |  | Events aus dem Lonely-Lobster Anwendungs-Activity Log  |
 | 3 | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg> Log in, <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></svg> Log out:  | soll eine Configuration (im Backend) ausgeführt werden, muss der User sich zuerst einloggen; ist der User eingeloggt, wird sein Namen angezeigt  |
 
-...
+### System Control Bar
+Ist eine Configuration ins Backend geladen worden, so dass das definierte System ausgeführt werden kann, kann es über die System Control Bar gesteuert werden.
+
 ![Lonely Lobster System "Italian Restaurant" System Control Log](ItalianRestaurantScreenshot_SystemControlBar_labelled.jpg)
+
+| Label | Erläuterung |
+| :---: | :--- | 
+| 4 | ![Lonely Lobster System "Italian Restaurant" System Control Log](ItalianRestaurantScreenshot_RunResumeStopReset_labelled.jpg) |
+|   | Software-Version des Backends |
+|   | Aktuelle Time (Unit) des Systems |
+|   | Anzahl der Iterationen, die beim nächsten Click des Buttons "Run" ausgeführt werden sollen |
+|   | __Run__: führt die nächste(n) Iterationen(en) aus |
+|   | __Stop__: hält bei Ausführung von mehreren Iterationenen das System an |
+|   | __Resume__: führt eine zuvor angehaltene Ausführung von mehreren Iterationenen wieder fort
+|   | __Reset__: setzt das System wieder zurück in den Ausgangszustand, also vor der ersten Iteration |
+|  5 | ![Lonely Lobster System "Italian Restaurant" Worker Strain](ItalianRestaurantScreenshot_WorkerStrainStrategies_labelled.jpg) Dieser Abschnitt zeigt die Worker mit folgenden jeweiligen Informationen: |
+|    | __Utilization__: prozentuale Be-/Auslastung mit entsprechend eingefärbtem Namen |
+|    | __Weighted Strategies__: die Farben zeigen an, welche Strategien der Worker zur Auswahl hat. Die relative Länge der Farbbalken zeigt, wie stark der Worker aktuell die einzelnen Strategien gewichtet, um ein bestmögliches Systemergebnis zu erzielen  |
+|    | __Assignments__: Process Steps, denen der Worker zugewiesen ist |
+|    | __Legende__: Legende der Strategien mit Namen und zugewiesenen Farben
+| 6 | ![Lonely Lobster System "Italian Restaurant" Worker Strain](ItalianRestaurantScreenshot_EcoStats_labelled.jpg) |
+|   | __Interval__: Interval, über das die Werte errechnet werden. Ein Wert von 0 bedeutet von Time 0 an bis jetzt |
+|   | __Timestamp of Stats__: TimeUnit, bei der die Statistiken zuletzt berechnet wurden |
+|   | __#End Products__: Anzahl der Workitems, die im Interval fertiggestellt wurden, m.a.W. die den Output Basket erreicht haben |
+|   | __Avg.Cycle Time__: durchschnittliche Cycle Time der End Products durch die Value Chains |
+|   | __Avg. Contribution Margin__: durchschnittliche Contribution, ggf. discounted  |
+|   | __Avg. Working Capital__: durchschnittliches Working Capital |
+|   | __ROCE var/fix__: Return on Capital Engaged für variable bzw. fixe Bezahlung der Worker |
+| 7  | ![Lonely Lobster System "Italian Restaurant" Worker Strain](ItalianRestaurantScreenshot_RunToggles_labelled.jpg) |
+|   |  __update view every iterstion__: das Frontend zeigt den Stand jeder Iteration |
+|   | __show inventories__: das Frontend zeigt die Inventories. Ist der Toggle off, muss das Frontend nicht die  Inventories darstellen und die Iterationen laufen schneller  |
+|   | __optimize WIP limits__: wenn toogle on, dann versucht Lonely-Lobster nach einem heuristischen Verfahren WIP limits zu finden, den ROCE des Systems zu maximieren. Der Toogle geht auf off, sobald das Backend (scheinbar) ein Optimum gefunden hat |
+
+### Value Chains
 ...
 ![Lonely Lobster System "Italian Restaurant" Value Chain](ItalianRestaurantScreenshot_ValueChain_labelled.jpg)
 ...
