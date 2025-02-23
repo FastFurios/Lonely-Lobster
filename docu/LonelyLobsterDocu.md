@@ -264,9 +264,15 @@ In diesem Beispiel sind für das System drei Strategien definiert. Jedem Worker 
 #### Funktionsweise von Strategien
 Eine Strategie besteht aus keinem Sort Vector, einem Sort Vector oder einer nach Priorität abfallenden Liste von Sort Vectors. Ein __Sort Vector__ besteht aus einer Messgröße und einer Sortierung, aufsteigend oder absteigend. Damit werden die Work Items, die ein Worker im Zugriff hat, sortiert. Das Work Item, das in der resultierenden Liste oben steht, wird vom Worker als das nächste zu bearbeitende ausgewählt. Sollten nach der Sortierung mehrere Work Items mit denselben Werten oben stehen, wird der nächste Sort Vector herangezogen, um diese verbleibenden Work Items zu sortieren. Sollten weiterhin mehrere Work Items mit gleichen Werten oben stehen, wird der nächste Sort Vector angewandt. Steht kein Sort Vector mehr in der Strategie zur Verfügung, kommt __random__ für die verbleibenden Work Items zur Anwendung.                   
 
-...
+#### System Configuration als JSON Datei
+System Configurations können als JSON Datei aus dem Frontend heruntergeladen werden. Ebenso können Confurations in das Frontend hochgeladen werden. Der Aufbau der JSON Datei spiegelt den AUfbau des Editors wieder.   
 ![Lonely Lobster System "Italian Restaurant" Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
-...
+Natürlich können Configuration JSON Dateien auch mit anderen Editoren erstellt werden.
+
+### Application Activity Log
+Der User kann sich eine History wichtiger Aktivitäten der Anwendung anziegen lassen. Hierzu kann mittels <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>   
+die Liste der Aktivitäten und Fehlermeldungen angezeigt werden.  
+
 ![Lonely Lobster System "Italian Restaurant" Activity Log](ItalianRestaurantScreenshot_SystemActivityLog.jpg)
 ...
 ...
