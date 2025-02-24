@@ -264,13 +264,49 @@ In diesem Beispiel sind für das System drei Strategien definiert. Jedem Worker 
 #### Funktionsweise von Strategien
 Eine Strategie besteht aus keinem Sort Vector, einem Sort Vector oder einer nach Priorität abfallenden Liste von Sort Vectors. Ein __Sort Vector__ besteht aus einer Messgröße und einer Sortierung, aufsteigend oder absteigend. Damit werden die Work Items, die ein Worker im Zugriff hat, sortiert. Das Work Item, das in der resultierenden Liste oben steht, wird vom Worker als das nächste zu bearbeitende ausgewählt. Sollten nach der Sortierung mehrere Work Items mit denselben Werten oben stehen, wird der nächste Sort Vector herangezogen, um diese verbleibenden Work Items zu sortieren. Sollten weiterhin mehrere Work Items mit gleichen Werten oben stehen, wird der nächste Sort Vector angewandt. Steht kein Sort Vector mehr in der Strategie zur Verfügung, kommt __random__ für die verbleibenden Work Items zur Anwendung.                   
 
+#### System Parameter
+![Lonely Lobster System "Italian Restaurant" System Parameter](ItalianRestaurantScreenshot_SystemParameters_labelled.jpg)
+
+| Label | Gruppe | Parameter | Erläuterung |
+| :---: | :--- | :--- | :--- |
+| 37 | Presetting | #iterations per batch | Anzahl von Iterationen, die pro "Run" ausgeführt werden  |
+|  |  | Economics stats interval | Interval für die Berechnung der Economics Statistics |
+| 38  | Learn and Adapt | Observation Period | Periode, über die Workers die Entwicklung des Systems beobachten, bevor sie die Gewichtung der ihnen verfügbaren Strategien ändern. Generell gilt: je höher die Gewichtung einer Strategie, desto öfter wird sie zufällig ausgewählt. Eine gewählte Strategie kommt für die nächste Observation Period zur Anwendung |
+|  |  | Success Measure Function | Es stehen zwei Funtionen zur Messung des Erfolgs der aktuellen Gewichtung der Strategien der Worker bereit: __roce__ (ROCE var) und __ivc__ (individual value contribution). Ist roce gewählt und der ROCE var des Systems ist über die zurückliegende Observation Period gewachsen, wird der Worker die zuletzt angewandte Strategie noch stärker gewichten, andernfalls die Gewichtung zugunsten der anderen Strategien reduzieren.  __ivc__ misst für alle End Products den Effort-Anteil des Workers an dessen Bearbeitung und berechnet daraus analog den individuellen, anteiligen Beitrag am realisierten Value |
+|  |  | Adjustment Factor | Hiermit lässt sich einstellen, wie stark die Anpassung der Gewichtung ausfallen soll |
+| 39 | WIP limit optimization | Initial Temperature | Die initiale "Temperatur" des Optimierungsverfahrens, das unten genauer im ABschnitt beschrieben ist, siehe [Simulated Annealing](#simulated-annealing) |
+|  |  | Cooling Factor | Faktor, mit dem die aktuelle Temperatur multipliziert wird, um die Temperatur für die nächste __Measurement Period__ zu berechnen |
+|  |  | Degrees per Downhill Step Tolerance | Temperaturreduktion, die die Anzahl der tolerierten Downhill-Schritte um 1 reduziert, e.g. 20 = for every 20 degree of cooling it tolerates 1 downhill step less |
+|  |  | Initial Jump Distance | Intiale Sprungweite |
+|  |  | Measurement Period | number of iterations after which the performance is measured  |
+|  |  | WIP Limit Upper Boundary Factor | setzt die Obergrenze der WIP Limits, in dem die lower boundary mit diesem Factor multipliziert wird. So wird der multidimensionale Suchraum nach oben sinnvoll begrenzt  |
+
+#### Simulated Annealing
+Nachfolgend wird das Verfahren beschrieben, wie das System versucht, WIP Limits so zu setzen, dass der ROCE var maximiert wird. Das Verfahren ist heuristisch, d.h. es kann nicht garantieren, dass die beste Lösung gefunden wird, aber es findet meistens eine zumindest gute Lösung. __Simulated Anealing__ ist ein etablierter Algorithmus, um mutli-dimensionale Optimierungen durchzuführen, siehe [Wikipedia: Simulated Anealing](https://en.wikipedia.org/wiki/Simulated_annealing). Für die WIP Limit Optimierung wurde eine weiterentwickelte Version des Algotithmus umgesetzt. 
+
+Die Suche nach der besten Kombination der WIP Limite kann als Suche nach einem Optimum in einem mehrdimensionalen Raum verstanden werden. Jeder Process Step stellt eine Dimension dar. In diesem Suchraumwird die Maximierung des ROCE var angestrebt. 
+
+Hier eine Skizze des Algorithmus:  
+1. Es wird die Starttemperatur gesetzt
+1. Es wird eine Ausgangsposition im Suchraum per Zufall gewählt 
+1. Das System führt die Anzahl von Iterationen, wie mit __Measurement Period__ definiert, durch
+1. Die Systemperformance der zurückliegenden __Measurement Period__ wird ermittelt
+1. Die temperaturabhängige Jump Distance wird berechnet
+1. Die temperaturabhängige Toleranz für die Anzahl der Schritte, die zu einer schlechtere Systemperformance (ROCE var) als die bisher beste gemessene führte
+1. Es wird per Zufall eine Dimension    
+
+
+
+
+
+
 #### System Configuration als JSON Datei
-System Configurations können als JSON Datei aus dem Frontend heruntergeladen werden. Ebenso können Confurations in das Frontend hochgeladen werden. Der Aufbau der JSON Datei spiegelt den AUfbau des Editors wieder.   
+System Configurations können als JSON Datei aus dem Frontend heruntergeladen werden. Ebenso können Confurations in das Frontend hochgeladen werden. Der Aufbau der JSON Datei spiegelt den Aufbau des Editors wieder.   
 ![Lonely Lobster System "Italian Restaurant" Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
 Natürlich können Configuration JSON Dateien auch mit anderen Editoren erstellt werden.
 
 ### Application Activity Log
-Der User kann sich eine History wichtiger Aktivitäten der Anwendung anziegen lassen. Hierzu kann mittels <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>   
+Der User kann sich eine History wichtiger Aktivitäten der Anwendung anzeigen lassen. Hierzu kann mittels <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>   
 die Liste der Aktivitäten und Fehlermeldungen angezeigt werden.  
 
 ![Lonely Lobster System "Italian Restaurant" Activity Log](ItalianRestaurantScreenshot_SystemActivityLog.jpg)
