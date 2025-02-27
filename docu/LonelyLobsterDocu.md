@@ -301,15 +301,16 @@ Hier eine grobe Skizze des Algorithmus:
 1. Die Systemperformance (ROCE var) der zurückliegenden __Measurement Period__ wird ermittelt
 1. Die temperaturabhängige __Jump Distance__ wird berechnet
 1. Die temperaturabhängige Toleranz für die Anzahl von Schritten, die jeweils eine schlechteren Systemperformance hatten als die bisher beste gemessene, wird per __Degrees per Downhill Step Tolerance__ berechnet
-1. Ist die gemessene Systemperformance besser als alle bisher gemessenen, wird von dort aus per Zufall eine Dimension (d.h. ein WIP-Limit) ausgewählt und in diese Richtung um Jump Distance Schritte gesprungen. Die Temperatur wird mit dem Cooling Factor multipliziert, d.h. reduziert. Weiter mit 3.
-1. Andernfalls wird die Anzahl der Schritte mit schlechterer Systemperformance als die bisher gemessene um 1 erhöht. Liegt der Wert über der temperaturabhängigen Toleranz, wird die aktuelle Position auf die Position der bisher besten Systemperformance zurückgesetzt. Es wird von dort aus per Zufall eine Dimension (d.h. ein WIP-Limit) ausgewählt und in diese Richtung um __Jump Distance__ Schritte gesprungen. Die Temperatur wird mit dem Cooling Factor multipliziert, d.h. reduziert. Weiter mit 3.
+1. Ist die gemessene Systemperformance besser als alle bisher gemessenen, dann weiter mit 9.
+1. Andernfalls wird die Anzahl der Schritte mit schlechterer Systemperformance als die bisher gemessene um 1 erhöht. Liegt der Wert über der temperaturabhängigen Toleranz, wird die aktuelle Position auf die Position der bisher besten Systemperformance zurückgesetzt. 
+1. Es wird per Zufall eine Dimension (d.h. ein WIP-Limit) ausgewählt und in diese Richtung um __Jump Distance__ Schritte gesprungen. Die Temperatur wird mit dem Cooling Factor multipliziert, d.h. reduziert. Weiter mit 3.
 
 Die Optimierung bricht ab, wenn die Temperatur unter 1 gesunken ist. 
 Wird beim Sprung die Grenze des mehrdimensionalen Suchraums erreicht, prallt der Sprung zurück. Dabei ist die obere Grenze des Suchraums die das initiale WIP-Limit multipliziert mit dem __WIP Limit Upper Boundary Factor__.          
 
 #### System Configuration als JSON Datei
 System Configurations können als JSON Datei aus dem Frontend heruntergeladen werden. Ebenso können Confurations in das Frontend hochgeladen werden. Der Aufbau der JSON Datei spiegelt den Aufbau des Editors wieder.   
-![Lonely Lobster System "Italian Restaurant" Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
+![Lonely Lobster System "Italian Restaurant" Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)  
 Natürlich können Configuration JSON Dateien auch mit anderen Editoren erstellt werden.
 
 ...
