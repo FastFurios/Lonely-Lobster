@@ -172,6 +172,14 @@ Nachfolgend wird auf die einzelnen Sektionen des User Interface eingegangen.
 |   |  | letzter Event aus dem Lonely-Lobster Anwendungs-Activity Log  |
 | 3 | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg> Log in, <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></svg> Log out:  | soll eine Configuration (im Backend) ausgeführt werden, muss der User sich zuerst einloggen; ist der User eingeloggt, wird sein Namen angezeigt  |
 
+### Application Activity Log
+Der User kann sich eine History wichtiger Aktivitäten der Anwendung anzeigen lassen. Hierzu kann mittels <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>   
+die Liste der Aktivitäten und Fehlermeldungen angezeigt werden.  
+
+![Lonely Lobster System "Italian Restaurant" Activity Log](ItalianRestaurantScreenshot_SystemActivityLog.jpg)
+
+Auch Warnungen und Fehler werden hier gezeigt.
+
 ## Das System
 Das Backend führt ein System gemäß der Configuration aus. Der User hat diverse Möglichkeiten, den Ablauf der Iterationen zu steuern. Der aktuelle Stand der Abarbeitung und statistische Daten werden angezeigt.   
 ### System Control Bar
@@ -271,8 +279,8 @@ Eine Strategie besteht aus keinem Sort Vector, einem Sort Vector oder einer nach
 | :---: | :--- | :--- | :--- |
 | 37 | Presetting | #iterations per batch | Anzahl von Iterationen, die pro "Run" ausgeführt werden  |
 |  |  | Economics stats interval | Interval für die Berechnung der Economics Statistics |
-| 38  | Learn and Adapt | Observation Period | Periode, über die Workers die Entwicklung des Systems beobachten, bevor sie die Gewichtung der ihnen verfügbaren Strategien ändern. Generell gilt: je höher die Gewichtung einer Strategie, desto öfter wird sie zufällig ausgewählt. Eine gewählte Strategie kommt für die nächste Observation Period zur Anwendung |
-|  |  | Success Measure Function | Es stehen zwei Funtionen zur Messung des Erfolgs der aktuellen Gewichtung der Strategien der Worker bereit: __roce__ (ROCE var) und __ivc__ (individual value contribution). Ist roce gewählt und der ROCE var des Systems ist über die zurückliegende Observation Period gewachsen, wird der Worker die zuletzt angewandte Strategie noch stärker gewichten, andernfalls die Gewichtung zugunsten der anderen Strategien reduzieren.  __ivc__ misst für alle End Products den Effort-Anteil des Workers an dessen Bearbeitung und berechnet daraus analog den individuellen, anteiligen Beitrag am realisierten Value |
+| 38  | Learn and Adapt | Observation Period | Periode, über die Workers die Entwicklung des Systems beobachten, bevor sie die Gewichtung der ihnen verfügbaren Strategien ändern. Generell gilt: je höher die Gewichtung einer Strategie, desto öfter wird sie zufällig ausgewählt. Die gewählte Strategie kommt für die nächste Observation Period zur Anwendung |
+|  |  | Success Measure Function | Es stehen zwei Funktionen zur Messung des Erfolgs der aktuellen Gewichtung der Strategien der Worker bereit: __roce__ (ROCE var) und __ivc__ (individual value contribution). Ist roce gewählt und der ROCE var des Systems ist über die zurückliegende Observation Period gewachsen, wird der Worker die zuletzt angewandte Strategie noch stärker gewichten, andernfalls die Gewichtung zugunsten der anderen Strategien reduzieren.  __ivc__ misst für alle End Products den Effort-Anteil des Workers an dessen Bearbeitung und berechnet daraus analog den individuellen, anteiligen Beitrag am realisierten Value |
 |  |  | Adjustment Factor | Hiermit lässt sich einstellen, wie stark die Anpassung der Gewichtung ausfallen soll |
 | 39 | WIP limit optimization | Initial Temperature | Die initiale "Temperatur" des Optimierungsverfahrens, das unten genauer im ABschnitt beschrieben ist, siehe [Simulated Annealing](#simulated-annealing) |
 |  |  | Cooling Factor | Faktor, mit dem die aktuelle Temperatur multipliziert wird, um die Temperatur für die nächste __Measurement Period__ zu berechnen |
@@ -286,30 +294,24 @@ Nachfolgend wird das Verfahren beschrieben, wie das System versucht, WIP Limits 
 
 Die Suche nach der besten Kombination der WIP Limite kann als Suche nach einem Optimum in einem mehrdimensionalen Raum verstanden werden. Jeder Process Step stellt eine Dimension dar. In diesem Suchraumwird die Maximierung des ROCE var angestrebt. 
 
-Hier eine Skizze des Algorithmus:  
-1. Es wird die Starttemperatur gesetzt
-1. Es wird eine Ausgangsposition im Suchraum per Zufall gewählt 
+Hier eine grobe Skizze des Algorithmus:  
+1. Es wird die __Initial Temperature__ gesetzt
+1. Es wird die Ausgangsposition im Suchraum gewählt, in dem alle explizit gesetzten WIP-Limits vom Frontend übernommen werden  
 1. Das System führt die Anzahl von Iterationen, wie mit __Measurement Period__ definiert, durch
-1. Die Systemperformance der zurückliegenden __Measurement Period__ wird ermittelt
-1. Die temperaturabhängige Jump Distance wird berechnet
-1. Die temperaturabhängige Toleranz für die Anzahl der Schritte, die zu einer schlechtere Systemperformance (ROCE var) als die bisher beste gemessene führte
-1. Es wird per Zufall eine Dimension    
+1. Die Systemperformance (ROCE var) der zurückliegenden __Measurement Period__ wird ermittelt
+1. Die temperaturabhängige __Jump Distance__ wird berechnet
+1. Die temperaturabhängige Toleranz für die Anzahl von Schritten, die jeweils eine schlechteren Systemperformance hatten als die bisher beste gemessene, wird per __Degrees per Downhill Step Tolerance__ berechnet
+1. Ist die gemessene Systemperformance besser als alle bisher gemessenen, wird von dort aus per Zufall eine Dimension (d.h. ein WIP-Limit) ausgewählt und in diese Richtung um Jump Distance Schritte gesprungen. Die Temperatur wird mit dem Cooling Factor multipliziert, d.h. reduziert. Weiter mit 3.
+1. Andernfalls wird die Anzahl der Schritte mit schlechterer Systemperformance als die bisher gemessene um 1 erhöht. Liegt der Wert über der temperaturabhängigen Toleranz, wird die aktuelle Position auf die Position der bisher besten Systemperformance zurückgesetzt. Es wird von dort aus per Zufall eine Dimension (d.h. ein WIP-Limit) ausgewählt und in diese Richtung um __Jump Distance__ Schritte gesprungen. Die Temperatur wird mit dem Cooling Factor multipliziert, d.h. reduziert. Weiter mit 3.
 
-
-
-
-
+Die Optimierung bricht ab, wenn die Temperatur unter 1 gesunken ist. 
+Wird beim Sprung die Grenze des mehrdimensionalen Suchraums erreicht, prallt der Sprung zurück. Dabei ist die obere Grenze des Suchraums die das initiale WIP-Limit multipliziert mit dem __WIP Limit Upper Boundary Factor__.          
 
 #### System Configuration als JSON Datei
 System Configurations können als JSON Datei aus dem Frontend heruntergeladen werden. Ebenso können Confurations in das Frontend hochgeladen werden. Der Aufbau der JSON Datei spiegelt den Aufbau des Editors wieder.   
 ![Lonely Lobster System "Italian Restaurant" Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
 Natürlich können Configuration JSON Dateien auch mit anderen Editoren erstellt werden.
 
-### Application Activity Log
-Der User kann sich eine History wichtiger Aktivitäten der Anwendung anzeigen lassen. Hierzu kann mittels <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>   
-die Liste der Aktivitäten und Fehlermeldungen angezeigt werden.  
-
-![Lonely Lobster System "Italian Restaurant" Activity Log](ItalianRestaurantScreenshot_SystemActivityLog.jpg)
 ...
 ...
 
