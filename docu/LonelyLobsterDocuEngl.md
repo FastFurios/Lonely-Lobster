@@ -1,106 +1,108 @@
 # Lean Manufacturing
-Seit dem Beginn der Industrialisierung Ende des 18. Jahrhunderts hat die Produktion von Waren für nahezu alle Bereiche des Lebens stetig an Effizienz gewonnen. Die fabrikbasierte Massenproduktion hat die Menge und die Qualität der produzierten Waren kontinuierlich gesteigert und gleichzeitig die Stückkosten immer weiter reduziert. Unser heutiger materieller Wohlstand gründet auf ihr.
+Since the beginning of industrialization at the end of the 18th century, the production of goods for almost all areas of life has steadily increased in efficiency. Factory-based mass production has continuously increased the quantity and quality of the goods produced and at the same time reduced unit costs. Our material prosperity today is based on it.
 
-Was macht die Massenproduktion in Fabriken so effizient? Es sind u.a. 
-* eine klar definierte, standardisierte Abfolge von Arbeitsstationen, die ein Werkstück durchläuft. In aller Regel ist dieser Ablauf linear, d.h. Werkstücke durchlaufen eine Kette von Arbeitsstationen, die jeweils genau eine Vorgänger und einen Nachfolger haben. Ausnahmen sind die erste Arbeitsstation (hat keinen Vorgänger) und die letzte (hat keinen Nachfolger). Diese Abfolge von Arbeitsschritten wird oft als Wertschöpfungskette bezeichnet, da die Arbeit in jedem Schritt zum Wert des Werkstücks beiträgt.  
-* in jeder Arbeitsstation werden nur wenige, aber spezialisierte Arbeitschritte am Werkstück ausgeführt. Dabei können auch (weitere) Rohmaterialen oder Zwischenprodukte anderer Wertschöpfungsketten einbezogen und mit dem Werkstück integriert und verarbeitet werden. 
-* Sind alle Arbeiten einer Arbeitsstation abgeschlossen, wird das Werkstück an die nächste Arbeitsstation weitergegeben bzw. von dieser "abgeholt". Von der letzten Arbeitsstation wird das  Endprodukt dem Markt, Kunden bzw. Konsumenten übergeben.
-* Um die speziellen Arbeitsschritte in einer   Arbeitstation ausführen zu können, sind ihr hierfür ausgebildete, auf die Arbeitsschritte spezialiserte Bearbeiter, die nötigen Materialen und meist unterstützende Maschinen zugewiesen. Die Arbeitsschritte werden nach einer für die Arbeitsstation vorgegebenen Methode ausgeführt. Messungen und daraus abgeleitete KPIs geben kontinuierlich Aufschluss z.B. über Effizienz, Qualität, Arbeitslast etc. Siehe [The 5Ms of Lean Manufacturing](https://theleansuite.com/the-5-ms-of-lean-manufacturing): Manpower, Material, Machines, Methods, Measurments.
-* Stringente Einhaltung von Maßnahmen, die eine hohe Zuverlässigkeit und Qualität in jedem Arbeitsschritt sicherstellt, um Mehraufwand für die Behebung von vermeidbaren Verarbeitungsmängeln und Ausschuss zu vermeiden.  Siehe z.B. [Six Sigma](https://de.wikipedia.org/wiki/Six_Sigma).
-Die Organisation von effizienter Massenproduktion ist wissenschaftlich gut verstanden und viele abgeleitete Vorgehensweisen und bewährte Best Practices sind heute in den meisten Produktionsbetrieben auf der Welt fest etabliert. Der Überbegriff 
-[Lean Manufacturing](https://en.wikipedia.org/wiki/Lean_manufacturing) fasst das Wissen über die Organisation effizienter Produktion zusammen.
+What makes mass production in factories so efficient? Among other things, 
+* A clearly defined, standardized sequence of work stations through which a workpiece passes. As a rule, this sequence is linear, i.e. workpieces pass through a chain of work stations, each of which has exactly one predecessor and one successor. Exceptions are the first work station (has no predecessor) and the last (has no successor). This sequence of work steps is often referred to as a value chain, as the work in each step contributes to the value of the workpiece.  
+* In each workstation, only a few specialized work steps are carried out on the workpiece. In the process, (further) raw materials or intermediate products from other value chains can also be included and integrated and processed with the workpiece. 
+* Once all the work at a workstation has been completed, the workpiece is passed on to the next workstation or “picked up” from it. From the last workstation, the end product is handed over to the market, customer or consumer.
+* In order to be able to carry out the specific work steps in a work station, it is assigned trained workers, who are specialized in the work steps, the necessary materials and usually supporting machines. The work steps are carried out according to a method specified for the workstation. Measurements and the KPIs derived from them provide continuous information, e.g. on efficiency, quality, workload, etc. See [The 5Ms of Lean Manufacturing](https://theleansuite.com/the-5-ms-of-lean-manufacturing): Manpower, Material, Machines, Methods, Measurments.
+* Strict adherence to measures that ensure high reliability and quality in every work step in order to avoid additional costs for the elimination of avoidable processing defects and rejects.  See e.g. [Six Sigma](https://de.wikipedia.org/wiki/Six_Sigma).
+The organization of efficient mass production is scientifically well understood and many derived procedures and proven best practices are now well established in most manufacturing operations around the world. The umbrella term 
+[Lean Manufacturing](https://en.wikipedia.org/wiki/Lean_manufacturing) summarizes the knowledge about the organization of efficient production.
 
-# Vorteile des Lean Manufacturings: 
-Ist eine Produktionsstraße, also die Einrichtungen in einer Fabrik, die die Wertschöpfungskette mittels Arbeitsstationen darstellt, nach Lean Manufactoring Prinzipien organisiert, entstehen eine Reihe von Vorteile:
-* gute Nutzung der eingesetzten Ressourcen, also von Maschinen, Material, Menschen. Das Verhältnis von Kosten für die eingesetzten Ressourcen zu den erzielten Verkaufserlösen der entstandenen Endprodukte wird verringert, m.a.W. pro Endprodukt sinken die Produktionskosten, was die Wettbewerbsfähigkeit des Herstellers steigert.
-* Die Durchlaufzeiten durch die Wertschöpfungskette werden reduziert. Das hat mehrere positive Effekte:
-    * Werden Produkte auf Bestellung produziert, dann kann so sichergestellt werden, dass die Wartezeit für den Besteller minimiert wird. Die Durchlaufzeit vom ersten Arbeitsschritt bis zur Übergabe an den Besteller wird minimiert. Auch kann besser vorhergesagt werden, wann das Endprodukt zur Lieferung bereitsteht. Vielen Besteller schätzen derlei zuverlässige und schnelle Lieferung und sind bereit, hierfür mehr Geld auszugeben.
-    * Je mehr Werkstücke sich gleichzeitig in unfertigem Zustand in der Wertschöpfungskette  befinden, desto mehr Kapital wird gebunden. Für den Erwerb der  Rohmaterialien und die (variable) Bezahlung der Bearbeiter sind bereits Ausgaben angefallen, denen noch kein Verkaufserlös entgegensteht. Diese Kosten, das sogenannte Arbeitskapital, muss finanziert werden, z.B. durch ein Darlehen einer Bank. Je höher also das Inventar in der Produktionskette, desto höher der Bedarf an Arbeitskapital, desto höher die Ausgaben für dessen Finanzierung, desto niedriger die erzielte Marge. Die Marge ist die Differenz zwischen Verkaufserlös und den  enstandenen Kosten für die Herstellung des Endprodukts, in das anteilig auch die Finanzierungskosten für das Arbeitskapital einfließen. Methoden des Lean Manufactorings helfen, die Durchlaufzeiten und das  Inventar an nicht fertigen Werkstücken in der Wertschöpfungskette zu minimieren. 
-    * Die Minimierung des Inventars in der Wertschöpfungskette erhöht auch die Agilität, sich auf neue Nachfragesituationen einzustellen. Befinden sich zu jedem Zeitpunkt nur relativ wenige unfertige Werkstücke in Bearbeitung, kann schnell auf die Produktion anderer Produkte umgestellt werden, ohne dass erst noch eine große Zahl von unfertigen Werkstücken fertigzustellen ist. Diese träfen dann bei ihrer Fertigstellung möglicherweise auf einen nur noch wenig interessenten Markt und können nur noch mit größeren Preisnachlässen verkauft werden. Im Gegensatz hierzu hilft Lean Manufacturing, schnell mit neuen Produkten am Markt zu sein.
-    * Es gibt immer wieder Situationen, in denen temporär mehr neue Aufträge hinzukommen als die Wertschöpfungskette abarbeiten kann. Es bildet sich ein Warteschlange von Aufträgen, die auf Bearbeitung warten (Backlog). In Wertschöpfungsketten, die mit der Bearbeitung aller Aufträge sofort starten, führt dies zur Verstopfung der Wertschöpfungskette: es stauen sich unfertige Werkstücke vor überlasteten Arbeitsstationen mit negativen Effekten wie schlechterer Vorhersagbarkeit des Fertigstellungszeitpunkts und durchschnittliche längere Lieferzeiten. Sollte jetzt ein besonders wichtiger und lukrativer Auftrag hinzukommen, dem Priorität gegenüber anderen Aufträgen eingeräumt werden soll, ist es schwierig, diesen beschleunigt durch die verstopfte  Wertschöpfungskette zu bringen. So müssten die Arbeiten an Werkstücken anderer Aufträge in den Arbeitsstationen gestoppt werden, die Werkstücke beiseite gelegt und die Arbeit am neuen Werkstück aufgenommen werden. Anschließend sind die beiseite gelegten Werkstücke wieder in Bearbeitung zu nehmen. Das hat zusätzliche Rüstzeiten und damit weiteren Arbeitsaufwand zur Folge. Hinzu kommt, dass jede solche Abweichung vom normalen Ablauf das Risiko von Qualitätsproblemen und Produktionsstörungen erhöht, was ich wiederum auf Durchlaufzeiten und Kosten negativ auswirkt. Ist jedoch die Wertschöpfungskette nach Lean Manufactoring Prinzipien organisiert, wird der Start der Bearbeitung eines Auftrags solange zurückgehalten, bis gesichert ist, dass die Durchlaufzeit möglichst minimal ist. Es kann noch im Backlog - also bevor Arbeitsaufwand in den Auftrag geflossen ist - entschieden werden, welche noch nicht in Bearbeitung befindlichen Aufträge zugunsten des neuen Auftrags zurückgestellt werden und der neue Auftrag kann dann ohne weitere Eingriffe zügig durch die Wertschöpfungskette laufen.
+# Advantages of lean manufacturing: 
+If a production line, i.e. the facilities in a factory that represent the value chain by means of work stations, is organized according to lean manufacturing principles, a number of advantages arise:
+* Good utilization of the resources used, i.e. machines, materials, people. The ratio of the costs of the resources used to the sales revenue generated by the end products produced is reduced, i.e. the production costs per end product are reduced, which increases the manufacturer's competitiveness.
+* Lead times through the value chain are brought to a minimum. This has several positive effects:
+    * If products are produced to order, then it can be ensured that the waiting time for the purchaser is minimized. The lead time from the first work step to handover to the customer is minimized. It is also easier to predict when the end product will be ready for delivery. Many customers appreciate such fast and reliable delivery and are prepared to pay more for it.
+    * The more workpieces are in the value chain in an unfinished state at the same time, the more capital is tied up. Expenditure has already been incurred for the purchase of raw materials and the (variable) payment of workers, which is not yet offset by sales revenue. This expenditure, the so-called working capital, must be financed, e.g. by a loan from a bank. The higher the inventory in the production chain, the higher the need for working capital, the higher the expenses for its financing, the lower the margin achieved. The margin is the difference between the sales revenue and the costs incurred to manufacture the end product, which also includes the financing costs for the working capital on a pro rata basis. Lean manufacturing methods help to minimize lead times and the inventory of unfinished workpieces in the value chain. 
+    * Minimizing inventory in the value chain also increases the agility to adapt to new demand situations. If there are only a relatively small number of unfinished workpieces being processed at any given time, it is possible to quickly switch to the production of other products without having to complete a large number of unfinished workpieces first. Upon completion, these workpieces may then find a market with little interest and can only be sold at a large discount. In contrast, lean manufacturing helps to bring new products to market quickly.
+    * There are always situations in which there are temporarily more new orders than the value chain can process. A queue of orders (backlog) forms, waiting to be processed. In value chains that start processing all orders immediately, this leads to congestion in the value chain: unfinished workpieces pile up in front of overloaded workstations with negative effects such as poorer predictability of the completion time and longer average lead  times. If a particularly important and lucrative order comes along that should be given priority over other orders, it is difficult to speed it through the congested value chain. Work on workpieces from other orders in the work stations would have to be stopped, the workpieces put aside and work on the new workpiece started. Work on the workpieces that had been set aside would then have to resume again. This results in additional set-up times and therefore more work. In addition, any such deviation from the normal process increases the risk of quality problems and production disruptions, which in turn has a negative impact on throughput times and costs. However, if the value chain is organized according to lean manufacturing principles, the start of processing an order is held back until it is certain that the throughput time is as short as possible. A decision can be made in the backlog - i.e. before any work has gone into the order - as to which orders that are not yet being processed can be postponed in favor of the new order and the new order can then move quickly through the value chain without further intervention.
 
-Um die oben beschriebenen Vorteile von Lean Manufacturing zu realisieren, kommen verschiedene Praktiken zum Einsatz. Eine der wichtigsten ist die "Beschränkung von unfertiger Arbeit" ("Work in Progress Limits" oder kurz WIP Limits) und das Pull-Prinzip, siehe hierzu [Kanban und WIP Limits](https://en.wikipedia.org/wiki/Kanban_(development)).
+Various practices are used to realize the benefits of lean manufacturing described above. One of the most important is the “limitation of unfinished work” (“Work in Progress Limits” or WIP Limits for short) and the pull principle, see [Kanban and WIP Limits](https://en.wikipedia.org/wiki/Kanban_(development)).
 
-# Dienstleistungen
-In modernen Volkswirtschaften ist über die letzten Dekaden der Anteil der Dienstleistungen an dem Bruttosozialprodukt weiter gestiegen, oft verbunden mit einem Rückgang der industriellen Fertigung. Somit nimmt diese Art der  Wertschöpfung in post-industriellen Gesellschaften eine wichtige Rolle zum Erhalt bzw. zur Steigerung des Wohlstands ein. Es liegt auf der Hand, dass wie in der industriellen Fertigung auch bei Dienstleistungen nach hoher Effizienz und Qualität zu streben ist, um wettbewerbsfähig zu bleiben.
+# Services
+In modern economies, the share of services in gross national product has continued to rise over the last few decades, often in conjunction with a decline in industrial production. This type of value creation therefore plays an important role in maintaining or increasing prosperity in post-industrial societies. It is obvious that, as in industrial production, services must also strive for high efficiency and quality in order to remain competitive.
 
-Bei der industriellen Produktion ist das Endprodukt ein physisches Gut, das hergestellt, gelagert, transportiert und verkauft werden kann (z. B. Autos, Maschinen, Kleidung). Bei Dienstleistungen hingegen ist der Output  immateriell und oft nicht lagerfähig (z. B. Beratung, Gesundheitsversorgung, Bildung). Dienstleistungen werden von Menschen für Kunden, Patienten, Bürger, etc. erbracht, oft individuell auf die Bedürfnisse des Empfängers angepasst. Im Gegensatz zur industriellen Fertigung spielt die Verarbeitung von Rohmaterialien und der Einsatz von Maschinen keine oder nur eine untergeordnete Rolle. Dennoch wirken viele Dienstleistungen auf die materielle Welt, z.B. auf einen Patienten, der von einem Arzt behandelt wird, auf eine Parkanlage, die von einem Gartenbauunternehmen umgestaltet wird oder die Reinigung eines Gebäudes.  
+In industrial production, the end product is a physical good that can be manufactured, stored, transported and sold (e.g. cars, machines, clothing). In services, on the other hand, the output is immaterial and often cannot be stored (e.g. consulting, healthcare, education). Services are provided by people for customers, patients, citizens, etc., often individually adapted to the needs of the recipient. In contrast to industrial production, the processing of raw materials and the use of machines play no or only a subordinate role. Nevertheless, many services have an impact on the material world, e.g. a patient being treated by a doctor, a park being landscaped by a gardening company or the cleaning of a building.  
 
-Manche Dienstleistungen sind immateriell, d.h. sie verarbeiten keine Rohmaterialien und wirken auch nicht auf die physische Welt ein. Immaterielle Dienstleistungen werden oft als Büroarbeit erledigt: die an der Wertschöpfung beteiligten Mitarbeiter nehmen Arbeitsaufträge entgegen, oft per digitaler Kanäle, und bearbeiten diese. Sie nutzen im Unternehmen gespeicherten Daten und beziehen in manchen Fällen auch extern verfügbare Informationen mit ein. Bei der Bearbeitung  kommen meist IT-Anwendungen zum Einsatz, zukünftig zunehmend auch KI-Systeme. Hat der Mitarbeiter seine Bearbeitung gemäß seiner Fähigkeiten und im Rahmen seiner Zuständigkeit abgeschlossen, geht das erzeugte immaterielle Ergebnis an den internen oder externen Auftraggeber.   
-Auch bei Dienstleistungen und auch in der Büroarbeit werden häufig Wertschöpfungsketten durchlaufen, m.a.W. der immaterielle Auftrag durchläuft eine Kette von Arbeitsstationen, bevor das immaterielle Endergebnis dem Auftraggeber übergeben wird.   
+Some services are intangible, i.e. they do not process raw materials and do not affect the physical world. Intangible services are often performed as office work: the employees involved in value creation receive work orders, often via digital channels, and process them. They use data stored in the company and in some cases also include externally available information. IT applications are usually used for processing, and AI systems will increasingly be used in the future. Once the employee has completed their work according to their skills and within the scope of their responsibilities, the intangible result generated is sent to the internal or external client.   
+Value chains are also frequently used in services and office work, i.e. the immaterial order passes through a chain of workstations before the immaterial end result is handed over to the client.   
 
 
-# Wissensarbeit
-Inbesondere bei Dienstleistungen, deren Erbringung hohe Ansprüche an die Bearbeiter z.B. hinsichtlich Analyse des zu bearbeitenden Sachverhalts, dessen Einschätzung, dem Erwägen von Handlungsoptionen, der Auswahl und Anwendung von Methoden stellen, erfordern ein hohes Maß an Ausbildung, Einarbeitung und Wissen, um den jeweils auszuführenden Auftrag bzw. einen erforderlichen Arbeitsschritt in der Wertschöpfungskette zügig und hoher Qualität ausführen zu können. Oft ist eine jahrelange - möglicherweise akademische - Ausbildung und eine lange Einarbeitungsphase erforderlich, in der sich der Mitarbeiter auf diese Art von Aufgabe spezialisiert.
+# Knowledge work
+Particularly in the case of services, of which the provision places high demands on the employees, e.g. in terms of analyzing the facts, assessing them, considering options for action, selecting and applying methods, a high level of training, experience and knowledge is required in order to be able to carry out the necessary steps in the value chain quickly and to a high quality standard. It often takes years of training - possibly academic - and a long induction phase in which the employee specializes in this type of task.
 
-# Unternehmen für komplexe, immaterielle, wissensbasierte Dienstleistungen
-Das Streben nach Steigerung der wirtschaftlichen Produktivität geht einher mit einem wachsendem Bedarf an spezialisierter Wissensarbeit, z.B. in Form von
-* Marktanalysen
-* maßgeschneiderter Unternehmensfinanzierung
-* Konzeption und Umsetzung von Projekten
-* juristische Beratung 
-* Aufbau und Betrieb von komplexen IT-Systemen
-* die Entwicklung zugeschnittener Software-Anwendungen
-* Suche und Gewinnung von qualifizierten Personal
-* Verhandlung von individuellen Geschäftsverträgen
-* Steuerberatung
-* Vermögensverwaltung
-* ...
+# Company for complex, immaterial, knowledge-based services
+The drive to increase economic productivity goes hand in hand with a growing need for specialized knowledge work, e.g. in the form of
+* market analysis
+* customized corporate financing
+* conception and implementation of projects
+* legal advice 
+* development and operation of complex IT systems
+* the development of customized software applications
+* search for and recruitment of qualified personnel
+* negotiation of individual business contracts
+* tax advice
+* asset management
+* etc.
 
-Unternehmen, die derartige, mehr oder weniger standardisierte Dienstleistungen im Markt anbieten, müssen sich - wie Industrieunternehmen - mit der internen Arbeitsorganisation beschäftigen, um zuverlässig und zeitgerecht hochqualitative Endergebnisse dem Auftraggeber liefern zu können. Es stellt sich die Frage, nach welchen Prinzipien ein Unternehmen diese Dienstleistungen organisieren kann und welche Prinzipien und Techniken des Lean Manufacturings sinnvoll übertragbar sind. 
+Companies that offer such more or less standardized services on the market must - like industrial companies - concern themselves with the internal organization of work in order to be able to deliver high-quality end results to the client reliably and on time. The question arises as to which principles a company can use to organize these services and which principles and techniques of lean manufacturing can be usefully transferred into the field of knowledge work. 
 
-Was zeichnet diese Art der Wertschöpfung aus und wie unterscheidet sie sich von der industriellen Produktion von Gütern?
+What characterizes this type of value creation and how does it differ from the industrial production of goods?
 
-Nachfolgend eine Aufstellung von Unterschieden:
+The following is a list of differences:
 
-| Nr.| Dimension | Industrielle Produktion | Wissensbasierte Dienstleistungen |
-| :---: | --- | --- | --- |
-| 1. | Bedeutung von (Roh-)Materialien | hoch | keine |
-| 2. | Wertschöpfungsketten im Unternehmen | wenige, meist stark standardisiert | oft viele, eher mäßig standardisiert |
-| 3. | Maßgebliche Kosten | Material, Mitarbeiter, Maschinen (Energie, Wartung), Lagerhaltung, Logistik | Mitarbeiter, IT-Systeme |
-| 4. | Stückzahlen in einer Wertschöpfungskette | meist hoch | geringer |
-| 5. | Varianz des Arbeitsaufwands für Werkstücke/Aufträge | niedrig | oft hoch |
-| 6. | Transparenz über den Bearbeitungsstand einzelner Aufträge bzw. Werkstücke | hoch  | oft niedriger |
-| 7. | Anteil der effektiven Bearbeitungszeit an der Gesamtdurchlaufzeit | hoch, oft über 80%, d.h. der Großteil der Durchlaufzeit ist das Werkstück in Bearbeitung  | selten höher als 20%; Zwischenergebnisse schlummern in E-Mail-Postfächern, Tasklisten oder besser in Workflow-Systemen |
-| 8. | Zuweisung von Mitarbeitern zu Arbeitsstationen | i.d.R. exklusiv  | Spezialist oft in mehreren Arbeitsschritten in mglw. mehreren Wertschöpfungsketten tätig |
+| No.| Dimension | Industrial production | Knowledge-based services |
+| :---: | :--- | :--- | :--- |
+| 1. | Importance of (raw) materials | high | none |
+| 2. | Value chains in the company | few, mostly highly standardized | often many, rather moderately standardized |
+| 3. | significant costs | material, employees, machines (energy, maintenance), warehousing, logistics | employees, IT systems |
+| 4. | quantities in a value chain | mostly high | low |
+| 5. | variance of work effort for workpieces | low | often high |
+| 6. | transparency of the processing status of individual orders or workpieces | high | often lower |
+| 7. | Effective processing time as a proportion of total processing time | high, often over 80%, i.e. the workpiece is being worked on for the majority of time | rarely higher than 20%; interim results remain often dormant in e-mail inboxes, task lists or, better, in workflow systems |
+| 8. | assignment of employees to workstations | usually exclusive | often shared: specialist often active in several work steps in possibly several value chains |
 
-Es finden sich in der Literatur einige Arbeiten, die sich mit der Frage beschäftigen, in wie weit sich Techniken und Prinzipien des Lean Manufacturung auch in Firmen einsetzen lassen, die komplexe, immaterielle, wissensbasierte Dienstleistungen anbieten. Beispiel hierfür ist [Havard Business Review: Lean Knowledge Work
+There are several studies in the literature that deal with the question of the extent to which lean manufacturing techniques and principles can also be used in companies that offer complex, intangible, knowledge-based services. An example of this is [Havard Business Review: Lean Knowledge Work
 by Bradley R. Staats and David M. Upton 2021](https://hbr.org/2011/10/lean-knowledge-work). 
-Diese Arbeiten beschäftigen sich mit der Anwendbarkeit der [Key Principles des Lean Managements](https://en.wikipedia.org/wiki/Lean_manufacturing), oft mit besonderem Fokus auf Continuous Improvement und die Mitarbeiter. 
+These works deal with the applicability of the [Key Principles of Lean Management](https://en.wikipedia.org/wiki/Lean_manufacturing), often with a particular focus on continuous improvement and the employees. 
 
-# Ein spezielles Problem
-In Unternehmen für komplexe, immaterielle, wissensbasierte Dienstleistungen ist oft ein Phänomen zu beobachten, das  bei Mitarbeitern, Managern und den Auftraggebern Verwunderung, wenn nicht gar Frustration und Ärger, hervorruft: Aufträge, die gestartet wurden und eine Wertschöpfungskette durchlaufen müssen, brauchen unverständlich lange, bis sie fertig gestellt werden und das obwohl Praktiken des Lean Manufacturings zur Anwendung kommen.
 
-Neben Faktoren wie die Ausbildung und Fähigkeiten der Mitarbeiter, der Einsatz von unterstützender Technologie und einer im besten Falle etablierten Praxis, kontinuierlich an Verbesserungen im Process zu arbeiten, liegt einer der Ursachen in Engpässen, die durch Spezialisten im Unternehmen entstehen, deren (punktuelles) Mitwirken in mehreren Wertschöpfungsketten erforderlich ist. Aus Perspektive des Spezialisten kreuzen sich mehrere Wertschöpfungsketten auf seinem Tisch, der leider zu oft mit zu vielen Arbeitsaufträgen voll ist. Selbst wenn der Spezialist im Durchschnitt ausreichend Kapazität hat, um seinen notwendigen Beitrag in allen Wertschöpfungsketten zu leisten, so entstehen bei variierendem Auftragseingang schnell Überlastsituationen und damit Staus in einer oder mehreren Wertschöpfungsketten. 
+# A special problem
+In companies providing complex, intangible, knowledge-based services, we observe often a phenomenon that causes surprise, if not frustration and anger, among employees, managers and clients: orders that have been started and have to pass through a value chain take an incomprehensibly long time to be completed, even though lean manufacturing practices are applied.
 
-Hier zeigt sich ein Unterschied zur klassischen industriellen Fertigung: in der Fertigung sind Ressourcen, also Mensch und Maschinen in den aller meisten Fällen exklusiv einem einzigen Arbeitsschritt einer Wertschöpfungskette zugeordnet. Es bestehen damit durch die Ressourcen keine Abhängigkeiten zwischen Wertschöpfungsketten. Wertschöpfungsketten können unabhängig voneinander optimiert werden, z.B. gemäß der Methoden des Lean Manufactorings. Anders verhält es sich in Unternehmen, die Wissensarbeit verrichten und die Spezialisten über mehrere Wertschöpfungsketten einsetzen müssen. Besonders häufig wird dieses Phänomen bei Unternehmen zu Tage treten, in denen 
-* anspruchsvolle Aufträge in unterschiedlichen Weertschöpfungsketten bearbeitet werden und 
-* in denen zumindest in einigen Arbeitschritten die  Expertise von hochspezialsierten Mitarbeitern erforderlich ist und
-* die eine Unternehmensgröße haben, die nicht erlaubt, eine Personaldecke vorzuhalten, in denen ausreichend Spezialisten mit der erforderlichen Expertise jeder Wertschöpfungskette  jeweils exklusiv zugewiesen werden können. 
+In addition to factors such as the training and skills of employees, the use of supporting technology and, in the best case, the application of continuous improvements, one of the causes lies in bottlenecks caused by specialists in the company whose (selective) involvement is required in several value chains. From the specialist's perspective, several value chains intersect on his desk, which is unfortunately too often full with too many workpieces. Even if the specialist has sufficient capacity on average to make the necessary contribution in all value chains, overload situations and thus congestion in one or more value chains quickly arise as the volume of incoming orders varies. 
 
-Mit anderen Worten, dieses Phänomen dürfte besonders kleinere oder mittelständische Unternehmen betreffen. 
+This shows a difference to traditional industrial manufacturing: in manufacturing, resources, i.e. people and machines, are in most cases assigned exclusively to a single work step in a value chain. This means that there are no dependencies between value chains due to the resources. Value chains can be optimized independently of each other. The situation is different in companies that perform knowledge work and have to deploy specialists across several value chains. This phenomenon is particularly common in companies where 
+* demanding orders are processed in different value chains and 
+* in which the expertise of highly specialized employees is required in at least some work steps and
+* whose company size does not allow them to maintain a staffing level in which sufficient specialists with the required expertise can be assigned exclusively to each value chain. 
 
-Beispiele für Spezialisten, die häufig den Spagat zwischen verschiedenen Wertschöfungsketten machen müssen:
+In other words, this phenomenon is likely to affect smaller or medium-sized companies in particular. 
 
-| Nr.| Spezialist aus Bereich | Beitrag in Wertschöpfungsketten (einige Beispiele)|
-| :---: | --- | --- |
-| 1. | Rechtsabteilung |  Vertrieb: unterstützt bei der Gestaltung von Angeboten |
-||| Reklamationen: unterstützt bei schwerigen Reklamationsfällen und Rechtsstretigkeiten mit anderen Unternehmen |
-||| Lieferantenverträge: beurteilt kommerzielle Bedingungen von Lieferanten |
-| 2. | Rechnungswesen | Anlegen neuer Aufträge im Rechnungswesen |
-|  |  | Jahresabschluss: Erstellen der Bilanz  |
-|  |  | Stundungen von Forderungen: Anpassungen der Zahlungspläne   |
-| 3. | Personal | Recruiting: Beurteilung von Kandidaten |
-|  |  | Recruiting: Erstellen von Stellenangeboten und Publikation in geeigneten Social Media-Kanälen  |
-|  |  | Nachwuchsarbeit: Teilnahme an Talentmessen 
-| 4. | IT-Administration | Betrieb: Systeme und Anwendungen überwachen und im Bedarfsfalle  reagieren |
-|  |  |  Projekte: Infrastruktur für neue Anwendung konzipieren und realisieren |
-|  |  | Planung: Budgetbedarf für Betrieb, Wartung und ggf. Erneuerung von Systemen abschätzen  |
-| 5. | Kontrollfunktionen / Compliance  |  Einführung neuer Systeme / Anwendungen: Datenschutzprüfung |
-|  |  | Einführung neuer Systeme / Anwendungen: IT-Sicherheit bewerten und Maßnahmen mit IT erarbeiten |
-|  |  |  Einführung und Betrieb von Anwendungen: regulatorische Compliance sicherstellen |
-| ... | ... | ... 
-| 
+Examples of specialists who often have to perform the balancing act between different value chains:
+
+| No.| Department | Contribution in value chains (some examples)|
+| :---: | :--- | :--- |
+| 1.| Legal department | Sales: supports in the design of offers |
+| | | Complaints: assists with serious complaints and legal disputes with other companies |
+| | | Supplier contracts: assesses commercial terms and conditions of suppliers |
+| 2.| Accounting | Creating new orders in accounting |
+| | | Annual financial statements: preparing the balance sheet |
+| | | Deferrals of receivables: Adjustments to payment plans |
+| 3.| HR | Recruiting: Assessing candidates |
+| | | Recruiting: Creating job vacancies and publishing them on suitable social media channels |
+| | | Recruiting: participation in job fairs |
+| 4.| IT administration | Operations: monitoring systems and applications and take action when necessary |
+| | | Projects: Designing and implementing infrastructure for new applications |
+| | | Planning: Estimating budget requirements for operation, maintenance and, if necessary, renewal of systems |
+| 5.| Control functions / compliance | Introduction of new systems / applications: Data protection check |
+| | | Introduction of new systems / applications: Assess IT security and develop measures with IT |
+| | | Introduction and operation of applications: ensuring regulatory compliance |
+
+
+<####### Translation Marker #########>
 
 # Lonely Lobster
 Das Software-Projekt "Lonely Lobster" hat zum Ziel, die grundlegenden Effekte und Wirkungszusammenhänge in solchen Unternehmen systemtisch erforschen zu können. Die Lonely-Lobster-Anwendung bietet die Möglichkeit, idealisiert und von vielen Details des realen Unternehmensalltags abstrahierend Systeme mit mehreren Wertschöpfungsketten, jeweils mit mehreren Arbeitsschritten ausgestattet, zu definieren, Mitarbeiter einem oder mehreren Arbeitschritten  zuzuordnen und den Zufluss neuer Arbeitsaufträge zu steuern. Lonely-Lobster simuliert die Abarbeitung der (immteriellen) Werkstücke und visualisiert diese. Statistiken und KPIs werden errechnet und dargestellt, um die Effizenz des Systems bewerten zu können. Es erlaubt insbesondere u.a folgenden Fragen nachzugehen:
