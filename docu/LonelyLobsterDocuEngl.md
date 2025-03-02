@@ -229,55 +229,53 @@ The following describes the visualization of the value chains with their element
 The system collects the end products from all value chains in the output basket inventory. 
 ![Lonely-Lobster System “Italian Restaurant” Output Basket](ItalianRestaurantScreenshot_OutputBasket_labelled.jpg)
 
-<< ---Review Marker ---- >>
-
 | Label | Explanation |
 | :---: | :--- | 
 | 17 | the inventory of end products |
-| 18 | The end products are sorted horizontally by cycle time, i.e. if the standard effort of a value chain is 3, then these end products can appear at the earliest in third position from the left. The further to the right, the longer was the actual cycle time of the work item through its value chain. Overflow is displayed vertically if the height of the inventory display is no longer sufficient.
-| 19 | Flow statistics for the entire system across all value chains are displayed here. All end products are included in the calculation, i.e. no work items that are still in progress in their value chain. |
-| 20 | If the cycle time of a work item is longer than can be displayed horizontally, an overflow indicator appears. |
+| 18 | the end products are sorted horizontally by cycle time i.e. if the standard effort of a value chain is 3, then these end products can appear at the earliest in third position from the left. The further to the right, the longer was the actual cycle time of the work item through its value chain. Vertical overflows are displayed for stacks of work items that exceed the height of the inventory display.
+| 19 | Flow Statistics for the entire system across all value chains are displayed here. All end products are included in the calculation however no work items still being in progress. |
+| 20 | if the cycle time of a work item is longer than can be displayed horizontally, an overflow indicator appears. |
 ### Learning Statistics
-If you scroll down, a button __Update Learning Statistics__ appears below the last value chain (see 21). When you click on it, the display is updated, showing how each worker has changed the weighting of the strategies available to him over time. The status is shown every 20 time units.    
+If you scroll down, a button __Update Learning Statistics__ appears below the last value chain (see 21). On click  the display updates and shows how each worker has changed the weighting of the strategies available to him over time. The status is shown every 20 time units.    
 ![Lonely-Lobster System “Italian Restaurant” Worker Learning Stats](ItalianRestaurantScreenshot_WorkersLearnStats_labelled.jpg)
 ## The Editor
 The editor is used to create new configurations or to edit configurations that have been uploaded to the frontend.
 Here is the configuration of a sample system in the editor: 
 ![Lonely-Lobster System “Italian Restaurant” Configuration Editor](ItalianRestaurantScreenshot_ConfigurationEditor.jpg)
 
-### System, Value Chains, Process Steps editieren
+### Edit System, Value Chains, Process Steps
 ![Lonely-Lobster System "Italian Restaurant" Editor-1](ItalianRestaurantScreenshot_ConfigurationEditor_1_labelled.jpg)
 
 | Label | Explanation |
 | :---: | :--- | 
-| 30 | System Name; changes made to the configuration in the Lonely-Lobster frontend – and only there (!) – can be saved here. To download the configuration to the download directory of the local computer, use __Download__ in the Application Control Bar. |
+| 30 | System Name; changes made to the configuration can be saved in the Lonely-Lobster frontend. To download the configuration to the download directory of the local computer, use __Download__ in the Application Control Bar. |
 | 31 | Value chains can be added here. |
 | 32 | For the “pizza” value chain, the value of the end product per time unit of delay is defined to lose 10% (= 0.1) of its value. |
-| 33 | The throughput of work orders is set to 0.3, i.e. 3 pizzas per 10 time units. The Work Orders do not arrive evenly (value 0.8).  |
-| 34 | from left to right the sequence of the Process Steps; for each Process Step the Norm Effort and also the current WIP Limit is given.  |
+| 33 | The throughput of work orders is set to 0.3, i.e. on average 3 pizzas per 10 time units. The Work Orders do not arrive evenly (value 0.8).  |
+| 34 | from left to right the sequence of the Process Steps; for each Process Step the Norm Effort and also the current WIP limit are set.  |
 ### Globally defined Work Item Selection Strategies
 ![Lonely-Lobster System “Italian Restaurant” Global Strategies](ItalianRestaurantScreenshot_Editor_GlobalStrategies_labelled.jpg)
-In this example, three strategies are defined for the system. Each worker can be assigned none, one or more strategies. If no strategies are assigned to a worker, the selection is made according to __random__, i.e. the worker selects the next work item at random from those that it has access to due to its assignment to process steps. 
+In this example, three strategies are defined for the system. Each worker can be assigned none, one or more strategies. If no strategies are assigned to a worker, the selection is made according to __random__, i.e. the worker selects the next work item at random from those that (s)he has access to due to his/her process step assignments. 
 #### How strategies work
-A strategy consists of no sort vector, one sort vector or a descending priority list of sort vectors. A sort vector consists of a measurement (one of the properties of the work item) and an order, ascending or descending. The work items that a worker has access to are sorted by this. The work item at the top of the resulting list is selected by the worker as the next one to be processed. If, after sorting, multiple work items with the same values are at the top, the next sort vector is used to sort these remaining work items. If multiple work items with the same values are still at the top, the next sort vector is applied. If there are no more sort vectors available in the strategy, __random__ is used for the remaining work items.                   
+A strategy consists of no sort vector, one sort vector or a list of sort vectors sorted with descending priority. A sort vector consists of a measurement (one of the properties of the work item) and a sort order, ascending or descending. The work items that a worker has access to are sorted by the strategy. The work item at the top of the resulting list is selected by the worker as the next one to be processed. If after sorting multiple work items with the same values are at the top, the next sort vector is used to sort these remaining work items. If still multiple work items with the same values are at the top, the next sort vector is applied. If there are no more sort vectors available in the strategy, __random__ is used for the remaining work items.                   
 #### System Parameters
 ![Lonely-Lobster System “Italian Restaurant” System Parameters](ItalianRestaurantScreenshot_SystemParameters_labelled.jpg)
 | Label | Group | Parameter | Explanation |
 | :---: | :--- | :--- | :--- |
-| 37 | Presetting | #iterations per batch | Number of iterations that are executed per “run”, i.e. the length of an iteration batch; default is 1  |
-|  |  | Economics stats interval | Interval for calculating the economics statistics; default is from the beginning |
-| 38 Learn and Adapt | Observation Period | Period over which workers observe the system's performance before changing the weight of the strategies available to them. In general, the higher the weight of a strategy, the more often it is randomly selected in the selection process. A strategy that is then selected is used for the next observation period. Default is 20 time units. |
-|  |  | Success Measure Function | There are two functions for measuring the success of the current weighting of strategies for the worker: __roce__ (ROCE var) and __ivc__ (individual value contribution). If ROCE is selected and the system's ROCE var has increased over the past observation period, the worker will give the last applied strategy an even higher weighting. Otherwise, the weighting will be reduced in favor of the other strategies.  __ivc__ measures the effort of the worker on all end products and calculates the individual, proportional contribution to the realized value. Similar to the above, the worker increases or decreases the weighting of the last strategy applied.
-| Adjustment Factor | This is used to set the strength of the adjustment of the weighting. Default is 0.3.
+| 37 | Presetting | #iterations per batch | Number of iterations that are executed per “run” i.e. the length of an iteration batch. Default is 1. |
+|  |  | Economics stats interval | Interval for calculating the economics statistics; default is from time 0 |
+| 38 | Learn and Adapt | Observation Period | Period over which workers observe the system's performance before changing the weight of the strategies available to them. In general, the higher the weight of a strategy, the more often it is randomly selected in the selection process. A strategy that the worker selects is then used for the next observation period. Default is 20 time units. |
+|  |  | Success Measure Function | There are two functions for measuring the success of the current weighting of strategies for the worker: __roce__ (ROCE var) and __ivc__ (individual value contribution). If roce is selected and the system's ROCE var has increased over the past observation period, the worker will give the last applied strategy an even higher weighting. Otherwise, the weighting will be reduced in favor of the other strategies.  __ivc__ measures the effort of the worker on all end products and calculates the individual, proportional work contribution to the realized value. Similar to the above, the worker increases or decreases the weighting of the last strategy applied. |
+| | | Adjustment Factor | This factor is used to set the strength of the weighting adjustment. Default is 0.3. |
 | 39 | WIP limit optimization | Initial Temperature | The initial “temperature” of the optimization process, which is described in more detail in the [Simulated Annealing](#simulated-annealing) section below. Default is 100 degrees.  |
 |  |  | Cooling Factor | Factor by which the current temperature is multiplied to calculate the temperature for the next __Measurement Period__. Default is 0.95. |
-| Degrees per Downhill Step Tolerance | Temperature reduction that reduces the number of tolerated downhill steps by 1, e.g. 20 = for every 20 degrees of cooling, 1 downhill step less is tolerated. Default is 50. |
-| Initial Jump Distance | The initial jump distance; default is 1. |
-| Measurement Period | Number of iterations after which the system performance is measured again. Default is 100 Time Units |
-|  |  | WIP Limit Upper Boundary Factor | The system adopts the WIP limits if they are defined in the configuration. If no WIP limit has been set for a process step through the configuration, the system calculates an upper limit using the following formula: $$Number of workers assigned to the process step \div Norm Effort \cdot WIP Limit Upper Boundary Factor$$ This is to limit the multidimensional search space in a meaningful way.  |
+|  |  | Degrees per Downhill Step Tolerance | Temperature reduction that reduces the number of tolerated downhill steps by 1, e.g. 20 means: for every 20 degrees of cooling, 1 downhill step less is tolerated. Default is 50. |
+|  |  | Initial Jump Distance | The initial jump distance; default is 1. |
+|  |  | Measurement Period | Number of iterations after which the system performance is measured again. Default is 100 Time Units. |
+|  |  | WIP Limit Upper Boundary Factor | The system adopts the WIP limits if they are defined in the configuration. If no WIP limit has been set for a process step through the configuration, the system calculates an upper limit using the following formula: $$\frac{NumberOfWorkersAssignedToTheProcessStep}{Norm Effort} \cdot WIP Limit Upper Boundary Factor$$ This way the multidimensional search space is limited reasonably.  |
 
 #### Optimize WIP Limits with Simulated Annealing
-The following describes the procedure by which the system tries to set WIP limits in such a way that the ROCE is maximized. The procedure is heuristic, i.e. it cannot guarantee that the best solution will be found, but it usually finds a good solution. __Simulated Annealing__ is an established algorithm for performing multi-dimensional optimizations; see [Wikipedia: Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing). An advanced version of the algorithm has been implemented for WIP limit optimization. 
+The following describes the procedure by which the system tries to set WIP limits in such a way that the ROCE is maximized. The procedure is heuristic i.e. it cannot guarantee the best solution will be found but it usually finds a good one. __Simulated Annealing__ is an established algorithm for performing multi-dimensional optimizations, see [Wikipedia: Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing). An advanced version of the algorithm has been implemented for WIP limit optimization.   
 The search for the best combination of WIP limits can be understood as a search for an optimum in a multi-dimensional space. Each process step represents a dimension. The aim is to maximize the ROCE var in this search space. 
 Here is a rough sketch of the algorithm: 
 1. The __Initial Temperature__ is set
@@ -285,15 +283,19 @@ Here is a rough sketch of the algorithm:
 1. The system performs the number of iterations as defined by __Measurement Period__.
 1. The system performance (ROCE var) of the previous __Measurement Period__ is determined.
 1. The temperature-dependent new __Jump Distance__ is calculated.
-1. The temperature-dependent new tolerance for the number of steps that led to positions with poorer system performance is calculated using “Degrees per Downhill Step Tolerance”.
-1. If the measured system performance is better than all previously measured system performances, then continue with 9.
-1. Otherwise, the number of steps with worse system performance than those measured so far is increased by 1. If the value is above the temperature-dependent tolerance, the current position is reset to the position with the best system performance so far. 
-1. A dimension (i.e. the WIP limit of a process step) is selected at random and steps are taken in that direction by __Jump Distance__. The temperature is multiplied by the cooling factor, i.e. reduced. Continue with 3.
+1. The temperature-dependent new tolerance for the number of steps that led to positions with poorer system performance is calculated using __Degrees per Downhill Step Tolerance__.
+1. If the measured system performance is better than all previously measured system performances, then continue with step 9.
+1. Otherwise, the number of downhill steps i.e. steps with worse system performance than the best having been measured before is increased by 1. If the number of downhill steps is above the temperature-dependent tolerance, the current position is reset to that position with the best system performance so far. 
+1. A new direction in the search space is selected at random and __Jump Distance__ steps are taken in that direction. If the boundary of the multidimensional search space is reached during the jump, the jump bounces back. 
+1. The temperature is multiplied by the cooling factor i.e. is been reduced. Continue with 3.
+
+
 Optimization stops when the temperature has fallen below 1. 
-If the limit of the multidimensional search space is reached during the jump, the jump bounces back at the limit. 
 ### System Configuration as JSON File
-System configurations can be downloaded from the frontend as a JSON file. Configurations can also be uploaded to the frontend. The structure of the JSON file reflects the structure of the editor. The following is an example excerpt:   
-![Lonely-Lobster System “Italian Restaurant” Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg) 
+System configurations can be downloaded from the frontend as a JSON file. Configurations can also be uploaded to the frontend. The structure of the JSON file reflects the structure in the editor. The following is an example excerpt:   
+![Lonely-Lobster System “Italian Restaurant” Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
+
 Of course, configuration JSON files can also be created with other editors.
 ## System Cleanup
-The backend can run individual systems for several parallel user sessions. This can result in large amounts of data. To avoid  unnecessarily occupying cloud system resources for long periods, the backend deletes active systems that have not received a request from the frontend for over an hour. If the backend is accessed again, the frontend receives an error message; see [Application Activity Log](#application-activity-log).       
+The backend can run individual systems for several parallel user sessions. This can result in large amounts of data. To avoid  unnecessarily occupying cloud system resources for long periods, the backend deletes active systems that have not received a request from the frontend for over an hour. If the backend is accessed again, the frontend receives an error message which is being displayed in the [Application Activity Log](#application-activity-log).       
+
