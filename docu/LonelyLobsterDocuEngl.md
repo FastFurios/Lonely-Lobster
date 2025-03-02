@@ -101,223 +101,199 @@ Examples of specialists who often have to perform the balancing act between diff
 | | | Introduction of new systems / applications: Assess IT security and develop measures with IT |
 | | | Introduction and operation of applications: ensuring regulatory compliance |
 
+# Lonely-Lobster
+The Lonely-Lobster software project aims to systematically research the fundamental effects and interactions in such companies. The Lonely-Lobster application offers the possibility to define systems with several value chains, each with several work steps, in an idealized way and abstracting from many details of real-life business. It also allows you to assign employees to one or more work steps and control the inflow of new work orders. Lonely-Lobster simulates the processing of the (immaterial) workpieces and visualizes them. Statistics and KPIs are calculated and displayed to evaluate the efficiency of the system. In particular, it allows the following questions to be addressed:
+* How should the inflow of new work orders into the system and into individual workstations be controlled in order to achieve the best possible result for the company?
+* How should individual employees behave when they have several unfinished workpieces to process? Which workpiece should they select for processing next? 
+* In particular, how should they make the selection when workpieces from different work steps from possibly different value chains are available to them for processing? 
+* What effects do different selection strategies have on the efficiency of the overall system?     
 
-<####### Translation Marker #########>
-
-# Lonely Lobster
-Das Software-Projekt "Lonely Lobster" hat zum Ziel, die grundlegenden Effekte und Wirkungszusammenhänge in solchen Unternehmen systemtisch erforschen zu können. Die Lonely-Lobster-Anwendung bietet die Möglichkeit, idealisiert und von vielen Details des realen Unternehmensalltags abstrahierend Systeme mit mehreren Wertschöpfungsketten, jeweils mit mehreren Arbeitsschritten ausgestattet, zu definieren, Mitarbeiter einem oder mehreren Arbeitschritten  zuzuordnen und den Zufluss neuer Arbeitsaufträge zu steuern. Lonely-Lobster simuliert die Abarbeitung der (immteriellen) Werkstücke und visualisiert diese. Statistiken und KPIs werden errechnet und dargestellt, um die Effizenz des Systems bewerten zu können. Es erlaubt insbesondere u.a folgenden Fragen nachzugehen:
-* Wie soll der Zufluss an neuen Arbeitsaufträgen in das System und in einzelne Arbeitsstationen gesteuert werden, um ein bestmögliches Ergebnis für das Unternehmen zu erzielen?
-* Wie soll sich der einzelner Mitarbeiter verhalten, wenn sie oder er mehrere unfertige Werkstücke zur Bearbeitung vorliegen hat. Welches Werkstück soll sie oder er für die Bearbeitung als nächstes auswählen?  
-* Insbesondere, wie soll sie oder er die Auswahl treffen, wenn die Werkstücke aus verschiedenen Arbeitsschritten von mglw. unterschiedlichen Wertschöpfungsketten zur Bearbeitung vorliegen? 
-* Welche Effekte auf die Effizienz des Gesamtsystems haben verschiedene Auswahlstrategien?     
-
-
-
-
-## Terminologie
-Im Weiteren werden nachfolgenden Begriffe verwendet:
-| Begriff | Definition | Synonyme |
+## Terminology
+In tis documents, the following terms are used:
+| Term | Definition | Synonyms |
 | :--- | :--- | :--- |
-| Worker | ein(e) Mitarbeiter(in) | Bearbeiter(in) |
-| Work Item | Werkstück | |
-| Inventory | eine Sammlung von Work Items |  |
-| Output Basket | ist das Inventory aller End Products |  |
-| Process Step | Arbeitsstation, in der die zugewiesenen Workers die notwendige Arbeit an Work Items im Inventory des Process Step verrichten, bis das Work Item zum nächste Process Step oder schließlich zum Output Basket weiterwandern kann.  | Arbeitsstation |
-| Value Chain | Wertschöpfungskette, bestehend aus mindest einem, meist mehreren Process Steps | Produktionslinie |
-| System | Lauffähiges Gesamtsysten, das aus mindestens 1 Value Chain und 1 Worker besteht. Ein System hat darüberhinaus noch weitere Einstellmöglichkeiten (System Parameter). |  |
-| Configuration | Definition eines Systems mit seinen Value Chains, Workers, Strategies, System Parameters; kann als JSON-File in das Lonely-Lobster-Frontend hochgeladen bzw. nach Erstellung bzw. Änderung in das lokale Download-Verzeichnis (wieder) exportiert werden. Configurations können im Lonely Lobster Editor erstellt und überarbeitet werden.  |  |
-| Editor | ist eine Funktion im Frontend, mittels derer User Configurations erstellen bzw. bearbeiten können.|  |
-| Work Order | ein Work Item, das in den ersten Process Step einer Value Chain hineingegeben wird | Arbeitsauftrag, Auftrag |
-| Injection | der Vorgang des Hineingebens von Work Orders in eine Value Chain | | 
-| End Product | ein Work Item, dessen Bearbeitung in seiner Value Chain komplett abgeschlossen ist und das dem Output Basket übergeben wurde |  |
-| Time Unit | Zeitabschnitt: die Zeit in Lonely-Lobster vergeht in diskreten Schritten. Die Zeit startet bei 0 und wird bei jeder Iteration inkrementiert.  | Time |
-| Iteration | Aus dem aktuellen Systemzustand mit all seinen Work Items und Workers wird der nächste Systemzustand errechnet. Dabei schreitet die Zeit um eine Time Unit voran. |  |
-| Iteration Batch | Automatische Ausführung mehrere Itertionen auf einmal ohne dass der User aktiv werden muss  |  |
-| Effort | Aufwand, d.h. die Anzahl von Time Units, die Worker für ein Work Item aufgewandt haben. Worker können 0 oder 1 Effort-Einheit pro Time Unit an einem Work Item arbeiten. Ein Work Item kann in einer Time Unit nur von einem oder keinem  Worker bearbeitet werden. Ein Work Item mit Norm Effort > 1 kann über mehrere Time Units hinweg von mehreren Workern bearbeitet werden. Es arbeiten nie mehrere Worker gleichzeitg an dem Work Item. |  |
-| Norm Effort | Aufwand für die nötige Arbeit, die Worker an einem Work Item in einem Process Step leisten müssen, um es zur nächsten Arbeitsstation oder dem Output Basket weiterreichen zu können  |  |
-| Interval | Zeitspanne zurück in die Vergangenheit gemessen in Time Units; ein Wert von 0 bedeutet von Anfang, also Time 0, an  | Observation Period, Measurement Period |
-| Utilization | Be-/Auslastung eines Workers über das Interval; Utilization errechnet sich als Anteil der TimeUnits in einem Interval, in der der Worker an Work items gearbeitet hat. Ist der Anteil kleiner 50%, wird der Name in hellgrün angezeigt, bis 80% grün, bis 90% orange, darüber rot. |  |
-| Value | der Erlös, den das End Product beim Kunden oder am Markt erzielt. Da in Lonely-Lobster von immaterieller Wissensarbeit ausgegangen wird und der Erwerb von Rohmaterial nicht erforderlich ist, entspricht der Value gleichzeitig dem erzielten Mehrwert in der Value Chain. | Value-add |
-| Cost | Kosten für den geleisteten Effort, falls die Worker-Kosten variabel sind, d.h. wenn die Worker nur vergütet werden, wenn sie an einem Work Item arbeiten. Damit entspricht Cost der Summe des geleisteten Efforts. Ist ein Work item im Output Basket, dann entspricht der geleistete Effort der Summe aller Norm Efforts der Process Steps in der Value Chain. Bei fixen Worker-Kosten, d.h. einem Bestand von Festangestellten, entstehen die Kosten durch die vergehende Zeit, unabhängig davon, wie oft der Worker an Work Items gearbeitet hat. Amerkung: Effort und Value haben in Lonely-Lobster dieselbe Maßeinheit. |  |
-| Strategy | Strategie, nach der Worker in der aktuellen Time Unit eines von mehreren Work Items, die ihr oder ihm vorliegen, zur Bearbeitung auswählt. | Langform: Work Item Selecton Strategy |
-| Sort Vector | Strategien bestehen aus einer Liste von Sort Vectors. Die Funktionsweise der Sort Vectors wird im Abschnitt __Editor: Globally defined Work Item Selection Strategies__ erklärt | |
-| WIP Limit | Die maximale zulässige Anzahl an Work Items in einem Process Step. Hierzu werden auch im Process Step fertigestellte Work Items gezählt. Anmerkung: der Wert 0 bedeutet in Lonely Lobster, dass **kein** Limit gesetzt ist.  | Work in Progress Limit |
-| Cycle Time | Durchlaufzeit eines Work Items, gemessen vom Eintritt in eine Value Chain oder in einen Process Step, bis zu dessen Verlassen |  |
-| Flow Statistics | Cycle Time und Throughputs einer Value Chain oder in eines Process Steps |  |
-| Elapsed Time | bisher vergangene Zeit, seitdem ein Work Item in seine Value Chain per __Injection__ als __Work Order__ hinzugefügt wurde, bzw. die vergangene Zeit seit Ankunft des Work Items in einem Process Step |  |
-| Discounted Value  | reduzierter Wert, der beim Kunden oder am Markt erzielt werden kann. Der Wert mag sich verändern, je länger der Kunde oder der Markt auf die Lieferung warten muss. In Lonely-Lobster kann eingestellt werden, wie der Wert sich verändert abhängig von der Cycle Time eines End Products: maßgeblich ist die Zeit, die über die minimale Cycle Time, d.h. den Effort der Value Chain, hinausgeht (Verzug).|  |
-| Value Degradation | legt fest, wie der tatsächliche Wert eines End Products sich in Abhängigkeit seines Verzugs verändert.  Es stehen 3 Value Degradation Functions zur Auswahl: __net__: der Wert verändert sich nicht; __discounted__: das End Product verliert pro Time Unit Verzug einen Prozentsatz an Wert; __expired__: das End Product behält seinen Wert komplett, solange der Verzug geringer als der Wert ist, danach ist der Wert 0 | Value Degradation Function |
-| Contribution Margin | Die Differenz zwischen dem für ein End Product erlösten (discounted) Werts und dem Effort  |  |
-| Throughput | Anzahl von Work Items, die  über ein Interval pro Time Unit in einem Process Step abgeschlossen wurden bzw. den Output Basket erreicht haben (i.e. Troughput in Items "TPI"). Der Durchsatz kann auch anhand des __Discounted Value__ gemessen werden (i.e. Troughput in Value "TPV").  |  |
-| ROCE | Return On Capital Engaged: die zu einem Zeitpunkt kummulierte Cost im System für alle Work Items, die noch kein End Product sind, m.a.W. die noch in ihrer Value Chain in Bearbeitung sind. "ROCE fix" wird auf Basis einer fixen Belegschaft berechnet, "ROCE var" auf der Annahme, dass nur tatsächlich erbrachte Arbeit an Work Items vergütet wird.  |  |
-| Frontend | Der Teil von Lonely-Lobster, der im Browser des Users läuft  |  |
-| Backend | Der Teil von Lonely-Lobster, der in der Cloud läuft und ein System, wie es durch die aktuelle Configuration im Browser definiert ist, ausführen kann |  |
+| Worker | an employee | processor |
+| Work Item | workpiece | |
+| Inventory | a collection of work items |  |
+| Output Basket | is the inventory of all end products |  |
+| Process Step | Work station in which the assigned workers perform the necessary work on work items in the inventory of the process step until the work item can move on to the next process step or finally to the output basket. | Work station |
+| Value chain | consisting of at least one, usually several process steps. | Production line |
+| System | Executable system consisting of at least 1 value chain and 1 worker. A system also has further setting options (system parameters). | | 
+| Configuration | Definition of a system with its value chains, workers, strategies, system parameters; can be uploaded as a JSON file to the Lonely-Lobster frontend or exported (again) to the local download directory after creation or modification. Configurations can be created and revised in the Lonely-Lobster Editor.  |  |
+| Editor | is a function in the frontend that allows users to create and edit configurations. 
+| Work Order | A work item that is entered into the first process step of a value chain. | |
+| Injection | The process of feeding work orders into a value chain. | | 
+| End Product | a work item whose processing in its value chain has been completed and which has been transferred to the output basket. |  |
+| Time Unit | period of time: time passes in discrete steps in Lonely-Lobster. Time starts at 0 and is incremented with each iteration.  | Time |
+| Iteration | The next system state is calculated from the current system state with all its work items and workers. In doing so, time advances by one time unit. |  |
+| Iteration Batch | Automatic execution of several iterations at once without the user having to take action.  |  |
+| Effort | Effort, i.e. the number of time units that workers have worked on a work item. Workers can work on a work item for no or one effort unit per time unit. A work item can only be processed by one or no workers in a time unit. A work item with Norm Effort greater than one can be processed by several workers over several time units. There are never multiple workers working on the work item at the same time. |  |
+| Norm Effort | Effort for the necessary work that workers have to exert on a work item in a process step until it can be passed on to the next workstation or the output basket. | |
+| Interval | Time span back into the past measured in time units; a value of 0 means from the beginning, i.e. Time 0. | Observation Period, Measurement Period |
+| Utilization | Utilization of a worker over the interval; utilization is calculated as the proportion of TimeUnits in an interval in which the worker worked on work items. If the proportion is less than 50%, the name is displayed in light green, up to 80% green, up to 90% orange, and red above that. | |
+| Value | the revenue generated by the end product with the customer or on the market. Since Lonely-Lobster is based on immaterial knowledge work and the purchase of raw materials is not necessary, the value corresponds to the added value achieved in the value chain. | Value-add |
+| Costs | cost for the effort expended, if the worker costs are variable, i.e. if the workers are only remunerated for TimeUnits where they work on a work item. Thus, cost corresponds to the sum of the effort expended. If a work item is in the output basket, the effort expended corresponds to the sum of all norm efforts of the process steps in the value chain. With fixed worker costs, i.e. with a pool of permanent employees, the costs arise from the passing of time, regardless of how often the worker has worked on work items. Note: Effort and value have the same unit of measurement in Lonely-Lobster. | | 
+| Strategy | Strategy by which a worker selects one of several work items in the current time unit for processing. | Long form: Work Item Selection Strategy | 
+| Sort Vector | Strategies consist of a list of sort vectors. The way sort vectors work is explained in the section __Editor: Globally defined Work Item Selection Strategies__. | |
+| WIP Limit | The maximum number of work items allowed in a process step. This also includes work items completed in the process step. Note: in Lonely-Lobster, the value 0 means that **no** limit is set.  | Work in Progress Limit |
+| Cycle Time | The time a work item takes to pass through a value chain or process step, measured from injection into the value chain or process step to the point at which it leaves it. |  |
+| Flow Statistics | Cycle Time and Throughputs of a Value Chain or in a Process Step |  |
+| Elapsed Time | time elapsed since a work item was added to its value chain as a work order via __injection__, or the time elapsed since the work item arrived at a process step |  |
+| Discounted Value  | reduced value that can be realized with the customer or on the market. The value may change the longer the customer or the market has to wait for delivery. In Lonely-Lobster, you can set how the value changes depending on how much the effective cycle time exceeds the minimum cycle time, i.e. the effort of the value chain (delay).|  |
+| Value Degradation | defines how the actual value of an end product changes depending on its delay. There are three value degradation functions to choose from: __net__: the value does not change; __discounted__: the end product loses a percentage of its value for each unit of delay; __expired__: the end product retains its value completely as long as the delay is less than the set expiry period, after which the value is 0. | Value Degradation Function |
+| Contribution Margin | The difference between the (discounted) value realized for an end product and the effort invested in achieving it. | |
+| Throughput | Over an interval, the number of Work Items that have been completed on average per time unit in a process step or value chain i.e. TPI ("ThroughPut in Items"). Throughput can also be measured based on the __Discounted Value__ i.e. TPV ("ThroughPut in Value")  |  |
+| ROCE | Return On Capital Engaged: the cumulative cost in the system at a given point in time for all work items that are not yet an end product, in other words, those that are still in the process in their value chain. “ROCE fix” is calculated on the basis of a fixed workforce, “ROCE var” on the assumption that only work actually performed on work items is remunerated.  |  |
+| Frontend | The user interface of Lonely-Lobster that runs in the user's browser  |  |
+| Backend | The part of Lonely-Lobster that runs in the cloud and can execute a system as defined by the current configuration |  |
 
-## Das User Interface - Überblick
-Hier das User Interface von Lonely Lobster mit einer beispielhaften Configuration, das als System ausgeführt werden kann:
-![Lonely Lobster System "Italian Restaurant"](ItalianRestaurantScreenshot.jpg)
-
-Nachfolgend wird auf die einzelnen Sektionen des User Interface eingegangen.
+## The User Interface - Overview
+Here is the Lonely-Lobster user interface with an example configuration that can be run as a system:
+![Lonely-Lobster System “Italian Restaurant”](ItalianRestaurantScreenshot.jpg)
+The individual sections of the user interface are described below.
 
 ### Application Control Bar
-![Lonely Lobster System "Italian Restaurant" Application Control Bar](ItalianRestaurantScreenshot_ControlBar_labelled.jpg)
+![Lonely-Lobster System "Italian Restaurant" Application Control Bar](ItalianRestaurantScreenshot_ControlBar_labelled.jpg)
 
-| Label | Erläuterung | Details |
+| Label | Explanation | Details |
 | :---: | :--- | :--- |
-| 1 | Hier finden sich 8 Symbole. Von links nach rechts:  | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg> __Home__: zeigt einige Informationen über Lonely-Lobster |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Upload__: eine JSON-Datei mit einer Configuration in das Lonely-Lobster-Frontend hochladen |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg> __Edit__: eine Configuration erstellen und editieren |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg> __Run__: aktuelle Configuration in das Lonely-Lobster-Backend laden und als System ausgeführen; Ausführen erfordert zuvor einen Login, s.u. |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Download__: eine Configuration in den  Download-Folder auf dem lokalen Rechner herunterladen  |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg> __Events Export__: die Einzel-Events der Work Items eines ausgeführten Systems als CSV-Datei in den  Download-Folder auf dem lokalen Rechner herunterladen; diese Daten können mit beliebigen Statistics-Tools weitergehend statistisch ausgewertet werden |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z"/></svg> __Drop__: die aktuelle Configuration wird verworfen |
-|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/></svg> <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m792-282-58-56 26-26v-232L596-760H364l-26 26-56-58 48-48h300l210 210v298l-48 50ZM520-552v-128h-80v48l80 80ZM820-28 678-170l-48 50H330L120-332v-298l48-48L28-820l56-56L876-84l-56 56ZM536-536ZM364-200h232l26-26-396-396-26 26v232l164 164Zm116-80q-17 0-28.5-11.5T440-320q0-17 11.5-28.5T480-360q17 0 28.5 11.5T520-320q0 17-11.5 28.5T480-280Zm-56-144Z"/></svg>  __Activity Log__ Toggle: die Aktivitäten der Lonely-Lobster Anwendung, u.a. Warnings, Errors; die Anzeige der Liste der Aktivitätenmeldungen kann hiermit ein und ausgeschaltet werden |
-| 2 | Zentrale Informationen :  | Frontend Software Version |
-|   |  | Systemname aus der aktuellen Configuration |
-|   |  | letzter Event aus dem Lonely-Lobster __Activity Log__  |
-| 3 | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg> Log in, <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></svg> Log out:  | soll eine Configuration (im Backend) ausgeführt werden, muss der User sich zuerst einloggen; ist der User eingeloggt, wird sein Namen angezeigt.  |
+| 1 | Hier finden sich 8 Symbole. Von links nach rechts:  | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M240-200h120v-240h240v240h120v-360L480-740 240-560v360Zm-80 80v-480l320-240 320 240v480H520v-240h-80v240H160Zm320-350Z"/></svg> __Home__: shows some basic  information about Lonely-Lobster |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Upload__: upload a configuration JSON file from the file system into the Lonely-Lobster-Frontend |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg> __Edit__: create and edit a configuration |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M504-480 320-664l56-56 240 240-240 240-56-56 184-184Z"/></svg> __Run__: load a configuration into the Lonely-Lobster-Backend and execute it as a system; Execution of a system requires a user login, see below. |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg> __Download__: download a configuration into the download folder on the local machine  |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M120-80v-60h100v-30h-60v-60h60v-30H120v-60h120q17 0 28.5 11.5T280-280v40q0 17-11.5 28.5T240-200q17 0 28.5 11.5T280-160v40q0 17-11.5 28.5T240-80H120Zm0-280v-110q0-17 11.5-28.5T160-510h60v-30H120v-60h120q17 0 28.5 11.5T280-560v70q0 17-11.5 28.5T240-450h-60v30h100v60H120Zm60-280v-180h-60v-60h120v240h-60Zm180 440v-80h480v80H360Zm0-240v-80h480v80H360Zm0-240v-80h480v80H360Z"/></svg> __Events Export__: download the work item lifecycle events of a executed system into the download folder as a CSV file; this file can be used for furher analysis with any statistics tool. |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m376-300 104-104 104 104 56-56-104-104 104-104-56-56-104 104-104-104-56 56 104 104-104 104 56 56Zm-96 180q-33 0-56.5-23.5T200-200v-520h-40v-80h200v-40h240v40h200v80h-40v520q0 33-23.5 56.5T680-120H280Zm400-600H280v520h400v-520Zm-400 0v520-520Z"/></svg> __Drop__: clear the current system from the backend |
+|   |   | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/></svg> <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="m792-282-58-56 26-26v-232L596-760H364l-26 26-56-58 48-48h300l210 210v298l-48 50ZM520-552v-128h-80v48l80 80ZM820-28 678-170l-48 50H330L120-332v-298l48-48L28-820l56-56L876-84l-56 56ZM536-536ZM364-200h232l26-26-396-396-26 26v232l164 164Zm116-80q-17 0-28.5-11.5T440-320q0-17 11.5-28.5T480-360q17 0 28.5 11.5T520-320q0 17-11.5 28.5T480-280Zm-56-144Z"/></svg>  __Activity Log__ toggle: display or hide the Lonely-Lobster application activity log. The log lists shows also warnings and execution errors. |
+| 2 | central information: | frontend software version |
+|   |  | system name from the current configuration |
+|   |  | last event from the Lonely-Lobster __Activity Log__  |
+| 3 | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg> Log in, <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></svg> Log out:  | before laoding a configuration into the backend and executing it as a system, the user is required to log in first. Once logged in, the user name is displayed. |
 
 ### Application Activity Log
-Der User kann sich eine History wichtiger Aktivitäten der Anwendung anzeigen lassen. Hierzu kann mittels <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>   
-die Liste der Aktivitäten und Fehlermeldungen angezeigt werden.  
-
+The user can display a history of important application activities with a click on <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
+.   
+A list pops up and shows the activities including warnings and errors in reverse chronical order.  
 ![Lonely Lobster System "Italian Restaurant" Activity Log](ItalianRestaurantScreenshot_SystemActivityLog.jpg)
 
-Auch Warnungen und Fehler werden hier angezeigt.
 
-## Das System
-Das Backend führt ein System gemäß der Configuration aus. Der User hat diverse Möglichkeiten, den Ablauf der Iterationen zu steuern. Der aktuelle Stand der Abarbeitung und statistische Daten werden angezeigt.   
+## The System
+The backend executes a system according to the configuration. The user has various options for controlling the iteration process. The current processing status and statistical data are displayed.   
 ### System Control Bar
-Ist eine Configuration ins Backend geladen worden, so dass das definierte System ausgeführt werden kann, kann es über die System Control Bar gesteuert werden.
-
-![Lonely Lobster System "Italian Restaurant" System Control Log](ItalianRestaurantScreenshot_SystemControlBar_labelled.jpg)
-
-| Label | Erläuterung |
+Once a configuration has been loaded into the backend so that the defined system can be executed, it can be controlled using the system control bar.
+![Lonely-Lobster System “Italian Restaurant” System Control Log](ItalianRestaurantScreenshot_SystemControlBar_labelled.jpg)
+| Label | Explanation |
 | :---: | :--- | 
-| 4 | ![Lonely Lobster System "Italian Restaurant" System Control Log](ItalianRestaurantScreenshot_RunResumeStopReset_labelled.jpg) |
-|   | __Software-Version__ des Backends |
-|   | __Aktuelle Zeit__ (Time Unit) des Systems |
-|   | __Anzahl der Iterationen__, die beim nächsten Click des Buttons "Run" ausgeführt werden sollen |
-|   | __Run__: führt die nächste(n) Iterationen(en) aus |
-|   | __Stop__: hält bei Ausführung von mehreren Iterationen das System an |
-|   | __Resume__: führt eine zuvor angehaltene Ausführung von mehreren Iterationen wieder fort
-|   | __Reset__: setzt das System wieder zurück in den Ausgangszustand, also vor der ersten Iteration, d.h. Time ist 0 |
-|  5 | ![Lonely Lobster System "Italian Restaurant" Worker Strain](ItalianRestaurantScreenshot_WorkerStrainStrategies_labelled.jpg) Dieser Abschnitt zeigt die Worker mit folgenden jeweiligen Informationen: |
-|    | __Utilization__: prozentuale Be-/Auslastung mit entsprechend eingefärbtem Namen |
-|    | __Weighted Strategies__: die Farben zeigen an, welche Strategien der Worker zur Auswahl hat. Die relative Länge der Farbbalken zeigt, wie stark der Worker aktuell die einzelnen Strategien gewichtet, um ein bestmögliches Systemergebnis zu erzielen: je länger der Balken, desto öfter fällt die Wahl des Workers auf diese Strategie. Sollte sich für den Worker eine Strategie als nicht mehr erfolgreich erweisen, wird er die Gewichtung zugunsten der alternativen Strategien, die ihm zur Verfügung stehen, reduzieren. |
-|    | __Assignments__: Process Steps, denen der Worker zugewiesen ist; Format ist "Value-Chain.Process-Step" |
-|    | __Legende__: alle Strategien des Systems mit Namen und zugewiesenen Farben
-| 6 | ![Lonely Lobster System "Italian Restaurant" Worker Strain](ItalianRestaurantScreenshot_EcoStats_labelled.jpg) |
-|   | __Interval__: Interval, über das die Werte errechnet werden. Ein Wert von 0 bedeutet von Time 0 an bis jetzt |
-|   | __Timestamp of Stats__: Time Unit, bei der die Statistiken zuletzt berechnet wurden |
-|   | __#End Products__: Anzahl der Work Items, die unnerhalb des Intervals fertiggestellt wurden, m.a.W. die den Output Basket erreicht haben |
-|   | __Avg.Cycle Time__: durchschnittliche Cycle Time der End Products durch die Value Chains |
-|   | __Avg. Contribution Margin__: durchschnittliche Contribution, ggf. basierend auf den Discounted Values |
-|   | __Avg. Working Capital__: durchschnittliches Working Capital |
-|   | __ROCE var/fix__: Return on Capital Engaged für variable bzw. fixe Bezahlung der Worker |
-| 7  | ![Lonely Lobster System "Italian Restaurant" Worker Strain](ItalianRestaurantScreenshot_RunToggles_labelled.jpg) |
-|   |  __update view every iteration__: das Frontend zeigt den Stand jeder Iteration. Ist der Toggle off und wird ein Iteration Batch ausgeführt, werden die Darstellungen der Inventories im System nur am Ende des Iteration Batch aktualisiert.   |
-|   | __show inventories__: das Frontend zeigt die Inventories. Ist der Toggle off, muss das Frontend die Inventories nicht darstellen und die Iterationen laufen schneller. |
-|   | __optimize WIP limits__: wenn toogle on, dann versucht Lonely-Lobster nach einem heuristischen Verfahren WIP Limits zu finden, die den ROCE des Systems maximieren. Der Toogle geht auf off, sobald das Backend (scheinbar) ein Optimum gefunden hat. Siehe [Optimize WIP Limits](#optimize-wip-limits-with-simulated-annealing) |
+| 4 | ![Lonely-Lobster System “Italian Restaurant” System Control Log](ItalianRestaurantScreenshot_RunResumeStopReset_labelled.jpg) |
+|   | __Software version__ of the backend |
+|   | __Current time__ (time unit) of the system |
+|   | __Number of iterations__ to be executed with the next click of the “Run” button, i.e. the iteration batch size |
+|   | __Run__: executes the next iteration(s) |
+|   | __Stop__: interrupts the execution of an iteration batch  |
+|   | __Resume__: resumes a previously paused iteration batch |
+|   | __Reset__: resets the system back to its initial state, i.e. before the first iteration with time 0 |
+| 5 | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](ItalianRestaurantScreenshot_WorkerStrainStrategies_labelled.jpg) This section shows the workers with the following information: |
+|   | __Utilization__: utilization with the worker name colored dependent on his or her work load |
+|   | __Weighted Strategies__: the colors indicate which strategies the worker has to choose from. The relative length of the color bars shows how heavily the worker currently weights the individual strategies to achieve the best possible system result: the longer the bar, the more often the worker chooses this strategy. If a strategy no longer proves successful for the worker, he will reduce the weighting in favor of the alternative strategies available to him. |
+|   | __Assignments__: Process Steps, to which the Worker is assigned; format is “Value-Chain.Process-Step” |
+|   | __Legend__: all strategies of the system with names and assigned colors |
+| 6 | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](ItalianRestaurantScreenshot_EcoStats_labelled.jpg) |
+|   |__Interval__: Interval over which the values are calculated. A value of 0 means from Time 0 until now. |
+|   |__Timestamp of Stats__: Time unit at which the statistics were last calculated. |
+|   |__#End Products__: Number of work items completed within the interval, i.e. those that have reached the output basket. |
+|   | __Avg.Cycle Time__: average cycle time of the end products through the value chains |
+|   | __Avg. Contribution Margin__: average contribution margin, based on the - potentially discounted - end product value |
+|   | __Avg. Working Capital__: average working capital |
+|   | __ROCE var/fix__: return on capital engaged for variable / fixed payment of the workers |
+| 7  | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](ItalianRestaurantScreenshot_RunToggles_labelled.jpg) |
+|   |  __update view every iteration__: the frontend shows the state of each iteration. If the toggle is off and an iteration batch is executed, the displays of the inventories in the system are only updated at the end of the iteration batch.   |
+|   | __show inventories__: the frontend shows the inventories. If the toggle is off, the frontend does not have to display the inventories and the iterations run faster. |
+|   | __optimize WIP limits__: if toogle is on, Lonely-Lobster tries to find WIP limits that maximize the system's ROCE using a heuristic method. The toggle goes to off as soon as the backend (apparently) finds an optimum. See [Optimize WIP Limits](#optimize-wip-limits-with-simulated-annealing) |
 
 ### Value Chains
-Nachfolgend wird die Darstellung der Value Chains mit ihren Elementen beschrieben.
-![Lonely Lobster System "Italian Restaurant" Value Chain](ItalianRestaurantScreenshot_ValueChain_labelled.jpg)
-
-| Label | Erläuterung |
+The following describes the visualization of the value chains with their elements.
+![Lonely-Lobster System “Italian Restaurant” Value Chain](ItalianRestaurantScreenshot_ValueChain_labelled.jpg)
+| Label | Explanation |
 | :---: | :--- | 
-| 8 | eine Value Chain, hier "Pizza" mit drei Process Steps: der (nicht discounted) Value der End Products ist in diesem Beispiel 12. Darunter finden sich die änderbaren Injection Parameter, nämlich Throughput und Injection Probability. Throughput legt fest, wie viele Work Orders der Value Chain pro Time Unit zur Bearbeitung angeboten werden. Die Injection Probablity steuert, wie gleichmäßig der Zustrom an Work Orders erfolgen soll. Bei einem Wert von 1 pro Time Unit ist der Zustrom maximal gleichmäig. Je näher der  Wert dem Minimum von 0 ist, desto ungleichmäßiger und "rauher" wird der Zufluss. Die Work Orders kommen dann in Schüben. Zudem finden sich hier noch Flow Statistics für die Value Chain. |
-| 9 | ein Process Step, hier mit dem Namen "prep dough": in der weißen Fläche wird das Inventory an Work Items dargestellt. |
-| 10 | Norm Effort, hier 3 |
-| 11 | aktuelles WIP Limit. Wenn 0, dann ist kein WIP Limit gesetzt. |
-| 12 | Flow Statistics des Process Steps |
-| 13 | Flow Arrow: zeigt an, wie viele Work Items in der aktuellen Time Unit aus dem Process Step in den nächsten bzw. in den Output Basket geflossen sind. |
-| 14 | die Work Items des Inventories; Ein Work Item ganz links ist in der aktuellen Time Unit in den Process Step eingetreten. Mit jeder Position weiter nach rechts ist das Work Item bereits schon eine Time Unit länger im Inventory des Process Steps. Je weiter rechts, desto älter ist das Work Item, d.h. desto größer die elapsed time im Process Step. Die Helligkeit des Work Items signalisiert, wie viel Effort bereits in das Work Item geflossen ist: je dunkler, desto mehr. Die im Backend vergebene laufende Nummer für Work Items wird angezeigt. Bei Mouse-over wird der __accumulated effort__ und die __elapsed time__ im aktuellen Process Step angezeigt. |
-| 15 | Sind Work Items älter, als in der Horizontalen darstellbar, wird dies als Überlauf angezeigt. Gleiches gilt, wenn für die Höhe der Inventory-Darstellung zu viele Work Items mit gleicher __elapsed time__ in der Darstellung aufeinandergestapelt sind.  |
-| 16 | Für jeden Process Step werden die zugewiesenen Worker angezeigt. Die Farbe gibt die Auslastung an, siehe oben [System Control Bar](#system-control-bar). |
-
+| 8 | a value chain, here “pizza” with three process steps: the (non-discounted) value of the end products in this example is 12. The modifiable injection parameters, namely throughput and injection probability, are shown below. Throughput determines how many work orders of the value chain are offered for injection per time unit. The injection probability controls how evenly the influx of work orders should occur. At a value of 1 per time unit, the influx is as even as possible. The closer the  value is to the minimum of 0, the more uneven and “rough” the influx becomes. The work orders then come more likely in batches. In addition, there are flow statistics for the value chain.
+| 9 | a process step, here named “prep dough”: the inventory of work items is displayed in the white area.
+| 10 | Norm Effort, here 3 |
+| 11 | current WIP Limit. If 0, then no WIP limit is set. |
+| 12 | Flow Statistics of the Process Step |
+| 13 | Flow Arrow: shows how many Work Items in the current Time Unit have flowed from the Process Step into the next or into the Output Basket. |
+| 14 | the work items of the inventory; a work item on the far left entered the process step in the current time unit. With each position further to the right, the work item has already been in the inventory of the process step for one time unit longer. The further to the right, the older the work item is, i.e. the greater the elapsed time in the process step. The brightness of the work item indicates how much effort has already been invested in the work item: the darker the color, the more effort. The consecutive number assigned to the work item in the Backend is displayed. When you move the mouse over the work item, the __accumulated effort__ and the __elapsed time__ in the current process step are displayed.
+| 15 | If work items are older than can be displayed horizontally, this is indicated as an overflow. The same applies if too many work items with the same elapsed time are stacked on top of each other in the inventory display. |
+| 16 | The assigned workers are displayed for each process step. The color indicates the workload, see [System Control Bar](#system-control-bar).
 
 ### Output Basket
-Im Inventory des Output Baskets sammelt das System die End Products aus allen Value Chains. 
+The system collects the end products from all value chains in the output basket inventory. 
+![Lonely-Lobster System “Italian Restaurant” Output Basket](ItalianRestaurantScreenshot_OutputBasket_labelled.jpg)
 
-![Lonely Lobster System "Italian Restaurant" Output Basket](ItalianRestaurantScreenshot_OutputBasket_labelled.jpg)
+<< ---Review Marker ---- >>
 
-| Label | Erläuterung |
+| Label | Explanation |
 | :---: | :--- | 
-| 17 | das Inventory der End Products |
-| 18 | in der Horizontalen sind die End Products nach Cycle Time sortiert, d.h. ist der Norm Effort einer Value Chain 3, dann können diese End Products frühestens an dritter Stelle von links vorkommen. Je weiter nach rechts, desto länger war die tatsächliche Cycle Time des Work Items durch seine Value Chain. Vertikal werden Überlaufe angezeigt, wenn die Höhe der Inventory-Anzeige nicht mehr ausreicht.|
-| 19 | Hier werden Flow Statistics für das Gesamtsystem über alle Value Chains hinweg angezeigt. Dabei werden alle End Products zur Berechnung herangezogen, also keine Work Items, die noch in ihrer Value Chain in Bearbeitung sind. |
-| 20 | Ist die Cycle Time eines Work Items größer als in der Horizontalen darstellbar, erscheint eine Überlaufanzeige. |
-
+| 17 | the inventory of end products |
+| 18 | The end products are sorted horizontally by cycle time, i.e. if the standard effort of a value chain is 3, then these end products can appear at the earliest in third position from the left. The further to the right, the longer was the actual cycle time of the work item through its value chain. Overflow is displayed vertically if the height of the inventory display is no longer sufficient.
+| 19 | Flow statistics for the entire system across all value chains are displayed here. All end products are included in the calculation, i.e. no work items that are still in progress in their value chain. |
+| 20 | If the cycle time of a work item is longer than can be displayed horizontally, an overflow indicator appears. |
 ### Learning Statistics
-Scrollt man nach unten, erscheint unterhalb der letzten Value Chain ein Button __Update Learning Statistics__ (siehe 21). Bei Click aktualisiert sich die  Darstellung, die für jeden Worker zeigt, wie er die Gewichtung seiner ihm verfügbaren Strategien über die Zeit verändert hat. Es wird der Stand alle 20 Time Units gezeigt.    
-![Lonely Lobster System "Italian Restaurant" Worker Learning Stats](ItalianRestaurantScreenshot_WorkersLearnStats_labelled.jpg)
-
-## Der Editor
-Der Editor dient dazu, neue Configurations zu erstellen bzw. in das Frontend hochgeladene Configurations zu editieren.
-
-Hier die Configuration eines Beispielsystems im Editor: 
-![Lonely Lobster System "Italian Restaurant" Configuration Editor](ItalianRestaurantScreenshot_ConfigurationEditor.jpg)
-
+If you scroll down, a button __Update Learning Statistics__ appears below the last value chain (see 21). When you click on it, the display is updated, showing how each worker has changed the weighting of the strategies available to him over time. The status is shown every 20 time units.    
+![Lonely-Lobster System “Italian Restaurant” Worker Learning Stats](ItalianRestaurantScreenshot_WorkersLearnStats_labelled.jpg)
+## The Editor
+The editor is used to create new configurations or to edit configurations that have been uploaded to the frontend.
+Here is the configuration of a sample system in the editor: 
+![Lonely-Lobster System “Italian Restaurant” Configuration Editor](ItalianRestaurantScreenshot_ConfigurationEditor.jpg)
 
 ### System, Value Chains, Process Steps editieren
-![Lonely Lobster System "Italian Restaurant" Editor-1](ItalianRestaurantScreenshot_ConfigurationEditor_1_labelled.jpg)
+![Lonely-Lobster System "Italian Restaurant" Editor-1](ItalianRestaurantScreenshot_ConfigurationEditor_1_labelled.jpg)
 
-| Label | Erläuterung |
+| Label | Explanation |
 | :---: | :--- | 
-| 30 | System Name; hier können gemachte Änderungen an der Configuration im Lonely-Lobster Frontend - und nur dort(!) - gespeichert werden. Um die Configuration in das Download-Verzeichnis des lokalen Rechners herunterzuladen, ist __Download__  in der Application Control Bar zu nutzen. |
-| 31 | Hier können Value Chains hinzugefügt werden. |
-| 32 | Für die Value Chain "Pizza" ist definiert, dass der Wert des End Products pro Time Unit Verzug 10% (= 0.1) seines Werts verliert. |
-| 33 | Der Throughput an Work Orders ist auf 0.3, also 3 Pizzen pro 10 Time Units, festgelegt. Dabei kommen die Work Orders nicht ganz gleichmäßig an (Wert 0.8).   |
-| 34 | von links nach rechts die Abfolge der Process Steps; für jeden Process Step ist der Norm Effort und auch das aktuelle WIP Limit angegeben.  |
-
+| 30 | System Name; changes made to the configuration in the Lonely-Lobster frontend – and only there (!) – can be saved here. To download the configuration to the download directory of the local computer, use __Download__ in the Application Control Bar. |
+| 31 | Value chains can be added here. |
+| 32 | For the “pizza” value chain, the value of the end product per time unit of delay is defined to lose 10% (= 0.1) of its value. |
+| 33 | The throughput of work orders is set to 0.3, i.e. 3 pizzas per 10 time units. The Work Orders do not arrive evenly (value 0.8).  |
+| 34 | from left to right the sequence of the Process Steps; for each Process Step the Norm Effort and also the current WIP Limit is given.  |
 ### Globally defined Work Item Selection Strategies
-![Lonely Lobster System "Italian Restaurant" Global Strategies](ItalianRestaurantScreenshot_Editor_GlobalStrategies_labelled.jpg)
-In diesem Beispiel sind für das System drei Strategien definiert. Jedem Worker lassen sich keine, eine oder mehrere Strategien daraus zuordnen. Sind einem Worker keine Strategien zugeordnet, erfolgt die Auswahl nach __random__, d.h. der Worker wählt damit das nächste der Work Items aus denen, die er per seiner Zuweisung zu Process Steps im Zugriff hat, per Zufall aus. 
-
-#### Funktionsweise von Strategien
-Eine Strategie besteht aus keinem Sort Vector, einem Sort Vector oder einer nach Priorität abfallenden Liste von Sort Vectors. Ein __Sort Vector__ besteht aus einer Messgröße (eine der Eigenschaften der Work Items) und einer Sortierung, aufsteigend oder absteigend. Damit werden die Work Items, die ein Worker im Zugriff hat, sortiert. Das Work Item, das in der resultierenden Liste oben steht, wird vom Worker als das nächste zu bearbeitende ausgewählt. Sollten nach der Sortierung mehrere Work Items mit denselben Werten oben stehen, wird der nächste Sort Vector herangezogen, um diese verbleibenden Work Items zu sortieren. Sollten weiterhin mehrere Work Items mit gleichen Werten oben stehen, wird der nächste Sort Vector angewandt. Steht kein Sort Vector mehr in der Strategie zur Verfügung, kommt __random__ für die verbleibenden Work Items zur Anwendung.                   
-
-#### System Parameter
-![Lonely Lobster System "Italian Restaurant" System Parameter](ItalianRestaurantScreenshot_SystemParameters_labelled.jpg)
-
-| Label | Gruppe | Parameter | Erläuterung |
+![Lonely-Lobster System “Italian Restaurant” Global Strategies](ItalianRestaurantScreenshot_Editor_GlobalStrategies_labelled.jpg)
+In this example, three strategies are defined for the system. Each worker can be assigned none, one or more strategies. If no strategies are assigned to a worker, the selection is made according to __random__, i.e. the worker selects the next work item at random from those that it has access to due to its assignment to process steps. 
+#### How strategies work
+A strategy consists of no sort vector, one sort vector or a descending priority list of sort vectors. A sort vector consists of a measurement (one of the properties of the work item) and an order, ascending or descending. The work items that a worker has access to are sorted by this. The work item at the top of the resulting list is selected by the worker as the next one to be processed. If, after sorting, multiple work items with the same values are at the top, the next sort vector is used to sort these remaining work items. If multiple work items with the same values are still at the top, the next sort vector is applied. If there are no more sort vectors available in the strategy, __random__ is used for the remaining work items.                   
+#### System Parameters
+![Lonely-Lobster System “Italian Restaurant” System Parameters](ItalianRestaurantScreenshot_SystemParameters_labelled.jpg)
+| Label | Group | Parameter | Explanation |
 | :---: | :--- | :--- | :--- |
-| 37 | Presetting | #iterations per batch | Anzahl von Iterationen, die pro "Run" ausgeführt werden, also die Länge eines Iteration Batches; default ist 1  |
-|  |  | Economics stats interval | Interval für die Berechnung der Economics Statistics; default ist von Anfang an |
-| 38  | Learn and Adapt | Observation Period | Periode, über die Workers die Entwicklung des Systems beobachten, bevor sie die Gewichtung der ihnen verfügbaren Strategien ändern. Generell gilt: je höher die Gewichtung einer Strategie, desto öfter wird sie im AUswahlprozess durch Zufall ausgewählt. Eine dann ausgewählte Strategie kommt für die nächste Observation Period zur Anwendung. Default ist 20 Time Units. |
-|  |  | Success Measure Function | Es stehen zwei Funktionen zur Messung des Erfolgs der aktuellen Gewichtung der Strategien dem Worker bereit: __roce__ (ROCE var) und __ivc__ (individual value contribution). Ist roce gewählt und der ROCE var des Systems ist über die zurückliegende Observation Period gewachsen, wird der Worker die zuletzt angewandte Strategie noch stärker gewichten, andernfalls die Gewichtung zugunsten der anderen Strategien reduzieren.  __ivc__ misst für alle End Products den Effort-Anteil des Workers an dessen Bearbeitung und berechnet daraus analog den individuellen, anteiligen Beitrag am realisierten Value. Analog zu oben erhöht oder verringert der Worker die Gewichtung der zuletzt angewandten Strategie. |
-|  |  | Adjustment Factor | Hiermit lässt sich einstellen, wie stark die Anpassung der Gewichtung ausfallen soll. Default ist 0.3. |
-| 39 | WIP limit optimization | Initial Temperature | Die initiale "Temperatur" des Optimierungsverfahrens, das unten genauer im Abschnitt [Simulated Annealing](#simulated-annealing) beschrieben ist. Default ist 100 Grad.  |
-|  |  | Cooling Factor | Faktor, mit dem die aktuelle Temperatur multipliziert wird, um die Temperatur für die nächste __Measurement Period__ zu berechnen. Default ist 0.95. |
-|  |  | Degrees per Downhill Step Tolerance | Temperaturreduktion, die die Anzahl der tolerierten Downhill-Schritte um 1 reduziert, e.g. 20 = für jede 20 Grad Abkühlung wird 1 downhill Schritt weniger toleriert. Default ist 50. |
-|  |  | Initial Jump Distance | Die initiale Sprungweite; Default ist 1. |
-|  |  | Measurement Period | Anzahl der Iterationen, nach denen die Systemperformance wieder gemessen wird. Default ist 100 Time Units |
-|  |  | WIP Limit Upper Boundary Factor | das System übernimmt die WIP Limits, falls diese in der Configuration definiert sind.Ist für ein Process Step kein WIP Limit durch die Configuration gesetzt worden, errechnet das System eine Obergrenze mit folgender Formel: $$Anzahl dem Process Step zugewiesener Worker \div Norm Effort \cdot WIP Limit Upper Boundary Factor$$ So soll der multidimensionale Suchraum nach oben sinnvoll begrenzt werden.  |
+| 37 | Presetting | #iterations per batch | Number of iterations that are executed per “run”, i.e. the length of an iteration batch; default is 1  |
+|  |  | Economics stats interval | Interval for calculating the economics statistics; default is from the beginning |
+| 38 Learn and Adapt | Observation Period | Period over which workers observe the system's performance before changing the weight of the strategies available to them. In general, the higher the weight of a strategy, the more often it is randomly selected in the selection process. A strategy that is then selected is used for the next observation period. Default is 20 time units. |
+|  |  | Success Measure Function | There are two functions for measuring the success of the current weighting of strategies for the worker: __roce__ (ROCE var) and __ivc__ (individual value contribution). If ROCE is selected and the system's ROCE var has increased over the past observation period, the worker will give the last applied strategy an even higher weighting. Otherwise, the weighting will be reduced in favor of the other strategies.  __ivc__ measures the effort of the worker on all end products and calculates the individual, proportional contribution to the realized value. Similar to the above, the worker increases or decreases the weighting of the last strategy applied.
+| Adjustment Factor | This is used to set the strength of the adjustment of the weighting. Default is 0.3.
+| 39 | WIP limit optimization | Initial Temperature | The initial “temperature” of the optimization process, which is described in more detail in the [Simulated Annealing](#simulated-annealing) section below. Default is 100 degrees.  |
+|  |  | Cooling Factor | Factor by which the current temperature is multiplied to calculate the temperature for the next __Measurement Period__. Default is 0.95. |
+| Degrees per Downhill Step Tolerance | Temperature reduction that reduces the number of tolerated downhill steps by 1, e.g. 20 = for every 20 degrees of cooling, 1 downhill step less is tolerated. Default is 50. |
+| Initial Jump Distance | The initial jump distance; default is 1. |
+| Measurement Period | Number of iterations after which the system performance is measured again. Default is 100 Time Units |
+|  |  | WIP Limit Upper Boundary Factor | The system adopts the WIP limits if they are defined in the configuration. If no WIP limit has been set for a process step through the configuration, the system calculates an upper limit using the following formula: $$Number of workers assigned to the process step \div Norm Effort \cdot WIP Limit Upper Boundary Factor$$ This is to limit the multidimensional search space in a meaningful way.  |
 
 #### Optimize WIP Limits with Simulated Annealing
-Nachfolgend wird das Verfahren beschrieben, wie das System versucht, WIP Limits so zu setzen, dass der ROCE var maximiert wird. Das Verfahren ist heuristisch, d.h. es kann nicht garantieren, dass die beste Lösung gefunden wird, aber es findet meistens eine zumindest gute Lösung. __Simulated Anealing__ ist ein etablierter Algorithmus, um mutli-dimensionale Optimierungen durchzuführen, siehe [Wikipedia: Simulated Anealing](https://en.wikipedia.org/wiki/Simulated_annealing). Für die WIP Limit Optimierung wurde eine weiterentwickelte Version des Algotithmus umgesetzt. 
-
-Die Suche nach der besten Kombination der WIP Limite kann als Suche nach einem Optimum in einem mehrdimensionalen Raum verstanden werden. Jeder Process Step stellt eine Dimension dar. In diesem Suchraum wird die Maximierung des ROCE var angestrebt. 
-
-Hier eine grobe Skizze des Algorithmus:  
-1. Es wird die __Initial Temperature__ gesetzt
-1. Es wird die Ausgangsposition im Suchraum gewählt, in dem alle explizit gesetzten WIP-Limits vom Frontend übernommen werden  
-1. Das System führt die Anzahl von Iterationen, wie mit __Measurement Period__ definiert, durch
-1. Die Systemperformance (ROCE var) der zurückliegenden __Measurement Period__ wird ermittelt
-1. Die temperaturabhängige neue __Jump Distance__ wird berechnet
-1. Die temperaturabhängige neue Toleranz für die Anzahl von Schritten, die zu Positionen mit jeweils schlechterer Systemperformance führten, wird per __Degrees per Downhill Step Tolerance__ berechnet
-1. Ist die gemessene Systemperformance besser als alle bisher gemessenen, dann weiter mit 9.
-1. Andernfalls wird die Anzahl der Schritte mit schlechterer Systemperformance als die bisher gemessene um 1 erhöht. Liegt der Wert über der temperaturabhängigen Toleranz, wird die aktuelle Position auf die Position der bisher besten Systemperformance zurückgesetzt. 
-1. Es wird per Zufall eine Dimension (d.h. das WIP Limit eines Process Step) ausgewählt und in diese Richtung um __Jump Distance__ Schritte gesprungen. Die Temperatur wird mit dem Cooling Factor multipliziert, d.h. reduziert. Weiter mit 3.
-
-Die Optimierung bricht ab, wenn die Temperatur unter 1 gesunken ist. 
-Wird beim Sprung die Grenze des mehrdimensionalen Suchraums erreicht, prallt der Sprung an der Grenze zurück.          
-
-### System Configuration als JSON Datei
-System Configurations können als JSON Datei aus dem Frontend heruntergeladen werden. Ebenso können Confurations in das Frontend hochgeladen werden. Der Aufbau der JSON Datei spiegelt den Aufbau des Editors wieder. Nachfolgend ein beispielhafter Auszug:   
-![Lonely Lobster System "Italian Restaurant" Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)  
-Natürlich können Configuration JSON Dateien auch mit anderen Editoren erstellt werden.
-
+The following describes the procedure by which the system tries to set WIP limits in such a way that the ROCE is maximized. The procedure is heuristic, i.e. it cannot guarantee that the best solution will be found, but it usually finds a good solution. __Simulated Annealing__ is an established algorithm for performing multi-dimensional optimizations; see [Wikipedia: Simulated Annealing](https://en.wikipedia.org/wiki/Simulated_annealing). An advanced version of the algorithm has been implemented for WIP limit optimization. 
+The search for the best combination of WIP limits can be understood as a search for an optimum in a multi-dimensional space. Each process step represents a dimension. The aim is to maximize the ROCE var in this search space. 
+Here is a rough sketch of the algorithm: 
+1. The __Initial Temperature__ is set
+1. The starting position in the search space is selected, in which all explicitly set WIP limits are adopted from the frontend. 
+1. The system performs the number of iterations as defined by __Measurement Period__.
+1. The system performance (ROCE var) of the previous __Measurement Period__ is determined.
+1. The temperature-dependent new __Jump Distance__ is calculated.
+1. The temperature-dependent new tolerance for the number of steps that led to positions with poorer system performance is calculated using “Degrees per Downhill Step Tolerance”.
+1. If the measured system performance is better than all previously measured system performances, then continue with 9.
+1. Otherwise, the number of steps with worse system performance than those measured so far is increased by 1. If the value is above the temperature-dependent tolerance, the current position is reset to the position with the best system performance so far. 
+1. A dimension (i.e. the WIP limit of a process step) is selected at random and steps are taken in that direction by __Jump Distance__. The temperature is multiplied by the cooling factor, i.e. reduced. Continue with 3.
+Optimization stops when the temperature has fallen below 1. 
+If the limit of the multidimensional search space is reached during the jump, the jump bounces back at the limit. 
+### System Configuration as JSON File
+System configurations can be downloaded from the frontend as a JSON file. Configurations can also be uploaded to the frontend. The structure of the JSON file reflects the structure of the editor. The following is an example excerpt:   
+![Lonely-Lobster System “Italian Restaurant” Configuration as Json](ItalianRestaurantScreenshot_ConfigurationAsJson.jpg) 
+Of course, configuration JSON files can also be created with other editors.
 ## System Cleanup
-Das Backend kann für mehrere parallele User-Sessions jeweils individuelle Systeme ausführen. Dabei können jeweils große Datenmengen entstehen. Damit nicht  Systemressourcen in der Cloud unnötig lange belegt werden, löscht das Backend noch aktive Systeme, die schon über eine Stunde keine Anfrage vom Frontend mehr empfangen haben. Beim Aufruf des Backends danach erhält das Frontend eine Fehlermeldung, siehe [Application Activity Log](#application-activity-log).       
+The backend can run individual systems for several parallel user sessions. This can result in large amounts of data. To avoid  unnecessarily occupying cloud system resources for long periods, the backend deletes active systems that have not received a request from the frontend for over an hour. If the backend is accessed again, the frontend receives an error message; see [Application Activity Log](#application-activity-log).       

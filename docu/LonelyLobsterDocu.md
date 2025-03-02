@@ -102,6 +102,8 @@ Beispiele für Spezialisten, die häufig den Spagat zwischen verschiedenen Werts
 | ... | ... | ... 
 | 
 
+<####### Translation Marker #########>
+
 # Lonely Lobster
 Das Software-Projekt "Lonely Lobster" hat zum Ziel, die grundlegenden Effekte und Wirkungszusammenhänge in solchen Unternehmen systemtisch erforschen zu können. Die Lonely-Lobster-Anwendung bietet die Möglichkeit, idealisiert und von vielen Details des realen Unternehmensalltags abstrahierend Systeme mit mehreren Wertschöpfungsketten, jeweils mit mehreren Arbeitsschritten ausgestattet, zu definieren, Mitarbeiter einem oder mehreren Arbeitschritten  zuzuordnen und den Zufluss neuer Arbeitsaufträge zu steuern. Lonely-Lobster simuliert die Abarbeitung der (immteriellen) Werkstücke und visualisiert diese. Statistiken und KPIs werden errechnet und dargestellt, um die Effizenz des Systems bewerten zu können. Es erlaubt insbesondere u.a folgenden Fragen nachzugehen:
 * Wie soll der Zufluss an neuen Arbeitsaufträgen in das System und in einzelne Arbeitsstationen gesteuert werden, um ein bestmögliches Ergebnis für das Unternehmen zu erzielen?
