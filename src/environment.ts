@@ -7,6 +7,6 @@
 
 /** environment information of the Lonely Lobster backend */
 export const environment = {
-    version: "7.0.0",
-    notes: "production readiness"
+    version: "7.0.1",
+    notes: "more production readiness"
   }

@@ -149,11 +149,11 @@ In tis documents, the following terms are used:
 
 ## The User Interface - Overview
 Here is the Lonely-Lobster user interface with an example configuration that can be run as a system:  
-![Lonely-Lobster System “Italian Restaurant”](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot.jpg)  
+![Lonely-Lobster System “Italian Restaurant”](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot.jpg)  
 The individual sections of the user interface are described below.
 
 ### Application Control Bar
-![Lonely-Lobster System "Italian Restaurant" Application Control Bar](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ControlBar_labelled.jpg)
+![Lonely-Lobster System "Italian Restaurant" Application Control Bar](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ControlBar_labelled.jpg)
 
 | Label | Explanation | Details |
 | :---: | :--- | :--- |
@@ -174,17 +174,17 @@ The individual sections of the user interface are described below.
 The user can display a history of important application activities with a click on <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
 .   
 A list pops up and shows the activities including warnings and errors in reverse chronical order.  
-![Lonely Lobster System "Italian Restaurant" Activity Log](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_SystemActivityLog.jpg)
+![Lonely Lobster System "Italian Restaurant" Activity Log](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_SystemActivityLog.jpg)
 
 
 ## The System
 The backend executes a system according to the configuration. The user has various options for controlling the iteration process. The current processing status and statistical data are displayed.   
 ### System Control Bar
 Once a configuration has been loaded into the backend so that the defined system can be executed, it can be controlled using the system control bar.
-![Lonely-Lobster System “Italian Restaurant” System Control Log](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_SystemControlBar_labelled.jpg)
+![Lonely-Lobster System “Italian Restaurant” System Control Log](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_SystemControlBar_labelled.jpg)
 | Label | Explanation |
 | :---: | :--- | 
-| 4 | ![Lonely-Lobster System “Italian Restaurant” System Control Log](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_RunResumeStopReset_labelled.jpg) |
+| 4 | ![Lonely-Lobster System “Italian Restaurant” System Control Log](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_RunResumeStopReset_labelled.jpg) |
 |   | __Software version__ of the backend |
 |   | __Current time__ (time unit) of the system |
 |   | __Number of iterations__ to be executed with the next click of the “Run” button, i.e. the iteration batch size |
@@ -192,12 +192,12 @@ Once a configuration has been loaded into the backend so that the defined system
 |   | __Stop__: interrupts the execution of an iteration batch  |
 |   | __Resume__: resumes a previously paused iteration batch |
 |   | __Reset__: resets the system back to its initial state, i.e. before the first iteration with time 0 |
-| 5 | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_WorkerStrainStrategies_labelled.jpg) This section shows the workers with the following information: |
+| 5 | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_WorkerStrainStrategies_labelled.jpg) This section shows the workers with the following information: |
 |   | __Utilization__: utilization with the worker name colored dependent on his or her work load |
 |   | __Weighted Strategies__: the colors indicate which strategies the worker has to choose from. The relative length of the color bars shows how heavily the worker currently weights the individual strategies to achieve the best possible system result: the longer the bar, the more often the worker chooses this strategy. If a strategy no longer proves successful for the worker, he will reduce the weighting in favor of the alternative strategies available to him. |
 |   | __Assignments__: Process Steps, to which the Worker is assigned; format is “Value-Chain.Process-Step” |
 |   | __Legend__: all strategies of the system with names and assigned colors |
-| 6 | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_EcoStats_labelled.jpg) |
+| 6 | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_EcoStats_labelled.jpg) |
 |   |__Interval__: Interval over which the values are calculated. A value of 0 means from Time 0 until now. |
 |   |__Timestamp of Stats__: Time unit at which the statistics were last calculated. |
 |   |__#End Products__: Number of work items completed within the interval, i.e. those that have reached the output basket. |
@@ -205,14 +205,14 @@ Once a configuration has been loaded into the backend so that the defined system
 |   | __Avg. Contribution Margin__: average contribution margin, based on the - potentially discounted - end product value |
 |   | __Avg. Working Capital__: average working capital |
 |   | __ROCE var/fix__: return on capital engaged for variable / fixed payment of the workers |
-| 7  | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_RunToggles_labelled.jpg) |
+| 7  | ![Lonely-Lobster System “Italian Restaurant” Worker Strain](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_RunToggles_labelled.jpg) |
 |   |  __update view every iteration__: the frontend shows the state of each iteration. If the toggle is off and an iteration batch is executed, the displays of the inventories in the system are only updated at the end of the iteration batch.   |
 |   | __show inventories__: the frontend shows the inventories. If the toggle is off, the frontend does not have to display the inventories and the iterations run faster. |
 |   | __optimize WIP limits__: if toogle is on, Lonely-Lobster tries to find WIP limits that maximize the system's ROCE using a heuristic method. The toggle goes to off as soon as the backend (apparently) finds an optimum. See [Optimize WIP Limits](#optimize-wip-limits-with-simulated-annealing) |
 
 ### Value Chains
 The following describes the visualization of the value chains with their elements.  
-![Lonely-Lobster System “Italian Restaurant” Value Chain](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ValueChain_labelled.jpg)
+![Lonely-Lobster System “Italian Restaurant” Value Chain](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ValueChain_labelled.jpg)
 | Label | Explanation |
 | :---: | :--- | 
 | 8 | a value chain, here “pizza” with three process steps: the (non-discounted) value of the end products in this example is 12. The modifiable injection parameters, namely throughput and injection probability, are shown below. Throughput determines how many work orders of the value chain are offered for injection per time unit. The injection probability controls how evenly the influx of work orders should occur. At a value of 1 per time unit, the influx is as even as possible. The closer the  value is to the minimum of 0, the more uneven and “rough” the influx becomes. The work orders then come more likely in batches. In addition, there are flow statistics for the value chain.
@@ -227,7 +227,7 @@ The following describes the visualization of the value chains with their element
 
 ### Output Basket
 The system collects the end products from all value chains in the output basket inventory. 
-![Lonely-Lobster System “Italian Restaurant” Output Basket](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_OutputBasket_labelled.jpg)
+![Lonely-Lobster System “Italian Restaurant” Output Basket](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_OutputBasket_labelled.jpg)
 
 | Label | Explanation |
 | :---: | :--- | 
@@ -237,14 +237,14 @@ The system collects the end products from all value chains in the output basket 
 | 20 | if the cycle time of a work item is longer than can be displayed horizontally, an overflow indicator appears. |
 ### Learning Statistics
 If you scroll down, a button __Update Learning Statistics__ appears below the last value chain (see 21). On click  the display updates and shows how each worker has changed the weighting of the strategies available to him over time. The status is shown every 20 time units.    
-![Lonely-Lobster System “Italian Restaurant” Worker Learning Stats](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_WorkersLearnStats_labelled.jpg)
+![Lonely-Lobster System “Italian Restaurant” Worker Learning Stats](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_WorkersLearnStats_labelled.jpg)
 ## The Editor
 The editor is used to create new configurations or to edit configurations that have been uploaded to the frontend.
 Here is the configuration of a sample system in the editor: 
-![Lonely-Lobster System “Italian Restaurant” Configuration Editor](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationEditor.jpg)
+![Lonely-Lobster System “Italian Restaurant” Configuration Editor](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationEditor.jpg)
 
 ### Edit System, Value Chains, Process Steps
-![Lonely-Lobster System "Italian Restaurant" Editor-1](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationEditor_1_labelled.jpg)
+![Lonely-Lobster System "Italian Restaurant" Editor-1](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationEditor_1_labelled.jpg)
 
 | Label | Explanation |
 | :---: | :--- | 
@@ -254,12 +254,12 @@ Here is the configuration of a sample system in the editor:
 | 33 | The throughput of work orders is set to 0.3, i.e. on average 3 pizzas per 10 time units. The Work Orders do not arrive evenly (value 0.8).  |
 | 34 | from left to right the sequence of the Process Steps; for each Process Step the Norm Effort and also the current WIP limit are set.  |
 ### Globally defined Work Item Selection Strategies
-![Lonely-Lobster System “Italian Restaurant” Global Strategies](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_Editor_GlobalStrategies_labelled.jpg)
+![Lonely-Lobster System “Italian Restaurant” Global Strategies](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_Editor_GlobalStrategies_labelled.jpg)
 In this example, three strategies are defined for the system. Each worker can be assigned none, one or more strategies. If no strategies are assigned to a worker, the selection is made according to __random__, i.e. the worker selects the next work item at random from those that (s)he has access to due to his/her process step assignments. 
 #### How strategies work
 A strategy consists of no sort vector, one sort vector or a list of sort vectors sorted with descending priority. A sort vector consists of a measurement (one of the properties of the work item) and a sort order, ascending or descending. The work items that a worker has access to are sorted by the strategy. The work item at the top of the resulting list is selected by the worker as the next one to be processed. If after sorting multiple work items with the same values are at the top, the next sort vector is used to sort these remaining work items. If still multiple work items with the same values are at the top, the next sort vector is applied. If there are no more sort vectors available in the strategy, __random__ is used for the remaining work items.                   
 #### System Parameters
-![Lonely-Lobster System “Italian Restaurant” System Parameters](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_SystemParameters_labelled.jpg)
+![Lonely-Lobster System “Italian Restaurant” System Parameters](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_SystemParameters_labelled.jpg)
 | Label | Group | Parameter | Explanation |
 | :---: | :--- | :--- | :--- |
 | 37 | Presetting | #iterations per batch | Number of iterations that are executed per “run” i.e. the length of an iteration batch. Default is 1. |
@@ -293,7 +293,7 @@ Here is a rough sketch of the algorithm:
 Optimization stops when the temperature has fallen below 1. 
 ### System Configuration as JSON File
 System configurations can be downloaded from the frontend as a JSON file. Configurations can also be uploaded to the frontend. The structure of the JSON file reflects the structure in the editor. The following is an example excerpt:   
-![Lonely-Lobster System “Italian Restaurant” Configuration as Json](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
+![Lonely-Lobster System “Italian Restaurant” Configuration as Json](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
 
 Of course, configuration JSON files can also be created with other editors.
 ## System Cleanup
