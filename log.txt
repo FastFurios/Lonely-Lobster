@@ -1,9 +1,0 @@
-argv[2]=--api, argv[3]=undefined, argv[4]=undefined
-
-Running in api mode ...
-Express is listening at http://localhost:3000
-
-_main: app.post /initialize ------------------------------------
-_main(): app.post /initialize: webSession = 1cY64as2Hamgn6mgdTM3IJwVt0ypQUH_; Lonely-Lobster System ist defined= [object Object]; name= 1vc1ps1wo_random_maxcvc-minreetvc
-_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = y-dajTQ_6tNvM5Cg9jdJbxwg3wMnDxx_
-_main(): app.post /system workitem-events: could not find a LonelyLobsterSystem for webSession = cKEPWLE19EiMzJeBmeyaSAvHb9iWW4F7
