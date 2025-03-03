@@ -148,12 +148,12 @@ In tis documents, the following terms are used:
 | Backend | The part of Lonely-Lobster that runs in the cloud and can execute a system as defined by the current configuration |  |
 
 ## The User Interface - Overview
-Here is the Lonely-Lobster user interface with an example configuration that can be run as a system:
-![Lonely-Lobster System “Italian Restaurant”](LonelyLobsterDocuSnips/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot.jpg)
+Here is the Lonely-Lobster user interface with an example configuration that can be run as a system:  
+![Lonely-Lobster System “Italian Restaurant”](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot.jpg)  
 The individual sections of the user interface are described below.
 
 ### Application Control Bar
-![Lonely-Lobster System "Italian Restaurant" Application Control Bar](LonelyLobsterDocuSnips/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ControlBar_labelled.jpg)
+![Lonely-Lobster System "Italian Restaurant" Application Control Bar](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ControlBar_labelled.jpg)
 
 | Label | Explanation | Details |
 | :---: | :--- | :--- |

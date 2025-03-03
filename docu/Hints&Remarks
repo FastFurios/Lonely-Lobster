@@ -35,7 +35,7 @@ Sharing API definitions btw. frontend and backend:
 ~/sw_projects/Angular-Testbed$ sh getApiDefsFromBackend.sh
 
 
-Azure Deployment (2023-10-10): https://lonely-lobster.azurewebsites.net
+## Azure Deployment (2023-10-10): https://lonely-lobster.azurewebsites.net
 - frontend:
 -- ensure the api endpoints are set to xxxx.azurewebsites.net in the frontend, e.g. "https://lonely-lobster.azurewebsites.net/initialize/" (check environment.prod.ts file)
 -- check if enviroment.prod.ts contains the new frontend version number 
@@ -46,7 +46,7 @@ Azure Deployment (2023-10-10): https://lonely-lobster.azurewebsites.net
 -- tsc
 
 - copy files to deployment stage i.e. ~/sw-projects/azure/Lonely-Lobster/
-~/sw_projects/Lonely-Lobster$ sh buildForAzure.sh
+~/sw_projects/azure/Lonely-Lobster$ sh buildForAzure.sh
 
 in VSCode:
 - open folder ~/sw_projects/azure/Lonely-Lobster/
@@ -54,7 +54,7 @@ in VSCode:
 - log in to Azure
 - select subscription
 - select "App Services"
-- select webapp, e.g. "lonely-lobster"
+- select webapp, e.g. "lonely-lobster"x
 - right mouse-click on webapp: deploy to Web App...
 - takes a while. Might end with an error ("...map is not a function"). Just wait and repeat, it will eventually work.
 
