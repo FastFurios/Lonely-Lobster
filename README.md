@@ -2,7 +2,7 @@
 LONELY LOBSTER
 ==============
 ***Simulating the effects of sharing critical resources over multiple value chains***  
-Gerold Lindorfer Dec 2024
+Gerold Lindorfer Dec 2024, gerold@lindorfer.com
 
 
 
