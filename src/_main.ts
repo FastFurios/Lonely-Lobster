@@ -105,10 +105,10 @@ function apiMode(): void {
     // ---- Passport --------------------------------------
     /** set up passport with Azure Entra ID token: settings, connection URLs, ... */    
     const options: IBearerStrategyOption = {
-        identityMetadata:   "https://login.microsoftonline.com/49bf30a4-54b2-47ae-b9b1-ffa71ed3d475/v2.0/.well-known/openid-configuration",  // == Azure AD: directory (tenant) ID 
-        clientID:           "api://5797aa9c-0703-46d9-9fba-934498b8e5d6", // == Azure AD: for the backend: manage / expose an API: Application ID URI  
-        issuer:             "https://sts.windows.net/49bf30a4-54b2-47ae-b9b1-ffa71ed3d475/",   // use tenant ID
-        audience:           "api://5797aa9c-0703-46d9-9fba-934498b8e5d6", // == Azure AD: for the backend: manage / expose an API: Application ID URI
+        identityMetadata:   `https://login.microsoftonline.com/${environment.msalConfig.tenant}/v2.0/.well-known/openid-configuration`,  // == Azure AD: directory (tenant) ID 
+        clientID:           `api://${environment.msalConfig.applicationId}`, // == Azure AD: for the backend: manage / expose an API: Application ID URI  
+        issuer:             `https://sts.windows.net/${environment.msalConfig.tenant}/`,   // use tenant ID
+        audience:           `api://${environment.msalConfig.applicationId}`, // == Azure AD: for the backend: manage / expose an API: Application ID URI
         validateIssuer:     true,       // Validate the issuer of the token
         loggingLevel:       "error",    // optional: logging level for passport-azure-ad
         loggingNoPII:       true        // optional: hide sensitive data in log; if false log shows more details
