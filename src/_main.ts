@@ -19,7 +19,7 @@ import cors     from "cors"
 import passport from 'passport'
 import { BearerStrategy, IBearerStrategyOption, ITokenPayload } from 'passport-azure-ad'
 import { VerifyCallback } from 'jsonwebtoken'
-import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg;
+import pkg from 'jsonwebtoken'; const { JsonWebTokenError } = pkg
 
 import { environment } from './environment.js'
 

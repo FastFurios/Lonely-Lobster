@@ -1,3 +1,11 @@
+
+LONELY LOBSTER
+==============
+***Simulating the effects of sharing critical resources over multiple value chains***  
+Gerold Lindorfer Dec 2024
+
+
+
 # Lean Manufacturing
 Since the beginning of industrialization at the end of the 18th century, the production of goods for almost all areas of life has steadily increased in efficiency. Factory-based mass production has continuously increased the quantity and quality of the goods produced and at the same time reduced unit costs. Our material prosperity today is based on it.
 
