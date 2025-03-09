@@ -11,8 +11,7 @@ export const environment = {
     notes: "more production readiness",
       // msal config details
     msalConfig: {
-      tenant:"49bf30a4-54b2-47ae-b9b1-ffa71ed3d475",
-      applicationId: "5797aa9c-0703-46d9-9fba-934498b8e5d6"
+      tenant:"<use your own Azure tenant>",
+      applicationId: "<use your own Azure application ID for the backend>"
     }
-
   }
