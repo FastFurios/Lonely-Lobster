@@ -4,4 +4,4 @@ frontend/
 .*
 *.hide
 git*.sh
-.vscode
+.vscode/*
