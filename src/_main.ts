@@ -57,7 +57,7 @@ declare module "express-session" { // expand the type of the session data by my 
 // -------------------------------------------------------------------
 
 const debugApiCalls         = true
-const debugAuthentication   = true
+const debugAuthentication   = false
 const debugAutoDrop         = true
 
 /** printing debug logging timestamp as hh:mm:ss  */

@@ -319,5 +319,5 @@ System Configurations können als JSON Datei aus dem Frontend heruntergeladen we
 ![Lonely Lobster System "Italian Restaurant" Configuration as Json](LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)  
 Natürlich können Configuration JSON Dateien auch mit anderen Editoren erstellt werden.
 
-## System Cleanup
+## System Clean-up
 Das Backend kann für mehrere parallele User-Sessions jeweils individuelle Systeme ausführen. Dabei können jeweils große Datenmengen entstehen. Damit nicht  Systemressourcen in der Cloud unnötig lange belegt werden, löscht das Backend noch aktive Systeme, die schon über eine Stunde keine Anfrage vom Frontend mehr empfangen haben. Beim Aufruf des Backends danach erhält das Frontend eine Fehlermeldung, siehe [Application Activity Log](#application-activity-log).       
