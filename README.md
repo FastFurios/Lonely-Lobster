@@ -73,7 +73,7 @@ The following is a list of differences:
 
 There are several studies in the literature that deal with the question of the extent to which lean manufacturing techniques and principles can also be used in companies that offer complex, intangible, knowledge-based services. An example of this is [Havard Business Review: Lean Knowledge Work
 by Bradley R. Staats and David M. Upton 2021](https://hbr.org/2011/10/lean-knowledge-work). 
-These works deal with the applicability of the [Key Principles of Lean Management](https://en.wikipedia.org/wiki/Lean_manufacturing), often with a particular focus on continuous improvement and the employees. 
+These works deal with the applicability of the [The five Principles of Lean Management](https://www.6sigma.us/lean-six-sigma-articles/5-principles-of-lean/), often with a particular focus on continuous improvement and the employees. 
 
 
 # A special problem
