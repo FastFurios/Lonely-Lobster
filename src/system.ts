@@ -70,12 +70,6 @@ export class LonelyLobsterSystem {
         this.outputBasket   = new OutputBasket(this)
     }
 
-    /*  
-    private get allWorkItems(): WorkItem[] {
-        return this.valueChains.flatMap(vc => vc.processSteps.flatMap(ps => ps.workItemBasket)).concat(this.outputBasket.workItemBasket) 
-    }
-    */
-
     /**
      * Execute iteration requests i.e. iterate
      * @param iterRequests itertion requests
