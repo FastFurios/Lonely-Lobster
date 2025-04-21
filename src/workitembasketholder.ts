@@ -85,6 +85,11 @@ export abstract class WorkItemBasketHolder implements ToString {
         return this.workItemBasket.length
     }
     
+     /**
+     * @returns true if the number of work items in the process step has reached the set work-in-progress limit, else false 
+     */
+    abstract reachedWipLimit(): boolean 
+    
     /** batch mode only ## */
     public stringifiedBar = (): string => { 
         const strOfBskLen = this.workItemBasket.length.toString()
@@ -165,7 +170,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
     public letWorkItemsFlowTo(toWibh: WorkItemBasketHolder): void { 
         this.workItemBasket                   
             .filter(wi => wi.finishedAtCurrentProcessStep())                    // filter the workitems ready to be moved on
-            .forEach(wi => this.moveTo(wi, toWibh))                             // move these workitems on
+            .forEach(wi => { if (!toWibh.reachedWipLimit()) this.moveTo(wi, toWibh) }) // as long as the WIP limit of the target workitem basket holder has not been reached, move workitems on
     }
 
     /**
@@ -198,6 +203,13 @@ export class OutputBasket extends WorkItemBasketHolder {
         super(sys, "OutputBasket")
     } 
 
+    /**
+     * @returns always false as the Output Basket has no upper WIP limit 
+    */
+    public reachedWipLimit(): boolean { 
+        return false 
+    }
+        
     /**
      * Calculate aggregated end-product based statistics
      * @param fromTime start of interval (inclusive)
