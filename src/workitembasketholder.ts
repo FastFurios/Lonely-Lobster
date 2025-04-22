@@ -157,7 +157,7 @@ export class ProcessStep extends WorkItemBasketHolder  {
      * @param wi work item to be moved 
      * @param toWibh target work item basekt holder
      */
-    private moveTo(wi: WorkItem, toWibh: WorkItemBasketHolder) {
+    public moveTo(wi: WorkItem, toWibh: WorkItemBasketHolder) {
         this.removeFromBasket(wi)  // take the work item from this process step ...
         toWibh.add(wi)             // ... and add in into the target ...
         wi.moveTo(toWibh)          // ... and log the move within the work item
@@ -167,12 +167,13 @@ export class ProcessStep extends WorkItemBasketHolder  {
      * moves finished work items from this process step to the next work item basket holder
      * @param toWibh work item basket holder the work items are to move to 
      */
+/*
     public letWorkItemsFlowTo(toWibh: WorkItemBasketHolder): void { 
         this.workItemBasket                   
             .filter(wi => wi.finishedAtCurrentProcessStep())                    // filter the workitems ready to be moved on
             .forEach(wi => { if (!toWibh.reachedWipLimit()) this.moveTo(wi, toWibh) }) // as long as the WIP limit of the target workitem basket holder has not been reached, move workitems on
     }
-
+*/
     /**
      * Update the statistical data of the work items in the process step
      */

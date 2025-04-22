@@ -8,7 +8,7 @@
 import { TimeUnit, Timestamp, Value, ValueChainId, Effort, Injection } from './io_api_definitions'
 import { LonelyLobsterSystem } from './system.js'
 import { WorkItem } from './workitem.js'
-import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
+import { WorkItemBasketHolder, ProcessStep, OutputBasket } from './workitembasketholder.js'
 
 // ------------------------------------------------------------
 // discounting financial value
@@ -100,10 +100,29 @@ export class ValueChain {
     }
 
     /**
-     * Move all work items in this value chain to the next basket holder
+     * Advance a work item through the value chain until either 
+     * a) it ended up in the Output Basket or
+     * b) it cannot move on as the next process step reached its WIP limit or
+     * c) the new process step is a real process step i.e. has a norm effort > 0
+     */
+    private advanceMax(wi: WorkItem, ps: ProcessStep): void {
+        const newWibh = this.nextWorkItemBasketHolder(ps)
+        if (newWibh.reachedWipLimit()) return          // if the next work item basket holder has reached its WIP limit, the work item cannot advance into it
+        ps.moveTo(wi, newWibh)                         // advance to the next work item basket holder
+        if (newWibh == this.sys.outputBasket) return   // if the next work item basket holder was the Output Basket, and the work item is now in it, then the work item cannot advance further
+        if ((<ProcessStep>newWibh).normEffort > 0) return  // it is a valid process step now where work needs to done on the work item, so don't advance further
+        this.advanceMax(wi, <ProcessStep>newWibh)      // advance further from new work item basket holder
+    }
+
+    /**
+     * Move all work items in this value chain to the next basket holder;
+     * Start with the last process step and move step-wise to the first, i.e. clearing a process step from finished work items before trying to move any new into it;
      */
     public letWorkItemsFlow(): void { 
-        this.processSteps.forEach(ps => ps.letWorkItemsFlowTo(this.nextWorkItemBasketHolder(ps)))
+        for (let i = this.processSteps.length - 1; i >= 0; i--) {
+            const ps = this.processSteps[i]
+            ps.workItemBasket.forEach(wi => this.advanceMax(wi, ps))
+        }
     }
 
     /**
