@@ -218,6 +218,11 @@ export class WorkItem implements ToString {
         return this.movedLogEntries[0]
     }
 
+    /** returns the timestamp of last log entry */
+    public get lastLogEntry(): LogEntry {
+        return this.log[this.log.length - 1]
+    }
+
     /** returns the elapsed time since entry into the current process step; if already being in the output basket, return undefined*/
     public get elapsedTimeInCurrentProcessStep(): TimeUnit | undefined {
         if (this.currentWorkItemBasketHolder == this.sys.outputBasket) return undefined // this function calculates elapsed time for process steps only!

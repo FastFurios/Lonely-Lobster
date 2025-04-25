@@ -124,6 +124,7 @@ In tis documents, the following terms are used:
 | Inventory | a collection of work items |  |
 | Output Basket | is the inventory of all end products |  |
 | Process Step | Work station in which the assigned workers perform the necessary work on work items in the inventory of the process step until the work item can move on to the next process step or finally to the output basket. | Work station |
+| Buffer | A special kind of Process Step where norm-effort is 0, i.e. no work is done in the process step, it justs serves as a buffer that can temporaily hold work items | Intermediate storage |
 | Value chain | consisting of at least one, usually several process steps. | Production line |
 | System | Executable system consisting of at least 1 value chain and 1 worker. A system also has further setting options (system parameters). | | 
 | Configuration | Definition of a system with its value chains, workers, strategies, system parameters; can be uploaded as a JSON file to the Lonely-Lobster frontend or exported (again) to the local download directory after creation or modification. Configurations can be created and revised in the Lonely-Lobster Editor.  |  |
@@ -231,6 +232,12 @@ The following describes the visualization of the value chains with their element
 | 14 | the work items of the inventory; a work item on the far left entered the process step in the current time unit. With each position further to the right, the work item has already been in the inventory of the process step for one time unit longer. The further to the right, the older the work item is, i.e. the greater the elapsed time in the process step. The brightness of the work item indicates how much effort has already been invested in the work item: the darker the color, the more effort. The consecutive number assigned to the work item in the Backend is displayed. When you move the mouse over the work item, the __accumulated effort__ and the __elapsed time__ in the current process step are displayed.
 | 15 | If work items are older than can be displayed horizontally, this is indicated as an overflow. The same applies if too many work items with the same elapsed time are stacked on top of each other in the inventory display. |
 | 16 | The assigned workers are displayed for each process step. The color indicates the workload, see [System Control Bar](#system-control-bar).
+
+Remarks: 
+- when finished work items are moved on to the next process step, then this is done in a "first finished, first moved on" order.   
+- from backend release 7.1.0 on, you can set the norm-effort of a process step to 0. This process step then acts as a __buffer__, i.e. it is just a temporary inventory that holds work items before they are allowed by the next process step's WIP limit to advance into it.
+
+
 
 ### Output Basket
 The system collects the end products from all value chains in the output basket inventory. 

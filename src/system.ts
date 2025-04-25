@@ -93,7 +93,7 @@ export class LonelyLobsterSystem {
      * @param optimizeWipLimits current wip limits 
      */
     public doOneIteration(wos: WorkOrder[], optimizeWipLimits: boolean): void {
-        wos.forEach(w => w.valueChain.createAndInjectNewWorkItem())
+        wos.forEach(wo => wo.valueChain.createAndInjectNewWorkItem())
 
         // tick the clock to the next interval
         this.clock.tick()

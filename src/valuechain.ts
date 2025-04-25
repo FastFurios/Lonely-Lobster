@@ -76,10 +76,14 @@ export class ValueChain {
     }   
 
     /**
-     * if wip limit is set and not yet reached create a new work item and inject it into the process step 
+     * if wip limit is set and not yet reached create a new work item and inject it into the first process step
+     * advance the work item to the first process step where work needs to be done (if WIP limits allow this)  
      */
     public createAndInjectNewWorkItem(): void { 
-        if (!(<ProcessStep>this.processSteps[0]).reachedWipLimit()) new WorkItem(this.sys, this)
+        if (this.processSteps[0].reachedWipLimit()) return   // discard order
+        const wi = new WorkItem(this.sys, this)
+        if (this.processSteps[0].normEffort == 0)      // is just a buffer 
+            this.advanceMax(wi, this.processSteps[0])  // advance new work item thru any buffers, i.e. process step with norm effort == 0, until it reaches the first process step where work needs to be done
     }
 
     /**
@@ -105,7 +109,8 @@ export class ValueChain {
      * b) it cannot move on as the next process step reached its WIP limit or
      * c) the new process step is a real process step i.e. has a norm effort > 0
      */
-    private advanceMax(wi: WorkItem, ps: ProcessStep): void {
+    public advanceMax(wi: WorkItem, ps: ProcessStep): void {
+        if (!wi.finishedAtCurrentProcessStep()) return  // not finished yet, therefore cannot leave process step 
         const newWibh = this.nextWorkItemBasketHolder(ps)
         if (newWibh.reachedWipLimit()) return          // if the next work item basket holder has reached its WIP limit, the work item cannot advance into it
         ps.moveTo(wi, newWibh)                         // advance to the next work item basket holder
@@ -119,10 +124,11 @@ export class ValueChain {
      * Start with the last process step and move step-wise to the first, i.e. clearing a process step from finished work items before trying to move any new into it;
      */
     public letWorkItemsFlow(): void { 
-        for (let i = this.processSteps.length - 1; i >= 0; i--) {
-            const ps = this.processSteps[i]
-            ps.workItemBasket.forEach(wi => this.advanceMax(wi, ps))
-        }
+        [...this.processSteps]
+            .reverse()  // go thru the process steps from last to first to ensure work items are moved out of the process step before taking new into it 
+            .forEach(ps => ps.workItemBasket
+                .sort((wi1, wi2) => wi1.lastLogEntry.timestamp - wi2.lastLogEntry.timestamp) // bring the work items in an ascending order by the last timestamp they where moved or worked on to ensure "first finished first advanced" behaviour
+                .forEach(wi => this.advanceMax(wi, ps)))
     }
 
     /**
