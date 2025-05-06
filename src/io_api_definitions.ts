@@ -423,6 +423,16 @@ export enum EventTypeId {
     configJsonError     = "JSON of configuration file is corrupt.",
     configCorrupt       = "Configuration is corrupt",
     
+    workordersFileLoaded                    = "Work orders File loaded",
+    workordersFileLoadError                 = "Work orders File loading error",
+    workordersFileNotFound                  = "Work orders File not found",
+    workordersNoFileLoaded                  = "No work order file loaded.",
+    workordersCsvError                      = "Something went wrong parsing the work order csv content.",
+    workordersCsvErrorNoWorkordersHeader    = "No column with work orders found.",
+    workordersCsvErrorNotFittingColumns     = "Some rows do not fit the header columns.",
+    workordersCsvErrorNoUseableRows         = "No useable rows left after deleting non fitting rows.",
+    workordersCorrupt                       = "Work orders are corrupt",
+    
     configEdited        = "Configuration edited.",
     configSaved         = "Configuration changes saved.",
 
