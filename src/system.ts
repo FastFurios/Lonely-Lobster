@@ -76,7 +76,6 @@ export class LonelyLobsterSystem {
      */
     public doIterations(iterRequests: I_IterationRequests): void {
         this.setWipLimits(iterRequests[0].wipLimits) // we take the first iterations wip-limits as they don't change over time anyway
-        //console.log("doIteration: searchState.temperature= " +  this.searchState?.temperature)
         if (iterRequests[0].optimizeWipLimits) { // frontend asks for optimization 
             if (!this.searchState || this.searchState.temperature < 0) this.initializeWipLimitOptimization()  // initialize wip limit optimization when frontend sends signal to optimize and no search parms yet or search parms but frozen
         } else // frontend doen't want optimization

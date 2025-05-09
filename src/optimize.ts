@@ -5,7 +5,6 @@
  * see e.g. https://www.bing.com/search?q=simulated+annealing&form=ANNTH1&refig=7d005b93e9644fc49bd1c96a0871e7c7&pc=ACTS
  */
 // ------------------------------------------------------------
-// last code cleaning: 04.01.2025
 
 import { randomPick, topPercentileValues } from './helpers.js'
 import { Timestamp } from './io_api_definitions.js'
@@ -145,13 +144,16 @@ export class Position<T extends Stringify> extends Vector<T> {
      * @returns position object
      */
     static new<T extends Stringify>(vdm: VectorDimensionMapper<T>, vec: number[]): Position<T> {
-        const vecAsStringConcise = `[${vec}]` // location e.g. [4, 3, 2, 2, 5]
+        // ensure that the value of the vector dimension is always within the min-max-boundaries:  
+        const vecInRangeEnsured = vec.map((vd, idx) => Math.min(Math.max(vd, vdm.vds[idx].min!), Math.max(vdm.vds[idx].max!)))  
+
+        const vecAsStringConcise = `[${vecInRangeEnsured}]` // location e.g. [4, 3, 2, 2, 5]
         const visitedPosition: Position<T> | undefined = this.visitedPositions.get(vecAsStringConcise)
         if (visitedPosition) {
             return visitedPosition 
         }
         else {
-            const newPos = new Position<T>(vdm, vec)
+            const newPos = new Position<T>(vdm, vecInRangeEnsured)
             Position.visitedPositions.set(vecAsStringConcise, newPos) 
             return newPos
         }
@@ -474,7 +476,7 @@ export function nextSearchState<T extends Stringify> (
     
     // current performance is at least as good as best observed so far: continue journey in current direction 
     const vor = curr.position.plus(curr.direction.stretchedBy(jumpDist))                                                                                            ; if (psp.verbose && vor.rebound) console.log(`\t\tSetting new course after rebound `)
- 
+
     return {
         position:           vor.position,
         direction:          vor.rebound ? curr.direction.newRandomDirection() : curr.direction,
