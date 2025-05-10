@@ -124,7 +124,7 @@ In tis documents, the following terms are used:
 | Inventory | a collection of work items |  |
 | Output Basket | is the inventory of all end products |  |
 | Process Step | Work station in which the assigned workers perform the necessary work on work items in the inventory of the process step until the work item can move on to the next process step or finally to the output basket. | Work station |
-| Buffer | A special kind of Process Step where norm-effort is 0, i.e. no work is done in the process step, it justs serves as a buffer that can temporaily hold work items | Intermediate storage |
+| Buffer | A special kind of Process Step where norm-effort is 0, i.e. no work is done in the process step, it justs serves as a buffer that can temporarily hold work items.  There is no need to assgin a worker. Adding a buffer at the beginning of an value chain might act as the back log of work orders before they move into the first process step where the actual work starts. However buffers can be placed anywhere in a value chain.| Intermediate storage, Inventory |
 | Value chain | consisting of at least one, usually several process steps. | Production line |
 | System | Executable system consisting of at least 1 value chain and 1 worker. A system also has further setting options (system parameters). | | 
 | Configuration | Definition of a system with its value chains, workers, strategies, system parameters; can be uploaded as a JSON file to the Lonely-Lobster frontend or exported (again) to the local download directory after creation or modification. Configurations can be created and revised in the Lonely-Lobster Editor.  |  |
@@ -168,9 +168,9 @@ The individual sections of the user interface are described below.
 | 1 | Here you find 8 symbols from left to right:  | ![home](docu/material-icons/home_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Home__: shows some basic  information about Lonely-Lobster |
 |   |   | ![Upload](docu/material-icons/upload_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Upload__: upload a configuration JSON file from the file system into the Lonely-Lobster-Frontend. You find example configuration files in [Configuration samples](https://github.com/FastFurios/Lonely-Lobster-UI/tree/main/samples) |
 |   |   | ![Edit](docu/material-icons/edit_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Edit__: create and edit a configuration |
-|   |   | ![Workorders from File](docu/material-icons/dynamic_feed_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Workorders from File__: read workorders from a file |
+|   |   | ![Workorders from File](docu/material-icons/dynamic_feed_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Workorders from File__: read workorders from a file.  |
 |   |   | ![Run](docu/material-icons/chevron_right_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Run__: load a configuration into the Lonely-Lobster-Backend and execute it as a system; Execution of a system requires a user login, see below. |
-|   |   | <![Download](docu/material-icons/download_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Download__: download a configuration into the download folder on the local machine  |
+|   |   | ![Download](docu/material-icons/download_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Download__: download a configuration into the download folder on the local machine  |
 |   |   | ![Events Export](docu/material-icons/format_list_numbered_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Events Export__: download the work item lifecycle events of a executed system into the download folder as a CSV file; this file can be used for furher analysis with any statistics tool. |
 |   |   | ![Drop](docu/material-icons/delete_forever_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Drop__: clear the current system from the backend |
 |   |   | ![Activity Log On](docu/material-icons/report_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) ![Activity Log Off](docu/material-icons/report_off_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png)  __Activity Log__ toggle: display or hide the Lonely-Lobster application activity log. The log lists shows also warnings and execution errors. |
@@ -282,7 +282,8 @@ A strategy consists of no sort vector, one sort vector or a list of sort vectors
 | 38 | Learn and Adapt | Observation Period | Period over which workers observe the system's performance before changing the weight of the strategies available to them. In general, the higher the weight of a strategy, the more often it is randomly selected in the selection process. A strategy that the worker selects is then used for the next observation period. Default is 20 time units. |
 |  |  | Success Measure Function | There are two functions for measuring the success of the current weighting of strategies for the worker: __roce__ (ROCE var) and __ivc__ (individual value contribution). If roce is selected and the system's ROCE var has increased over the past observation period, the worker will give the last applied strategy an even higher weighting. Otherwise, the weighting will be reduced in favor of the other strategies.  __ivc__ measures the effort of the worker on all end products and calculates the individual, proportional work contribution to the realized value. Similar to the above, the worker increases or decreases the weighting of the last strategy applied. |
 | | | Adjustment Factor | This factor is used to set the strength of the weighting adjustment. Default is 0.3. |
-| 39 | WIP limit optimization | Initial Temperature | The initial “temperature” of the optimization process, which is described in more detail in the [Simulated Annealing](#optimize-wip-limits-with-simulated-annealing) section below. Default is 100 degrees.  |
+| 39 | WIP limit optimization | Optimization from start?  | If the check box is ticked then the WIP limit optimizer will be turned on from the beginning.  |
+|  |  | Initial Temperature | The initial “temperature” of the optimization process, which is described in more detail in the [Simulated Annealing](#optimize-wip-limits-with-simulated-annealing) section below. Default is 100 degrees.  |
 |  |  | Cooling Factor | Factor by which the current temperature is multiplied to calculate the temperature for the next __Measurement Period__. Default is 0.95. |
 |  |  | Degrees per Downhill Step Tolerance | Temperature reduction that reduces the number of tolerated downhill steps by 1, e.g. 20 means: for every 20 degrees of cooling, 1 downhill step less is tolerated. Default is 50. |
 |  |  | Initial Jump Distance | The initial jump distance; default is 1. |
@@ -310,7 +311,27 @@ Optimization stops when the temperature has fallen below 1.
 System configurations can be downloaded from the frontend as a JSON file. Configurations can also be uploaded to the frontend. The structure of the JSON file reflects the structure in the editor. The following is an example excerpt:   
 ![Lonely-Lobster System “Italian Restaurant” Configuration as Json](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
 
-Of course, configuration JSON files can also be created with other editors.
-## System Cleanup
-The backend can run individual systems for several parallel user sessions. This can result in large amounts of data. To avoid  unnecessarily occupying cloud system resources for long periods, the backend deletes active systems that have not received a request from the frontend for over an hour. If the backend is accessed again, the frontend receives an error message which is being displayed in the [Application Activity Log](#application-activity-log).       
+### Work Orders CSV File
+As an alternative to have the work orders created at runtime controllen by the injection parameters, you can select a file that contains already for n consecutive time units the number of work orders per value chain. The following is an example excerpt:   
+![Work orders file](docu/LonelyLobsterDocuSnips/workorders_clean.jpg)
+Remarks:
+1. the delimiter needs to be ";"
+1. lines starting with "/" are deemed comments and are ignored
+1. the work order reader expects the first column to be for documentation purposes only. However the first column needs to be existent and the value chain columns start with the 2nd column. The first column has to have a header and numbers, preferably a sequence number or another number.
+1. the reader fills missing values between delimiters or delimter and line end with 0
+1. empty lines are ignored  
 
+## System Clean-up
+The backend can run individual systems for several parallel user sessions. This can result in large amounts of data. To avoid  unnecessarily occupying cloud system resources for long periods, the backend deletes active systems that have not received a request from the frontend for over an hour. If the backend is accessed again, the frontend receives an error message which is being displayed in the [Application Activity Log](#application-activity-log).      
+
+## Release History
+### Frontend 
+#### Release 7.1.*
+1. Work orders from files
+
+### Backend
+#### Release 7.1.*
+1. Fix in the WIP limit optimizer
+
+#### Release 7.0.*
+1. Support buffers
