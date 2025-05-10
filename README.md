@@ -166,9 +166,9 @@ The individual sections of the user interface are described below.
 | Label | Explanation | Details |
 | :---: | :--- | :--- |
 | 1 | Here you find 8 symbols from left to right:  | ![home](docu/material-icons/home_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Home__: shows some basic  information about Lonely-Lobster |
-|   |   | ![Upload](docu/material-icons/upload_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Upload__: upload a configuration JSON file from the file system into the Lonely-Lobster-Frontend. You find example configuration files in [Configuration samples](https://github.com/FastFurios/Lonely-Lobster-UI/tree/main/samples) |
+|   |   | ![Upload](docu/material-icons/upload_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Upload__: upload a configuration JSON file from the file system into the Lonely-Lobster-Frontend. You find example configuration files in [Configuration samples](https://github.com/FastFurios/Lonely-Lobster-UI/tree/master/samples) |
 |   |   | ![Edit](docu/material-icons/edit_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Edit__: create and edit a configuration |
-|   |   | ![Workorders from File](docu/material-icons/dynamic_feed_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Workorders from File__: read workorders from a file.  |
+|   |   | ![Work orders from File](docu/material-icons/dynamic_feed_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Work orders from File__: read work orders from a file.  |
 |   |   | ![Run](docu/material-icons/chevron_right_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Run__: load a configuration into the Lonely-Lobster-Backend and execute it as a system; Execution of a system requires a user login, see below. |
 |   |   | ![Download](docu/material-icons/download_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Download__: download a configuration into the download folder on the local machine  |
 |   |   | ![Events Export](docu/material-icons/format_list_numbered_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) __Events Export__: download the work item lifecycle events of a executed system into the download folder as a CSV file; this file can be used for furher analysis with any statistics tool. |
@@ -177,7 +177,7 @@ The individual sections of the user interface are described below.
 | 2 | central information: | frontend software version |
 |   |  | system name from the current configuration |
 |   |  | last event from the Lonely-Lobster __Activity Log__  |
-| 3 | <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-120v-80h280v-560H480v-80h280q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H480Zm-80-160-55-58 102-102H120v-80h327L345-622l55-58 200 200-200 200Z"/></svg> Log in, <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h280v80H200v560h280v80H200Zm440-160-55-58 102-102H360v-80h327L585-622l55-58 200 200-200 200Z"/></svg> Log out:  | before laoding a configuration into the backend and executing it as a system, the user is required to log in first. Once logged in, the user name is displayed. |
+| 3 | ![Activity Log On](docu/material-icons/login_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png)  Log in, ![Activity Log Out](docu/material-icons/logout_24dp_5F6368_FILL0_wght400_GRAD0_opsz24.png) Log out:  | before loading a configuration into the backend and executing it as a system, the user is required to log in first. Once logged in, the user name is displayed. |
 
 ### Application Activity Log
 The user can display a history of important application activities with a click on <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#5f6368"><path d="M480-280q17 0 28.5-11.5T520-320q0-17-11.5-28.5T480-360q-17 0-28.5 11.5T440-320q0 17 11.5 28.5T480-280Zm-40-160h80v-240h-80v240ZM330-120 120-330v-300l210-210h300l210 210v300L630-120H330Zm34-80h232l164-164v-232L596-760H364L200-596v232l164 164Zm116-280Z"/>
@@ -320,6 +320,9 @@ Remarks:
 1. the work order reader expects the first column to be for documentation purposes only. However the first column needs to be existent and the value chain columns start with the 2nd column. The first column has to have a header and numbers, preferably a sequence number or another number.
 1. the reader fills missing values between delimiters or delimter and line end with 0
 1. empty lines are ignored  
+
+Here you find a sample CSV file for a system with value chains Alpha and Beta: 
+[sample Work order file](https://github.com/FastFurios/Lonely-Lobster-UI/tree/master/samples).
 
 ## System Clean-up
 The backend can run individual systems for several parallel user sessions. This can result in large amounts of data. To avoid  unnecessarily occupying cloud system resources for long periods, the backend deletes active systems that have not received a request from the frontend for over an hour. If the backend is accessed again, the frontend receives an error message which is being displayed in the [Application Activity Log](#application-activity-log).      
