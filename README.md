@@ -312,13 +312,13 @@ System configurations can be downloaded from the frontend as a JSON file. Config
 ![Lonely-Lobster System “Italian Restaurant” Configuration as Json](docu/LonelyLobsterDocuSnips/ItalianRestaurantScreenshot_ConfigurationAsJson.jpg)
 
 ### Work Orders CSV File
-As an alternative to have the work orders created at runtime controllen by the injection parameters, you can select a file that contains already for n consecutive time units the number of work orders per value chain. The following is an example excerpt:   
+As an alternative to have the work orders created at runtime by the injection parameters, you can select a file that contains already for n consecutive time units the number of work orders per value chain. The following is an example excerpt:   
 ![Work orders file](docu/LonelyLobsterDocuSnips/workorders_clean.jpg)
 Remarks:
 1. the delimiter needs to be ";"
 1. lines starting with "/" are deemed comments and are ignored
 1. the work order reader expects the first column to be for documentation purposes only. However the first column needs to be existent and the value chain columns start with the 2nd column. The first column has to have a header and numbers, preferably a sequence number or another number.
-1. the reader fills missing values between delimiters or delimter and line end with 0
+1. the reader fills missing values between delimiters or delimiter and line end with 0
 1. empty lines are ignored  
 
 Here you find a sample CSV file for a system with value chains Alpha and Beta: 
