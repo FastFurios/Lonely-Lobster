@@ -14,26 +14,33 @@
 // -----------------------------------------------------------
 
 /** The discrete unit the time progresses in Lonely Lobster: 0, 1, 2 ... */
-export type TimeUnit       = number 
+export type TimeUnit                = number 
 /** A specific point in the discrete range of Lonely Lobster time units */
-export type Timestamp      = number
+export type Timestamp               = number
 /** Number of discrete time units */
-       type TimeUnits      = number
+       type TimeUnits               = number
 /** The discrete duration between 2 timestamps */
 /** Accumulated effort that has gone into a workitem; measured as count of all timestamps any worker has worked the workitem */
-export type Effort         = TimeUnits // measured in Worker Time Units
-/** Value the workitem generates once reached the output basket i.e. it is an endproduct; measured in Worker Time Units */
-export type Value          = TimeUnits
+export type Effort                  = TimeUnits // measured in Worker Time Units
+/** the real progress i.e. the number of time units with defect-free work a work item has made and the appaent progress in the eyes of the workers. 
+ * Efforts made on a work item that was already defective but not yet recognized as such by the workers count as apparent progress */
+export type Progress = {
+        real:       number,
+        apparent:   number  // always >= real progress
+       }
 
-export type ValueChainId   = string
-export type ProcessStepId  = string
+/** Value the workitem generates once reached the output basket i.e. it is an endproduct; measured in Worker Time Units */
+export type Value                   = TimeUnits
+
+export type ValueChainId            = string
+export type ProcessStepId           = string
 export type WorkItemBasketHolderId  = string
 
-export type WorkItemId     = number
+export type WorkItemId              = number
 /** Workitem display tag (used for console display in batch mode only) */
-export type WorkItemTag    = [string, string]
-export type WorkerName     = string
-export type RgbColor       = [number, number, number]
+export type WorkItemTag             = [string, string]
+export type WorkerName              = string
+export type RgbColor                = [number, number, number]
 /**
  * The rate and distribution by which new work orders are injected into a value chain on average.
  * Throughput is the average number of new workorders over time, probability controls how often the virtually accumulated number of workorders are injected as bulk.
@@ -350,6 +357,11 @@ export interface I_SystemStatistics {
 /** workitem event retrieval (for export for external statistical analysis) */
 // -----------------------------------------------------------
 
+export enum WorkerWorkQuality {
+    good,
+    defect   // worker made a mistake
+}
+
 export interface I_WorkItemEvent {
     timestamp:                  Timestamp
     workItemId:                 WorkItemId
@@ -358,6 +370,7 @@ export interface I_WorkItemEvent {
     fromProcessStepId?:         ProcessStepId  // if eventType == movedTo then this is the from process step; if injected then undefined    
     workItemBasketHolderId?:    WorkItemBasketHolderId, // if eventType == movedTo then this is the target work item basket holder 
     worker?:                    WorkerName     // if eventType == workedOn then this is filled
+    quality?:                   WorkerWorkQuality     // if eventType == workedOn then this is filled
 }
 
 // -----------------------------------------------------------
