@@ -8,8 +8,10 @@ import { LogEntry, LogEntryType } from './logging.js'
 import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag, I_WorkItemEvent, Progress, WorkerWorkQuality} from './io_api_definitions'
 import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
-import { Worker } from './worker.js'
+import { LogWorker, Worker } from './worker.js'
 import { LonelyLobsterSystem, ToString } from './system.js'
+import { pseudoRandomBytes } from 'crypto'
+import { off } from 'process'
 
 //----------------------------------------------------------------------
 //    definitions and helpers
@@ -57,7 +59,7 @@ abstract class LogEntryWorkItem extends LogEntry {
     constructor(       timestamp:               Timestamp,
                 public valueChain:              ValueChain,
                 public workItem:                WorkItem,       
-                public workItemBasketHolder:    WorkItemBasketHolder | undefined, // undefined if injected i.e. moved from "outside" into the first process step of the value chain
+                public workItemBasketHolder:    WorkItemBasketHolder, // | undefined, // undefined if injected i.e. moved from "outside" into the first process step of the value chain
                        logEntryType:            LogEntryType) {
         super(timestamp, logEntryType)
     }
@@ -108,8 +110,8 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
                        workItem:                   WorkItem,
                        processStep:                ProcessStep,
                 public worker:                     Worker,
-                public quality:                    WorkerWorkQuality,
-                public defectDetected:             boolean  
+                public quality:                    WorkerWorkQuality,   // indicates if worker did a good job at timestamp or caused a defect and did not recognize it; "defect" is set only forthe event of causing the defect. It does not state the work items current quality.  
+                public defectDetected:             boolean              // true if the worker detected a work item being defective 
             ) {
         super(timestamp, valueChain, workItem, processStep, LogEntryType.workItemWorkedOn)
     }
@@ -155,7 +157,7 @@ export interface WorkItemFlowEventStats {
  *    WORK ITEM   
  * 
  * Terminology remarks: 
- * - work item: is a item that is being worked on by workers in process steps of the value chain the work item was injected into. Special types are:
+ * - work item: is a item that is being worked on by workers in process steps of the value chain the work item was injected into. Special types of work items are:
  * - work order: is a work item that is being injected into a value chain
  * - end-product: is a work item that has reached the output basket i.e. it is finished 
  */
@@ -213,10 +215,24 @@ export class WorkItem implements ToString {
                                                  .filter(le => le.timestamp >= from && le.timestamp <= to) 
     }
 
+    /** return all productive "worked" log entries i.e. all that are not marked as defective */
+    private workedLogEntriesOnNonDefectiveWorkitem(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): LogEntryWorkItemWorked[] {
+        let logEntriesMap = new Map<LogEntryWorkItemWorked, boolean>()
+        let hasDefect = false
+        let needToSetBackHasDefectFlag = false
+        for (let le of this.workedLogEntries(from, to)) {
+            if (needToSetBackHasDefectFlag) hasDefect = false
+            if (le.quality == WorkerWorkQuality.defect) hasDefect = true
+            if (le.defectDetected) needToSetBackHasDefectFlag = true
+            logEntriesMap.set(le, hasDefect)
+        }
+        return Array.from(logEntriesMap.keys())
+    }
+
     /** returns last "work" log entry with quality == defect */
     private lastWorkedAndMadeDefectLogEntry(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): LogEntryWorkItemWorked | undefined {
         const workedLesWithDefects = this.workedLogEntries(from, to).filter(le => le.quality == WorkerWorkQuality.defect)
-        if (workedLesWithDefects.length < 1) return undefined // never occurred a defect
+        if (workedLesWithDefects.length < 1) return undefined // no defect yet
         return workedLesWithDefects[workedLesWithDefects.length - 1]
     }
 
@@ -242,13 +258,13 @@ export class WorkItem implements ToString {
         return this.movedLogEntries[0]
     }
 
-    /** returns the timestamp of last log entry */
+    /** returns the last log entry */
     public get lastLogEntry(): LogEntry {
         return this.log[this.log.length - 1]
     }
 
     // ++feature/rework++
-    /** returns the elapsed time since entry into the current process step; if already being in the output basket, return undefined*/
+    /** returns the elapsed time since entry into the current process step; if already in the output basket, return undefined */
     public get elapsedTimeInCurrentProcessStep(): TimeUnit | undefined {
         if (this.currentWorkItemBasketHolder == this.sys.outputBasket) return undefined // this function calculates elapsed time for process steps only!
         return this.sys.clock.time - this.lastMovedLogEntry.timestamp
@@ -291,9 +307,9 @@ export class WorkItem implements ToString {
     }
 
     // ++feature/rework++
-    /** returns the number of process steps the work item has entered */
+    /** returns the number of distinct process steps the work item has entered */
     public get numProcessStepsVisited(): number {
-        return this.movedLogEntries.length
+        return Array.from(new Set(this.movedLogEntries.map(le => le.workItemBasketHolder.id))).length
     }
 
     /** returns value chain of the work */
@@ -332,6 +348,21 @@ export class WorkItem implements ToString {
             real:       realProgress,
             apparent:   realProgress + (this.hasUndetectedDefectAtIntervalEnd(from, to) ? workLogEntries.filter(le => le.timestamp > (this.lastWorkedAndDetectedDefectLogEntry(from, to)?.timestamp || 0)).length : 0)  
         }
+    }
+
+    /** returns the process step a work item should be placed in on basis of its true progress at system time */
+    public get processStepOnBasisOfRealProgress(): ProcessStep | undefined {
+        const realProgress = this.progress(0, this.sys.clock.time).real
+        let psToBe: ProcessStep | undefined = undefined
+        let toProgress   = 0
+        for (let ps of this.valueChain.processSteps) {
+            toProgress += ps.normEffort
+            if (realProgress < toProgress) {
+                psToBe = ps
+                break
+            }
+        }
+        return psToBe
     }
 
     /**
@@ -403,16 +434,14 @@ export class WorkItem implements ToString {
     } 
 
     /**
-     * Calculate the effort a worker has put in into the work item in a given time intervall
+     * Calculate the effort with good quality a worker has put in into the work item in a given time intervall
      * @param wo worker 
      * @param from start of interval (including)
      * @param to end of interval (including)
-     * @returns the worker's effort on the work item in the interval  
+     * @returns the worker's proodcutive effort on the work item in the interval (rework effort is excluded)
      */
-    private effortPutInByWorker(wo: Worker, from: Timestamp, to: Timestamp): Effort {
-        return this.workedLogEntries(from, to)
-                   .filter(le => le.worker == wo && le.timestamp >= from && le.timestamp <= to)
-                   .length 
+    private realProgressMadeByWorker(wo: Worker, from: Timestamp, to: Timestamp): Effort {
+        return this.workedLogEntriesOnNonDefectiveWorkitem(from, to).filter(le => le.worker == wo).length 
     }
 
     /**
@@ -425,8 +454,7 @@ export class WorkItem implements ToString {
      */
     public workerValueContribution(wo: Worker, from: Timestamp, to: Timestamp): Value {
         if (this.currentWorkItemBasketHolder != this.sys.outputBasket) return 0
-        const effortByWorker =  this.effortPutInByWorker(wo, from, to)
-        return this.materializedValue() * (effortByWorker / this.valueChain.normEffort)
+        return this.materializedValue() * (this.realProgressMadeByWorker(wo, from, to) / this.valueChain.normEffort)
     }
 
     // ++feature/rework++ flow is based on work items flowing downstream minus the defectives moving upstream 
