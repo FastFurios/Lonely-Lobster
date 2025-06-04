@@ -357,7 +357,7 @@ export interface I_SystemStatistics {
 /** workitem event retrieval (for export for external statistical analysis) */
 // -----------------------------------------------------------
 
-export enum WorkerWorkQuality {
+export enum WorkitemQuality {
     good,
     defect   // worker made a mistake
 }
@@ -370,7 +370,7 @@ export interface I_WorkItemEvent {
     fromProcessStepId?:         ProcessStepId  // if eventType == movedTo then this is the from process step; if injected then undefined    
     workItemBasketHolderId?:    WorkItemBasketHolderId, // if eventType == movedTo then this is the target work item basket holder 
     worker?:                    WorkerName     // if eventType == workedOn then this is filled
-    quality?:                   WorkerWorkQuality     // if eventType == workedOn then this is filled
+    quality?:                   WorkitemQuality     // if eventType == workedOn then this is filled
 }
 
 // -----------------------------------------------------------

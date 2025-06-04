@@ -12,6 +12,15 @@ import { WiExtInfoTuple, WiExtInfoElem } from './workitem.js'
 //  some array helpers
 // ------------------------------------------------------------
 
+/** helper function: find the last occurance of an object that meets a criterion in an array; 
+ * ES2023 supports the method "findLast() on array, but note node.js 20.19 
+ * @param arr an arry of type T
+ * @param criterion a function that returns true if a matching array element was found, otherwise false 
+ * @returns the found element; if none found "undefined" */
+export function findLast<T>(arr: T[], criterion: (a: T) => boolean): T | undefined {
+    return Array.from(arr).reverse().find(criterion)
+} 
+
 /**
  * pick a random member of an array
  * @param a an array with elements of type T
