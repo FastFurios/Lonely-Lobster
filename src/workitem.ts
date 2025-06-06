@@ -516,7 +516,7 @@ export class WorkItem implements ToString {
         } 
         return statEvents
     }
-*   /
+    */
     
     /**
      * @returns all lifecycle events in the log of the work item 
