@@ -98,7 +98,6 @@ export class LogEntryWorkItemMoved extends LogEntryWorkItem {
     }
 }
 
-// ++feature/rework++ add flags for "defective" and "defect detected"
 /**
  * work item log entry when being worked on
  */
@@ -109,8 +108,8 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
                        workItem:                   WorkItem,
                        processStep:                ProcessStep,
                 public worker:                     Worker,
-                public quality:                    WorkitemQuality,   // indicates if worker did a good job at timestamp or caused a defect and did not recognize it; "defect" is set only forthe event of causing the defect. It does not state the work items current quality.  
-                public defectDetected:             boolean              // true if the worker detected a work item being defective 
+                public quality:                    WorkitemQuality,   // indicates if the state of the workitem is defective or good. It is set to defect when a worker makes a mistake and is reset to good after a worker detected the defect. (The act of detecting causes a work log entry still with quality = defect.)   
+                public defectDetected:             boolean            // true if the worker detected a work item being defective 
             ) {
         super(timestamp, valueChain, workItem, processStep, LogEntryType.workItemWorkedOn)
     }
@@ -145,7 +144,7 @@ export interface WorkItemFlowEventStats {
     wibhEntered:                    WorkItemBasketHolder,
     /** timestamp when the work item was finished in the exited process step */
     finishedTime:                   Timestamp,
-    /** span of time the work item spent in the exited process step */
+    /** span of time the work item spent in the exited process step (after having had entered the process step the last time (i.e. in case of re-work) */
     elapsedTime:                    TimeUnit,
     /** the work items timestamp when it was injected into the value chain; used for calculating cycletimes of the value chain */
     injectionIntoValueChainTime:    Timestamp   
@@ -155,7 +154,6 @@ export type ToBeProcessStepDerivedFromRealProgress = {
     processStep:                ProcessStep,
     elapsedTimeInProcessstep:   TimeUnit
 }
-
 
 //----------------------------------------------------------------------
 /**
@@ -233,7 +231,7 @@ export class WorkItem implements ToString {
     }
 
     /** returns last "work" log entry with quality == defect */
-    private lastWorkedAndMadeDefectLogEntry(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): LogEntryWorkItemWorked | undefined {
+    private lastWorkedOnDefectiveWorkitemLogEntry(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): LogEntryWorkItemWorked | undefined {
         const workedLesWithDefects = this.workedLogEntries(from, to).filter(le => le.quality == WorkitemQuality.defect)
         if (workedLesWithDefects.length < 1) return undefined // no defect yet
         return workedLesWithDefects[workedLesWithDefects.length - 1]
@@ -261,11 +259,10 @@ export class WorkItem implements ToString {
         return this.movedLogEntries[0]
     }
 
-    // ++feature/rework++
     /** returns the elapsed time since entry into the current process step; if already in the output basket, return undefined */
     public get elapsedTimeInCurrentProcessStep(): TimeUnit | undefined {
         if (this.currentWorkItemBasketHolder == this.sys.outputBasket) return undefined // this function calculates elapsed time for process steps only!
-        return this.sys.clock.time - this.lastMovedLogEntry.timestamp
+        return this.sys.clock.time - this.lastMovedLogEntry.timestamp  // for re-work work items the elapsed time is 0 when freshly re-located back into a process step despite having already gone through some good quality work in a former pass through the prcess step 
     }
  
     /** returns the elapsed time of the work item still being in a value chain; if already in the output basket return undefined */
@@ -274,7 +271,6 @@ export class WorkItem implements ToString {
         return this.sys.clock.time - this.firstMovedLogEntry.timestamp
     }
 
-    // ++feature/rework++
     /** 
      * returns the cycle time in the given process step, i.e. the work item has been worked on in the process step and has already moved out of it;
      * in case of being multiple times in this process step due to being pushed back for rework, the cycle time of the last visit of tzhe process step is returned.  
@@ -284,12 +280,13 @@ export class WorkItem implements ToString {
      * @returns the work item's cycle time in the given process step 
      */
     public cycleTimeInProcessStep(ps: ProcessStep, from: Timestamp = 0, to: Timestamp = this.sys.clock.time): TimeUnit | undefined { // null if never having left the given process step  
-        const entryIntoPsTime = findLast(this.movedLogEntries, le => (<LogEntryWorkItemMoved>le).workItemBasketHolder == ps)?.timestamp
-        if (!entryIntoPsTime) return undefined
-        const exitFromPsTime  = findLast(this.movedLogEntries, le => (<LogEntryWorkItemMoved>le).fromWorkItemBasketHolder == ps)?.timestamp
-        if (!exitFromPsTime)  return undefined
-        if (exitFromPsTime < from || exitFromPsTime > to) return undefined
-        return exitFromPsTime - entryIntoPsTime
+        const lastEntryIntoPsTime = findLast(this.movedLogEntries, le => (<LogEntryWorkItemMoved>le).workItemBasketHolder == ps)?.timestamp
+        if (!lastEntryIntoPsTime) return undefined
+        const lastExitFromPsTime  = findLast(this.movedLogEntries, le => (<LogEntryWorkItemMoved>le).fromWorkItemBasketHolder == ps)?.timestamp
+        if (!lastExitFromPsTime)  return undefined
+        if (lastExitFromPsTime < from || lastExitFromPsTime > to) return undefined
+        if (lastEntryIntoPsTime > lastExitFromPsTime) return undefined // obviously the work item returned to the process step for re-work and has not yet exited it again
+        return lastExitFromPsTime - lastEntryIntoPsTime
     }
 
     /**
@@ -305,7 +302,6 @@ export class WorkItem implements ToString {
         return exitFromVcTime - entryIntoVcTime
     }
 
-    // ++feature/rework++
     /** returns the number of distinct process steps the work item has entered */
     public get numProcessStepsVisited(): number {
         return Array.from(new Set(this.movedLogEntries.map(le => le.workItemBasketHolder.id))).length
@@ -322,7 +318,7 @@ export class WorkItem implements ToString {
      * @param workItemBasketHolder if defined then focus on that work item basket holder: if it is a process step then return the accumulated work in that process step; 
      * if it is the output basket it returns 0 as no one works on a work item in the output basket;  
      * if this parameter is undefined return the accumulated effort of all process steps of the value chain
-     * @returns the work effort so far
+     * @returns the work effort so far, no matter it was done on a good quality work item or a defective one
      */
     public accumulatedEffort(from: Timestamp, to: Timestamp, workItemBasketHolder?: WorkItemBasketHolder): Effort {
         return  (workItemBasketHolder == undefined ? this.log 
@@ -331,8 +327,9 @@ export class WorkItem implements ToString {
             .length
     }
 
+    //** checks if work item has ever been defective and if so if the last defective log entry shows defect detection == false  */
     private hasUndetectedDefectAtIntervalEnd(from: Timestamp, to: Timestamp): boolean {
-        return (this.lastWorkedAndMadeDefectLogEntry(from, to)?.timestamp || 0) > (this.lastWorkedAndDetectedDefectLogEntry(from, to)?.timestamp || 0)
+        return !(this.lastWorkedOnDefectiveWorkitemLogEntry(from, to)?.defectDetected || false)
     }
 
     /**
@@ -352,14 +349,14 @@ export class WorkItem implements ToString {
     /** returns the process step a work item should be placed in on basis of its true progress at system time and the aleady made progress in that process step; 
      * in case a work item is placed in the process step for rework, the elapsed time is set to the real progress already made in this process step      
      */
-    private get ToBeProcessStepDerivedFromRealProgress(): ToBeProcessStepDerivedFromRealProgress | undefined {
+    private get toBeProcessStepDerivedFromRealProgress(): ToBeProcessStepDerivedFromRealProgress | undefined {
         const realProgressInValueChain = this.progress(0, this.sys.clock.time).real
         let psToBe: ToBeProcessStepDerivedFromRealProgress | undefined = undefined
-        let normEffortOfPassedProcessSteps               = 0
-        let normEffortAccumulatedUpToCurrentProcessSteps = 0
+        let normEffortOfPassedProcessSteps                           = 0
+        let normEffortAccumulatedUpToAndIncludingCurrentProcessSteps = 0
         for (let ps of this.valueChain.processSteps) {
-            normEffortAccumulatedUpToCurrentProcessSteps += ps.normEffort
-            if (realProgressInValueChain < normEffortAccumulatedUpToCurrentProcessSteps) {
+            normEffortAccumulatedUpToAndIncludingCurrentProcessSteps += ps.normEffort
+            if (realProgressInValueChain < normEffortAccumulatedUpToAndIncludingCurrentProcessSteps) {
                 psToBe = {
                     processStep:                ps,
                     elapsedTimeInProcessstep:   realProgressInValueChain - normEffortOfPassedProcessSteps 
@@ -467,20 +464,29 @@ export class WorkItem implements ToString {
      * @param to end of interval (including)
      * @returns list of events with flow statistics of process step transitions
      */
-
-/*
-    public flowStatisticsEventsHistory_new(from: Timestamp = 1, to: Timestamp = this.sys.clock.time): WorkItemFlowEventStats[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
+    public flowStatisticsEventsHistory(from: Timestamp = 1, to: Timestamp = this.sys.clock.time): WorkItemFlowEventStats[]  { // lists all move-to events btw. from and to timestamp 
         const statEvents: WorkItemFlowEventStats[] = []  // initialize the array of move-to events of the work item
-        const moveLogEntriesUntilToTime = this.movedLogEntries.filter(le => le.timestamp <= to).reverse()
-        for (let le of moveLogEntriesUntilToTime) {
+        const moveLogEntriesUntilToTime: LogEntryWorkItemMoved[] = this.movedLogEntries.filter(le => le.timestamp <= to)
+        if (moveLogEntriesUntilToTime.length < 1) return statEvents // return empty list
+
+        for (let i = moveLogEntriesUntilToTime.length - 1, le = moveLogEntriesUntilToTime[i], leBefore = moveLogEntriesUntilToTime[i-1]; i > 0; le = moveLogEntriesUntilToTime[--i], leBefore = moveLogEntriesUntilToTime[i-1]) {
             if (le.timestamp < from) break
-            const predecessor = 
+            statEvents.push({
+                    wi:                          this,
+                    vc:                          this.valueChain,
+                    psExited:                    <ProcessStep>le.fromWorkItemBasketHolder,
+                    wibhEntered:                 le.workItemBasketHolder!,            
+                    finishedTime:                le.timestamp, // ... timestamp when exited the process step
+                    elapsedTime:                 le.timestamp - leBefore.timestamp, // elapsed time between having moved to the process step and out of there 
+                    injectionIntoValueChainTime: this.firstMovedLogEntry.timestamp // time when the work order was injected
+            })           
+             
         }
-
-
+        return statEvents
     }
-*/
-    public flowStatisticsEventsHistory(from: Timestamp = 1, to: Timestamp = this.sys.clock.time): WorkItemFlowEventStats[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
+
+    /*
+    public flowStatisticsEventsHistory_deprecated(from: Timestamp = 1, to: Timestamp = this.sys.clock.time): WorkItemFlowEventStats[]  { // lists all events btw. from and to timestamp when the workitem exited a process step 
         const moveLogEntriesUntilToTime = this.movedLogEntries.filter(le => le.timestamp <= to)
         if (moveLogEntriesUntilToTime.length < 2) return [] // every work item that has moved out off a process step must have at least 2 moved-to log entries: a) injection into and b) moved out of process step
 
@@ -510,7 +516,8 @@ export class WorkItem implements ToString {
         } 
         return statEvents
     }
-
+*   /
+    
     /**
      * @returns all lifecycle events in the log of the work item 
      */
@@ -588,9 +595,9 @@ export class WorkItemExtendedInfos {
 
             // efforts:
             const accumulatedEffortInProcessStep   = wi.accumulatedEffort(0, sys.clock.time, currPs)
-            const remainingEffortInProcessStep     = currPs.normEffort - accumulatedEffortInProcessStep
+            const remainingEffortInProcessStep     = currPs.normEffort - this.wi.progress(0, this.sys.clock.time, currPs).apparent
             const accumulatedEffortInValueChain    = wi.accumulatedEffort(0, sys.clock.time)
-            const remainingEffortInValueChain      = wi.valueChain.normEffort - accumulatedEffortInValueChain
+            const remainingEffortInValueChain      = wi.valueChain.normEffort - this.wi.progress(0, this.sys.clock.time).apparent
 
             // travelling in the value chain:
             const visitedProcessSteps              = wi.numProcessStepsVisited
