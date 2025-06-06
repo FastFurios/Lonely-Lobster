@@ -583,7 +583,6 @@ enum WorkItemExtendedInfosCreationMode {
 export class WorkItemExtendedInfos {
     public workOrderExtendedInfos: WiExtInfoTuple
 
-    // ++feature/rework++ 
     constructor(public sys: LonelyLobsterSystem, 
                 public wi:  WorkItem,
                        creationMode: WorkItemExtendedInfosCreationMode) {
