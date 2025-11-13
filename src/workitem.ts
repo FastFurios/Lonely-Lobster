@@ -5,7 +5,7 @@
 //----------------------------------------------------------------------
 
 import { LogEntry, LogEntryType } from './logging.js'
-import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag, I_WorkItemEvent, Progress, WorkitemQuality} from './io_api_definitions'
+import { TimeUnit, Timestamp, Effort, Value, WorkItemId, WorkItemTag, I_WorkItemEvent, Progress, WorkitemQuality} from './io_api_definitions.js'
 import { WorkItemBasketHolder, ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
 import { findLast } from './helpers.js'
@@ -126,7 +126,7 @@ export class LogEntryWorkItemWorked extends LogEntryWorkItem {
     }
 
     public toString(): string {
-        return `${super.toString()}, worker = ${this.worker.id}`
+        return `${super.toString()}, worker = ${this.worker.id}, workitem quality = ${this.quality}, defect detection = ${this.defectDetected}, ##progress().real/apparent = ${this.workItem.progress(0, this.timestamp).real}/${this.workItem.progress(0, this.timestamp).apparent}`
     }
 }
 
@@ -152,7 +152,7 @@ export interface WorkItemFlowEventStats {
 
 export type ToBeProcessStepDerivedFromRealProgress = {
     processStep:                ProcessStep,
-    elapsedTimeInProcessstep:   TimeUnit
+    elapsedTimeInProcessStep:   TimeUnit
 }
 
 //----------------------------------------------------------------------
@@ -181,7 +181,7 @@ export class WorkItem implements ToString {
         this.currentWorkItemBasketHolder = injectedIntoVc.processSteps[0]                      
         this.currentWorkItemBasketHolder.add(this)
         this.logMovedEvent(undefined, this.currentWorkItemBasketHolder)    
-
+                 
         /** extended infos are bundled into a separate object */
         this.extendedInfos  = new WorkItemExtendedInfos(this.sys, this, WorkItemExtendedInfosCreationMode.empty)
     }
@@ -197,11 +197,18 @@ export class WorkItem implements ToString {
                                                 this,
                                                 fromProcessStep,
                                                 toWorkItemBasketHolder))
+        console.log("\nWorkitem.logMovedEvent(): " + this.log.map(le => `\n\t${le}`))
     }
 
     // ++feature/rework++ new flags; carry on isDefective flag from predecessor 
     /** add log entry when a worker worked the work item */
-    public logWorkedEvent(worker: Worker, quality: WorkitemQuality = WorkitemQuality.good, defectDetected: boolean = false): void {
+    public logWorkedEvent(  worker: Worker, 
+                            quality: WorkitemQuality    = defectDetected ? !this.lastWorkedLogEntry ? WorkitemQuality.good // if this is the 
+                                                                                   : this.lastWorkedLogEntry.defectDetected ? WorkitemQuality.good : this.lastWorkedLogEntry.quality,
+                            defectDetected: boolean     = false): void {
+
+        if (quality) {}
+        else if (this.lastWorkedLogEntry)
         this.log.push(new LogEntryWorkItemWorked(this.sys.clock.time,
                                                  this.injectedIntoVc,
                                                  this,
@@ -210,6 +217,7 @@ export class WorkItem implements ToString {
                                                  quality,
                                                  defectDetected
                                                 ))
+        console.log("\nWorkitem.logWorkedEvent(): " + this.log.map(le => `\n\t${le}`))
     }
 
     /** returns the last log entry */
@@ -218,9 +226,14 @@ export class WorkItem implements ToString {
     }
 
     /** return all "worked" log entries */
-    private workedLogEntries(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): LogEntryWorkItemWorked[] {
+    public workedLogEntries(from: Timestamp = 0, to: Timestamp = this.sys.clock.time): LogEntryWorkItemWorked[] {
         return <LogEntryWorkItemWorked[]>this.log.filter(le => le.logEntryType == LogEntryType.workItemWorkedOn)
                                                  .filter(le => le.timestamp >= from && le.timestamp <= to) 
+    }
+
+    /** returns last worked log entry */
+    private get lastWorkedLogEntry(): LogEntryWorkItemWorked | undefined{
+        return this.workedLogEntries()[this.workedLogEntries().length - 1]
     }
 
     /** return all "worked" log entries on work items not marked as being defective;
@@ -328,8 +341,11 @@ export class WorkItem implements ToString {
     }
 
     //** checks if work item has ever been defective and if so if the last defective log entry shows defect detection == false  */
-    private hasUndetectedDefectAtIntervalEnd(from: Timestamp, to: Timestamp): boolean {
-        return !(this.lastWorkedOnDefectiveWorkitemLogEntry(from, to)?.defectDetected || false)
+    public hasUndetectedDefectAtIntervalEnd(from: Timestamp, to: Timestamp): boolean {
+        const lastWorkedOnDefectiveWorkitemLogEntry: LogEntryWorkItemWorked | undefined = this.lastWorkedOnDefectiveWorkitemLogEntry(from, to)
+        if (!lastWorkedOnDefectiveWorkitemLogEntry)               return false // no work on defective work item yet
+        if (lastWorkedOnDefectiveWorkitemLogEntry.defectDetected) return false // work on defective work item, however detected at last log entry 
+        return true // work on defective work item and not yet detected
     }
 
     /**
@@ -339,17 +355,18 @@ export class WorkItem implements ToString {
      */
     public progress(from: Timestamp, to: Timestamp, processStep?: ProcessStep): Progress {
         const workLogEntries = this.workedLogEntries(from, to).filter(le => !processStep || le.workItemBasketHolder == processStep).filter(le => le.timestamp >= from && le.timestamp <= to) 
+//      console.log("\n\tWorkitem.progress(): workLogEntries.length = " + workLogEntries.length + "; apparent part = " + (this.hasUndetectedDefectAtIntervalEnd(from, to) ? workLogEntries.filter(le => le.timestamp > (this.lastWorkedAndDetectedDefectLogEntry(from, to)?.timestamp || 0)).length : 0) + "; has undetected defect = " + this.hasUndetectedDefectAtIntervalEnd(from, to) + "; last detection at = " + (this.lastWorkedAndDetectedDefectLogEntry(from, to)?.timestamp || 0))
         const realProgress = workLogEntries.filter(le => (<LogEntryWorkItemWorked>le).quality == WorkitemQuality.good).length
         return {
             real:       realProgress,
-            apparent:   realProgress + (this.hasUndetectedDefectAtIntervalEnd(from, to) ? workLogEntries.filter(le => le.timestamp > (this.lastWorkedAndDetectedDefectLogEntry(from, to)?.timestamp || 0)).length : 0)  
+            apparent:   this.hasUndetectedDefectAtIntervalEnd(from, to) ? workLogEntries.filter(le => le.timestamp > (this.lastWorkedAndDetectedDefectLogEntry(from, to)?.timestamp || 0)).length : realProgress  
         }
     }
 
     /** returns the process step a work item should be placed in on basis of its true progress at system time and the aleady made progress in that process step; 
      * in case a work item is placed in the process step for rework, the elapsed time is set to the real progress already made in this process step      
      */
-    private get toBeProcessStepDerivedFromRealProgress(): ToBeProcessStepDerivedFromRealProgress | undefined {
+    public get toBeProcessStepDerivedFromRealProgress(): ToBeProcessStepDerivedFromRealProgress | undefined {
         const realProgressInValueChain = this.progress(0, this.sys.clock.time).real
         let psToBe: ToBeProcessStepDerivedFromRealProgress | undefined = undefined
         let normEffortOfPassedProcessSteps                           = 0
@@ -359,7 +376,7 @@ export class WorkItem implements ToString {
             if (realProgressInValueChain < normEffortAccumulatedUpToAndIncludingCurrentProcessSteps) {
                 psToBe = {
                     processStep:                ps,
-                    elapsedTimeInProcessstep:   realProgressInValueChain - normEffortOfPassedProcessSteps 
+                    elapsedTimeInProcessStep:   realProgressInValueChain - normEffortOfPassedProcessSteps 
                 }
                 break
             }

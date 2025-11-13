@@ -15,7 +15,8 @@ import { DebugShowOptions } from './io_config.js'
 import { Timestamp, TimeUnit, Value, Effort, I_VcWorkOrders,
          I_SystemStatistics, I_ValueChainStatistics, I_ProcessStepStatistics, I_WorkItemStatistics, I_EndProductMoreStatistics, 
          I_IterationRequests, I_SystemState, I_ValueChain, I_ProcessStep, I_WorkItem, I_WorkerState, I_LearningStatsWorkers, 
-         I_VcPsWipLimit, I_FrontendPresets} from './io_api_definitions.js'
+         I_VcPsWipLimit, I_FrontendPresets,
+         WorkitemQuality} from './io_api_definitions.js'
 import { environment } from './environment.js'
 import { SearchLog, VectorDimensionMapper, VectorDimension, Position, Direction, PeakSearchParms, SearchState, nextSearchState } from './optimize.js'
 
@@ -105,10 +106,10 @@ export class LonelyLobsterSystem {
         // workers select workitems and work them
         this.workers = reshuffle(this.workers) // avoid that work is assigned to workers always in the same worker sequence  
         this.workers.forEach(wo => wo.work(this.assignmentSet))
-
+/*
         // update workitem extended statistical infos after workers have done their work 
         this.valueChains.forEach(vc => vc.updateWorkItemsExtendedInfos())
-
+*/
         // update workers stats after having worked
         this.workers.forEach(wo => wo.utilization(this))
 
@@ -116,6 +117,9 @@ export class LonelyLobsterSystem {
         this.valueChains.forEach(vc => vc.processSteps.forEach(ps => ps.lastIterationFlowRate = 0))
         // move finished work items from process steps on to the next (or to the output basket)
         this.valueChains.forEach(vc => vc.letWorkItemsFlow())
+
+        // update workitem extended statistical infos after workers have done their work 
+        this.valueChains.forEach(vc => vc.updateWorkItemsExtendedInfos())
     }    
 //----------------------------------------------------------------------
 //    API mode - Initialization
@@ -197,7 +201,10 @@ export class LonelyLobsterSystem {
             processStepId:                    wi.currentWorkItemBasketHolder.id,
             normEffort:                       (<ProcessStep>wi.currentWorkItemBasketHolder).normEffort,
             accumulatedEffort:                wi.extendedInfos!.workOrderExtendedInfos[WiExtInfoElem.accumulatedEffortInProcessStep],
-            elapsedTime:                      wi.extendedInfos!.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInProcessStep]
+            progress:                         wi.progress(0, this.clock.time),
+            quality:                          wi.hasUndetectedDefectAtIntervalEnd(0, this.clock.time) ? WorkitemQuality.defect : WorkitemQuality.good,
+            elapsedTime:                      wi.extendedInfos!.workOrderExtendedInfos[WiExtInfoElem.elapsedTimeInProcessStep],
+            materializedValue:                0
         }
     }
 
@@ -242,8 +249,12 @@ export class LonelyLobsterSystem {
             processStepId:      wi.currentWorkItemBasketHolder.id,
             valueChainId:       wi.valueChain.id,
             normEffort:         wi.valueChain.normEffort, 
-            accumulatedEffort:  wi.valueChain.normEffort,
-            elapsedTime:        wi.cycleTimeInValueChain()!
+            accumulatedEffort:  wi.workedLogEntries().length,
+            progress:           { real: wi.valueChain.normEffort, apparent: wi.valueChain.normEffort }, 
+            quality:            wi.hasUndetectedDefectAtIntervalEnd(0, this.clock.time) ? WorkitemQuality.defect : WorkitemQuality.good,
+            elapsedTime:        wi.cycleTimeInValueChain()!,
+            materializedValue:  wi.materializedValue()
+
         }
     }
 

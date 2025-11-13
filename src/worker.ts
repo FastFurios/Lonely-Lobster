@@ -6,7 +6,7 @@
 
 import { LogEntry, LogEntryType } from './logging.js'
 import { topElemAfterSort, randomlyPickedByWeigths, arrayWithModifiedWeightOfAnElement, WeightedElement, SortVectorSequence, arrayWithNormalizedWeights } from "./helpers.js"
-import { Timestamp, WorkerName, Value, TimeUnit, I_WeightedSelectionStrategyAtTimestamp, I_LearningStatsWorker, I_SystemStatistics  } from './io_api_definitions'
+import { Timestamp, WorkerName, Value, TimeUnit, I_WeightedSelectionStrategyAtTimestamp, I_LearningStatsWorker, I_SystemStatistics, WorkitemQuality  } from './io_api_definitions.js'
 import { WorkItem, WiExtInfoElem, WiExtInfoTuple } from './workitem.js'
 import { ProcessStep } from './workitembasketholder.js'
 import { ValueChain } from './valuechain.js'
@@ -273,7 +273,7 @@ export class Worker {
         }
 
         // --- working -----
-        if (this.hasWorkedAt(this.sys.clock.time)) return    // worker has already worked at current time
+        if (this.hasWorkedAt(this.sys.clock.time)) return    // worker has already worked at current time unit
 
         /** find the work items at hand that not yet finished at the current process step and 
          * which no other worker has already worked on at the current time */
@@ -290,8 +290,19 @@ export class Worker {
 
         // if(this.sys.debugShowOptions.workerChoices) console.log(`=> ${this.id} picked: ${wi.id}|${wi.tag[0]}`)
 
-        wi.logWorkedEvent(this)     // record in the work item log that the worker worked the item
+        let qualityOfWork: WorkitemQuality | undefined = undefined
+        let defectDetection: boolean | undefined       = undefined        
+        if (this.sys.clock.time == 3) qualityOfWork = WorkitemQuality.defect
+        if (this.sys.clock.time == 5) defectDetection = wi.hasUndetectedDefectAtIntervalEnd(0, this.sys.clock.time) 
+
+        wi.logWorkedEvent(this, qualityOfWork, defectDetection)     // record in the work item log that the worker worked the item
         this.logEventWorked()       // record in the worker's log that he did the work
+        
+        // if the worker detects a defect relocate the work item to the process step where rework should resume 
+        if (defectDetection) {
+            (<ProcessStep>wi.currentWorkItemBasketHolder).moveTo(wi, wi.toBeProcessStepDerivedFromRealProgress?.processStep!)
+            wi.moveTo(wi.toBeProcessStepDerivedFromRealProgress?.processStep!)
+        }
     }
 
     /**
